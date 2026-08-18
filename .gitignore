@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+*.log
+data/raw/
+data/private/
+models/*.pkl
+models/*.joblib
