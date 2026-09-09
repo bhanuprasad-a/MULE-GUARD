@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Alerts</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+                rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <script>
+                // Suppress Chrome extension errors
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || 
+                                        msg.includes('widget') || 
+                                        msg.includes('publicKey') || 
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+
+                        console.warn = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalWarn.apply(console, args);
+                        };
+
+                        console.error = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalError.apply(console, args);
+                        };
+
+                        console.log = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalLog.apply(console, args);
+                        };
+                })();
+        </script>
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                /* Custom scrollbar styles */
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+
+                /* Staggered entrance page animations */
+                @keyframes headingFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(6px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .heading-animate {
+                        animation: headingFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes cardFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(8px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .kpi-card-animate {
+                        opacity: 0;
+                        animation: cardFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes simpleFadeIn {
+                        from {
+                                opacity: 0;
+                        }
+                        to {
+                                opacity: 1;
+                        }
+                }
+                .fade-in-animate {
+                        opacity: 0;
+                        animation: simpleFadeIn 0.4s ease-out forwards;
+                }
+
+                /* Staggered loading card delays */
+                .stagger-1 { animation-delay: 0.05s; }
+                .stagger-2 { animation-delay: 0.12s; }
+                .stagger-3 { animation-delay: 0.19s; }
+                .stagger-4 { animation-delay: 0.26s; }
+
+                /* Table hover animations */
+                tr:hover .inspect-arrow {
+                        transform: translateX(3px);
+                }
+                tr:hover .case-id-cell {
+                        color: #1d4ed8 !important;
+                        text-decoration: underline;
+                }
+
+                /* Drawer sections staggered fade/slide transitions */
+                .drawer-section {
+                        opacity: 0;
+                        transform: translateY(6px);
+                        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+                }
+                .show-content .drawer-section {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+                .drawer-stagger-1 { transition-delay: 0.04s; }
+                .drawer-stagger-2 { transition-delay: 0.10s; }
+                .drawer-stagger-3 { transition-delay: 0.16s; }
+                .drawer-stagger-4 { transition-delay: 0.22s; }
+                .drawer-stagger-5 { transition-delay: 0.28s; }
+                .drawer-stagger-6 { transition-delay: 0.34s; }
+
+                /* Risk badges hover */
+                .risk-tag {
+                        transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+                }
+                .risk-tag:hover {
+                        transform: translateY(-1px);
+                        filter: brightness(0.96);
+                }
+
+                /* Respect prefers-reduced-motion settings */
+                @media (prefers-reduced-motion: reduce) {
+                        .heading-animate, 
+                        .kpi-card-animate, 
+                        .fade-in-animate, 
+                        .drawer-section {
+                                animation: none !important;
+                                transition: none !important;
+                        }
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Details Drawer Backdrop Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-primary/45 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none" onclick="closeDetailDrawer()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                
+                <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- Sidebar Header & Logo -->
+                        <div class="h-[70px] flex items-center px-6 border-b border-[#1e293b] gap-3">
+                                <img alt="MuleGuard Logo" class="w-[110px] h-auto object-contain" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+                        </div>
+
+                        <!-- Sidebar Menu Groups -->
+                        <nav class="flex-1 px-4 py-6 space-y-7">
+                                <!-- Command Center Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Command Center</span>
+                                        </div>
+                                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                                                <span>Dashboard</span>
+                                        </a>
+                                        <a href="investigations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">search_insights</span>
+                                                <span>Investigations</span>
+                                        </a>
+                                        <a href="transactions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                                                <span>Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">group</span>
+                                                <span>Entities</span>
+                                        </a>
+                                        <a href="fraud_networks.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">share</span>
+                                                <span>Fraud Networks</span>
+                                        </a>
+                                        <!-- Active Navigation State for Alerts Page -->
+                                        <a href="alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px] text-secondary-container">notifications_active</span>
+                                                <span class="font-medium">Alerts</span>
+                                        </a>
+                                        <a href="cases.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">work</span>
+                                                <span>Cases</span>
+                                        </a>
+                                </div>
+
+                                <!-- Intelligence Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
+                                        </div>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                                                <span>Risk Analytics</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">hub</span>
+                                                <span>Network Intelligence</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">rule_folder</span>
+                                                <span>Watchlists</span>
+                                        </a>
+                                </div>
+                        </nav>
+                </div>
+
+                <!-- Sidebar Footer Status -->
+                <div class="p-4 border-t border-[#1e293b] space-y-4">
+                        <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Secure Systems OK</span>
+                                </div>
+                                <span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]">
+                                <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[13px] text-on-primary font-bold">
+                                                AK
+                                        </div>
+                                        <div class="flex flex-col">
+                                                <span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight">A. Kumar</span>
+                                                <span class="font-body-md text-[11px] text-on-primary-container/50">Senior Analyst</span>
+                                        </div>
+                                </div>
+                                <button class="text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none" onclick="showToast('Analyst configuration opened.')">
+                                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                                </button>
+                        </div>
+                </div>
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <!-- Mobile Menu Toggle Trigger -->
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Alerts</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Real-time risk alerts queue, policy violation triggers and anomaly tracking.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <!-- Global Search Container -->
+                                <div class="relative hidden sm:block">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-outline">search</span>
+                                        <input id="global-header-search" class="w-[240px] bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-4 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200" placeholder="Search alerts, accounts, rules..." type="text" oninput="triggerGlobalSearch()" />
+                                </div>
+
+                                <!-- Notification Bell -->
+                                <button class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors focus:outline-none" onclick="showToast('No new urgent cases in queue.')">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+                                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-risk-high rounded-full ring-2 ring-white"></span>
+                                </button>
+
+                                <!-- System Badge Online -->
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Secure Systems Online</span>
+                                </div>
+
+                                <!-- Separator -->
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- Small User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <!-- Profile Dropdown Menu -->
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading profile panel...')">My Profile</a>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading system configurations...')">System Configuration</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" onclick="logoutUser()" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- Queue Header Controls -->
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left heading-animate">
+                                <div class="flex flex-col">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Alerts Queue</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant leading-none mt-1">Real-time risk alerts queue, policy violation triggers and anomaly tracking.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                        <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="showToast('Exporting Alerts matrix...')">
+                                                Export Alerts
+                                        </button>
+                                        <button class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="showToast('Add Alert panel opened.')">
+                                                + Add Alert
+                                        </button>
+                                        <button id="refresh-alerts-btn" class="border border-secondary text-secondary hover:bg-secondary hover:text-white rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="refreshAlerts()">
+                                                ↻ Refresh Alerts
+                                        </button>
+                                </div>
+                        </div>
+
+                        <!-- KPI Summary Cards Panel -->
+                        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                <!-- Card 1 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-1">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container opacity-40"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Total Alerts</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#316bf3]">notifications</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-total" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">65</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-low leading-none">trending_up</span>
+                                                <span class="font-semibold text-risk-low">+12 new</span>
+                                                <span>this hour</span>
+                                        </div>
+                                </div>
+                                <!-- Card 2 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-2">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-red-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-red-600">Critical Severity</span>
+                                                <div class="w-8 h-8 rounded-lg bg-red-50/70 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-red-600">error</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-critical" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">14</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-red-600 font-semibold leading-none">Immediate response required</span>
+                                        </div>
+                                </div>
+                                <!-- Card 3 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-3">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-orange-600">High & Medium Alerts</span>
+                                                <div class="w-8 h-8 rounded-lg bg-orange-50/70 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500">warning</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-medium-high" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">28</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-orange-600 font-semibold leading-none">Active analysis queue</span>
+                                        </div>
+                                </div>
+                                <!-- Card 4 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-4">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-blue-600"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-blue-600">Investigating</span>
+                                                <div class="w-8 h-8 rounded-lg bg-blue-50/70 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-blue-600">pending</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-investigating" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">23</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-blue-600 font-semibold leading-none">Assigned to analysts</span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Filter & Search Toolbar Card -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-4 rounded-xl shadow-sm select-none fade-in-animate">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                        <!-- Text Search input -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Search Alerts</label>
+                                                <input id="filter-search" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150" placeholder="Alert ID, entity, category..." type="text" oninput="onSearchInput()" />
+                                        </div>
+
+                                        <!-- Severity dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Severity</label>
+                                                <select id="filter-severity" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Severities</option>
+                                                        <option value="Critical">Critical</option>
+                                                        <option value="High">High</option>
+                                                        <option value="Medium">Medium</option>
+                                                        <option value="Low">Low</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Category dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Category</label>
+                                                <select id="filter-category" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Categories</option>
+                                                        <option value="Velocity Anomaly">Velocity Anomaly</option>
+                                                        <option value="Structuring">Structuring</option>
+                                                        <option value="Behavioral Shift">Behavioral Shift</option>
+                                                        <option value="Identity Fraud">Identity Fraud</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Status dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Status</label>
+                                                <select id="filter-status" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Statuses</option>
+                                                        <option value="New">New</option>
+                                                        <option value="Investigating">Investigating</option>
+                                                        <option value="Dismissed">Dismissed</option>
+                                                        <option value="Escalated">Escalated</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Clear Filters button -->
+                                        <div class="flex flex-col text-left justify-end">
+                                                <button class="w-full border border-outline-variant hover:border-secondary hover:text-secondary rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="clearAllWorkspaceFilters()">
+                                                        Clear Filters
+                                                </button>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Main Table Cases Queue -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm fade-in-animate">
+                                <div class="w-full overflow-x-auto">
+                                        <table class="w-full border-collapse text-left" id="alerts-table">
+                                                <thead>
+                                                        <tr class="border-b border-[#e2e8f0]">
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider whitespace-nowrap min-w-[110px]">Alert ID</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[180px]">Target Account</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[145px]">Category</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider whitespace-nowrap min-w-[120px]">Detection Source</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[110px]">Risk Score</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[110px]">Value</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">Detected Time</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Severity</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[130px]">Status</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[100px]">Action</th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="alerts-tbody">
+                                                        <!-- Rows rendered dynamically by renderAlerts() -->
+                                                </tbody>
+
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">AL-982711</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Apex Trading Ltd</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Velocity Anomaly</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">91 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹2,40,000</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">12 min ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Critical</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">New</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('AL-982711')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 2 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-alert-id="AL-982705" data-severity="High" data-status="Investigating" data-category="Structuring" onclick="rowClickAction(event, 'AL-982705')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">AL-982705</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Orion Financial</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Structuring</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">78 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹9,950</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">28 min ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">High</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('AL-982705')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 3 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-alert-id="AL-982698" data-severity="Medium" data-status="New" data-category="Behavioral Shift" onclick="rowClickAction(event, 'AL-982698')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">AL-982698</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Vertex Imports</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Behavioral Shift</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">62 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹1,50,000</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">41 min ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200">Medium</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">New</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('AL-982698')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 4 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-alert-id="AL-982684" data-severity="Critical" data-status="New" data-category="Identity Fraud" onclick="rowClickAction(event, 'AL-982684')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">AL-982684</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Blackwood Clearing</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Identity Fraud</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">97 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹12,00,000</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">1 hr ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Critical</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">New</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('AL-982684')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 5 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-alert-id="AL-982676" data-severity="High" data-status="Investigating" data-category="Velocity Anomaly" onclick="rowClickAction(event, 'AL-982676')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">AL-982676</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Phoenix Logistics</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Velocity Anomaly</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">72 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹35,000</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">2 hrs ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">High</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('AL-982676')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 6 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-alert-id="AL-982650" data-severity="Low" data-status="Dismissed" data-category="Behavioral Shift" onclick="rowClickAction(event, 'AL-982650')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">AL-982650</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Meridian Treasury</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Behavioral Shift</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">38 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹45,00,000</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">3 hrs ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Low</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">Dismissed</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('AL-982650')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Footer System status bar -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Network: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Transaction Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Risk Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Alert Queue: Online</span>
+                                </div>
+                        </div>
+                        <div class="hidden sm:block">
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Fraud Intelligence</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Drawer ML Intelligence block (injected into drawer by openDetailDrawer) -->
+        <!-- Slider Drawer Workspace for Alerts -->
+        <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[520px] bg-interface-base border-l border-outline-variant/60 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between select-none overflow-hidden text-left">
+                <!-- Sticky Drawer Header -->
+                <div class="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low sticky top-0 z-10 flex-shrink-0">
+                        <div class="flex flex-col text-left">
+                                <div class="flex items-center gap-2">
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Alert Workspace</span>
+                                        <span id="drawer-source-badge" class="hidden px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"></span>
+                                </div>
+                                <h3 id="drawer-title-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">AL-982711</h3>
+                        </div>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-outline-variant/30 transition-colors focus:outline-none" onclick="closeDetailDrawer()">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface">close</span>
+                        </button>
+                </div>
+
+                <!-- Scrollable Drawer Body -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <!-- Alert Quick Overview -->
+                        <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Target Account:</span>
+                                        <span id="drawer-target-account" class="font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Alert Category:</span>
+                                        <span id="drawer-category" class="font-body-md text-[13px] text-on-surface font-semibold">Velocity Anomaly</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Risk Score:</span>
+                                        <span id="drawer-risk-score" class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded">91 / 100</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Impact Value:</span>
+                                        <span id="drawer-value" class="font-mono-technical text-[13px] text-on-surface font-bold">₹2,40,000</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Detected Time:</span>
+                                        <span id="drawer-detected-time" class="font-body-md text-[13px] text-on-surface">12 min ago</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Severity Level:</span>
+                                        <span id="drawer-severity-label" class="font-body-md text-[13px] font-bold">Critical</span>
+                                </div>
+                                <!-- Linked Case chip (shown when caseId exists) -->
+                                <div id="drawer-case-chip-row" class="hidden flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Linked Case:</span>
+                                        <span id="drawer-case-chip" class="font-mono-technical text-[11px] font-bold text-secondary bg-blue-50 border border-blue-200 px-2 py-0.5 rounded"></span>
+                                </div>
+                        </div>
+
+                        <!-- ML Intelligence Block (shown for ML and Combined alerts) -->
+                        <div id="drawer-ml-block" class="hidden space-y-3 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-2">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">ML Intelligence — Suspicious Probability</span>
+                                <div class="p-3 bg-blue-50/60 border border-blue-200/60 rounded-xl space-y-3">
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-body-md text-[12px] text-on-surface-variant">Suspicious Probability:</span>
+                                                <span id="drawer-ml-prob" class="font-mono-technical text-[13px] font-bold text-blue-700">—</span>
+                                        </div>
+                                        <div class="w-full bg-blue-100 rounded-full h-2">
+                                                <div id="drawer-ml-prob-bar" class="h-2 rounded-full bg-blue-600 transition-all duration-500" style="width:0%"></div>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-body-md text-[12px] text-on-surface-variant">Risk Level:</span>
+                                                <span id="drawer-ml-level" class="font-mono-technical text-[12px] font-bold">—</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-body-md text-[12px] text-on-surface-variant">Threshold at Detection:</span>
+                                                <span id="drawer-ml-threshold" class="font-mono-technical text-[12px] text-on-surface-variant">—</span>
+                                        </div>
+                                        <p class="font-body-md text-[11px] text-blue-700/80 italic">Potential Mule Activity — Requires Investigation. This is a statistical probability, not a confirmed determination.</p>
+                                </div>
+                                <!-- Top Contributing Features -->
+                                <div id="drawer-top-features" class="space-y-1.5"></div>
+                        </div>
+
+                        <!-- 1. Alert Summary -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-3">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">1. Alert Summary</span>
+                                <p id="drawer-summary" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed bg-[#f8fafc] border border-[#e2e8f0] p-3 rounded-lg mt-1 text-left">
+                                        Aggregate transfers exceeded maximum daily velocity threshold by 240%.
+                                </p>
+                        </div>
+
+                        <!-- 2. Risk Trigger Explanation -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">2. Risk Trigger Explanation</span>
+                                <p id="drawer-risk-explanation" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed text-left pt-1">
+                                        Alert triggered on account Apex Trading routing 12 consecutive ₹20,000 batches inside a 30-minute window.
+                                </p>
+                        </div>
+
+                        <!-- 3. Trigger Indicators -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-5">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">3. Trigger Indicators</span>
+                                <div id="drawer-risk-tags" class="flex flex-wrap gap-2 pt-1">
+                                        <!-- Dynamic tags -->
+                                </div>
+                        </div>
+
+                        <!-- 4. Network Evidence (shown for ML/Combined alerts) -->
+                        <div id="drawer-network-block" class="hidden space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-5">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">4. Network Evidence</span>
+                                <div id="drawer-network-grid" class="grid grid-cols-2 gap-2 mt-1"></div>
+                        </div>
+
+                        <!-- 5. Investigation Intelligence References -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-6">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">5. Investigation Intelligence References</span>
+                                <div class="grid grid-cols-2 gap-3 mt-1">
+                                        <a href="transactions.html" class="flex items-center gap-2 p-2.5 rounded bg-surface-container-low border border-outline-variant/40 hover:border-secondary hover:text-secondary font-body-md text-[12px] transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+                                                <span>Inspect Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-2 p-2.5 rounded bg-surface-container-low border border-outline-variant/40 hover:border-secondary hover:text-secondary font-body-md text-[12px] transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">group</span>
+                                                <span>Inspect Entities</span>
+                                        </a>
+                                </div>
+                        </div>
+
+                        <!-- 6. Analyst Case Log -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-6">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">6. Analyst Case Log</span>
+                                <p id="drawer-notes" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed text-left border-l-2 border-secondary/50 pl-3 italic bg-[#f8fafc] py-2 rounded-r-lg">
+                                        Active ledger monitoring shows regular settlement loops every Tuesday. Suspicious Activity Reports (SAR) filed.
+                                </p>
+                        </div>
+                </div>
+
+                <!-- Sticky Drawer Actions Footer -->
+                <div class="p-6 border-t border-outline-variant/30 bg-surface-container-low flex flex-wrap gap-3 sticky bottom-0 z-10 flex-shrink-0">
+                        <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] font-bold active:scale-95 transition-all duration-150 focus:outline-none flex-1" onclick="triggerDrawerAction('Acknowledge')">
+                                Acknowledge
+                        </button>
+                        <button class="bg-risk-high hover:bg-red-700 text-white rounded-lg px-4 py-2 font-label-md text-[12px] font-bold active:scale-95 transition-all duration-150 focus:outline-none shadow-sm flex-1" onclick="triggerDrawerAction('Escalate')">
+                                Escalate Case
+                        </button>
+                        <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none flex-shrink-0" onclick="triggerDrawerAction('Dismiss')">
+                                Dismiss
+                        </button>
+                </div>
+        </div>
+
+        <!-- Confirm Modal Window dialog -->
+        <div id="confirm-modal" class="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity duration-200">
+                <div class="bg-interface-base border border-outline-variant/60 rounded-xl max-w-md w-full p-6 shadow-2xl transform scale-95 transition-transform duration-200 select-none text-left">
+                        <h4 id="confirm-modal-title" class="font-headline-md text-[16px] text-on-surface font-extrabold">Confirm Escalation</h4>
+                        <p id="confirm-modal-body" class="font-body-md text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                                Are you sure you want to escalate this alert?
+                        </p>
+                        <div class="flex justify-end gap-3 mt-6">
+                                <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="closeConfirmModal()">
+                                        Cancel
+                                </button>
+                                <button id="confirm-submit-btn" class="bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="submitConfirmModal()">
+                                        Confirm
+                                </button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <!-- Javascript Dynamic Page Interactions -->
+        <script>
+                // Alerts database loaded dynamically from MuleGuardStore
+                const staticAlertsFallback = {
+                        'AL-982711': {
+                                id: 'AL-982711',
+                                target: 'Apex Trading Ltd',
+                                category: 'Velocity Anomaly',
+                                score: 91,
+                                amount: '₹2,40,000',
+                                time: '12 min ago',
+                                severity: 'Critical',
+                                status: 'New',
+                                summary: 'Aggregate transfers exceeded maximum daily velocity threshold by 240%.',
+                                indicators: ['High frequency routing', 'Offshore destination mismatch', 'Velocity cap breach'],
+                                riskExplanation: 'Alert triggered on account Apex Trading routing 12 consecutive ₹20,000 batches inside a 30-minute window.',
+                                notes: 'Related to Apex-Northstar shell network. Requires immediate escalation.'
+                        },
+                        'AL-982705': {
+                                id: 'AL-982705',
+                                target: 'Orion Financial',
+                                category: 'Structuring',
+                                score: 78,
+                                amount: '₹9,950',
+                                time: '28 min ago',
+                                severity: 'High',
+                                status: 'Investigating',
+                                summary: 'Suspicious transaction structuring below standard reporting limits.',
+                                indicators: ['Limit avoidance', 'Multiple locations', 'Same-day cashout'],
+                                riskExplanation: 'Transaction of ₹9,950 processed immediately following a ₹9,900 deposit at a separate terminal location.',
+                                notes: 'Sub-ledger details review pending. Account owner has active PEP links.'
+                        },
+                        'AL-982698': {
+                                id: 'AL-982698',
+                                target: 'Vertex Imports',
+                                category: 'Behavioral Shift',
+                                score: 62,
+                                amount: '₹1,50,000',
+                                time: '41 min ago',
+                                severity: 'Medium',
+                                status: 'New',
+                                summary: 'Abnormal transaction sizing compared to 90-day historic account averages.',
+                                indicators: ['Historic average breach', 'New counterparty routing', 'Foreign clearing source'],
+                                riskExplanation: 'An incoming clearance of ₹150,000 from a new counterparty deviates significantly from Vertex Imports typical average of ₹5,000.',
+                                notes: 'Shipping bills matched for domestic logistics. Flagged temporarily.'
+                        },
+                        'AL-982684': {
+                                id: 'AL-982684',
+                                target: 'Blackwood Assets',
+                                category: 'Identity Fraud',
+                                score: 97,
+                                amount: '₹12,00,000',
+                                time: '1 hr ago',
+                                severity: 'Critical',
+                                status: 'New',
+                                summary: 'Duplicate corporate registration files and device footprint detected.',
+                                indicators: ['Identity document duplication', 'Shared device footprint', 'High risk region access'],
+                                riskExplanation: 'Identical UBO certification registry upload matched directly against previously blacklisted shell nodes.',
+                                notes: 'Operations blocked. SAR package compiled for financial intelligence unit.'
+                        },
+                        'AL-982676': {
+                                id: 'AL-982676',
+                                target: 'Phoenix Logistics',
+                                category: 'Velocity Anomaly',
+                                score: 72,
+                                amount: '₹35,000',
+                                time: '2 hrs ago',
+                                severity: 'High',
+                                status: 'Investigating',
+                                summary: 'Rapid circular pass-through funds routing observed across domestic nodes.',
+                                indicators: ['Circular balance clearing', 'Rapid transit routing', 'Short duration holding'],
+                                riskExplanation: 'Phoenix Logistics received ₹35,000 and routed the exact amount to swift sub-clearance accounts within 12 seconds.',
+                                notes: 'Awaiting invoice verification details from trade compliance desk.'
+                        },
+                        'AL-982650': {
+                                id: 'AL-982650',
+                                target: 'Meridian Treasury',
+                                category: 'Behavioral Shift',
+                                score: 38,
+                                amount: '₹45,00,000',
+                                time: '3 hrs ago',
+                                severity: 'Low',
+                                status: 'Dismissed',
+                                summary: 'Standard clearing baseline clearance. Flagged due to initial automated size limit thresholds.',
+                                indicators: ['Automated limit trigger', 'Institutional counterparties', 'No high risk attributes'],
+                                riskExplanation: 'Risk score low (38). Standard high-value corporate treasury dispatch. Approved counterparties verified.',
+                                notes: 'Audited and cleared by senior compliance team.'
+                        }
+                };
+
+                const alertsDb = (window.MuleGuardStore) ? window.MuleGuardStore.getAlerts().reduce((acc, a) => {
+                        acc[a.id] = a;
+                        return acc;
+                }, {}) : staticAlertsFallback;
+
+                // Global variables for cached workspace operations
+                let cachedRows = [];
+                let searchDebounceTimeout;
+                const detailDrawerEl = document.getElementById('detail-drawer');
+                const drawerOverlayEl = document.getElementById('drawer-overlay');
+                let drawerTimeouts = [];
+
+                // Toggle mobile navigation sidebar
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                // Show alert toast alerts
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                // Clear dynamic drawer staggered timeouts
+                function clearDrawerTimeouts() {
+                        drawerTimeouts.forEach(t => clearTimeout(t));
+                        drawerTimeouts = [];
+                }
+
+                // Open workspace drawer details and render dynamic content
+                function openDetailDrawer(alertId) {
+                        const data = alertsDb[alertId];
+                        if (!data) return;
+
+                        // Prevent body scrolling when drawer is active
+                        document.body.classList.add('overflow-hidden');
+
+                        // Clear pending stagger loads
+                        clearDrawerTimeouts();
+
+                        // Populate dynamic text fields
+                        document.getElementById('drawer-title-id').textContent = data.id;
+                        document.getElementById('drawer-target-account').textContent = data.accountName || data.target;
+                        document.getElementById('drawer-category').textContent = data.category;
+                        document.getElementById('drawer-risk-score').textContent = `${data.score} / 100`;
+                        document.getElementById('drawer-value').textContent = data.amount;
+                        document.getElementById('drawer-detected-time').textContent = data.time || data.createdAt || '—';
+                        document.getElementById('drawer-summary').textContent = data.summary;
+                        document.getElementById('drawer-risk-explanation').textContent = data.riskExplanation;
+                        document.getElementById('drawer-notes').textContent = data.notes || '—';
+
+                        // Detection Source badge in drawer header
+                        const srcBadge = document.getElementById('drawer-source-badge');
+                        if (srcBadge) {
+                                if (data.detectionSource === 'Combined') {
+                                        srcBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 border border-red-300';
+                                        srcBadge.textContent = 'Corroborated';
+                                        srcBadge.classList.remove('hidden');
+                                } else if (data.detectionSource === 'ML') {
+                                        srcBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-300';
+                                        srcBadge.textContent = 'ML Risk';
+                                        srcBadge.classList.remove('hidden');
+                                } else if (data.detectionSource === 'Rule') {
+                                        srcBadge.className = 'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-300';
+                                        srcBadge.textContent = 'Rule Alert';
+                                        srcBadge.classList.remove('hidden');
+                                } else {
+                                        srcBadge.classList.add('hidden');
+                                }
+                        }
+
+                        // Linked Case chip
+                        const caseChipRow = document.getElementById('drawer-case-chip-row');
+                        const caseChip = document.getElementById('drawer-case-chip');
+                        if (caseChipRow && caseChip) {
+                                if (data.caseId) {
+                                        caseChip.textContent = data.caseId;
+                                        caseChipRow.classList.remove('hidden');
+                                        caseChipRow.classList.add('flex');
+                                } else {
+                                        caseChipRow.classList.add('hidden');
+                                        caseChipRow.classList.remove('flex');
+                                }
+                        }
+
+                        // ML Intelligence block
+                        const mlBlock = document.getElementById('drawer-ml-block');
+                        if (mlBlock && data.mlProbability !== undefined) {
+                                const pct = Math.round(data.mlProbability * 100);
+                                const threshPct = Math.round((data.mlThresholdUsed || 0.30) * 100);
+                                document.getElementById('drawer-ml-prob').textContent = `${pct}% (threshold: ${threshPct}%)`;
+                                const bar = document.getElementById('drawer-ml-prob-bar');
+                                if (bar) bar.style.width = `${pct}%`;
+                                const levelEl = document.getElementById('drawer-ml-level');
+                                if (levelEl) {
+                                        levelEl.textContent = data.mlRiskLevel || '—';
+                                        levelEl.className = data.mlRiskLevel === 'High' ? 'font-mono-technical text-[12px] font-bold text-red-600' :
+                                                (data.mlRiskLevel === 'Moderate' ? 'font-mono-technical text-[12px] font-bold text-amber-600' :
+                                                'font-mono-technical text-[12px] font-bold text-blue-600');
+                                }
+                                const threshEl = document.getElementById('drawer-ml-threshold');
+                                if (threshEl) threshEl.textContent = `${threshPct}%`;
+
+                                // Top Contributing Features
+                                const featuresEl = document.getElementById('drawer-top-features');
+                                if (featuresEl && data.topFeatures && data.topFeatures.length > 0) {
+                                        featuresEl.innerHTML = '<span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold block mb-1">Top Contributing Features</span>';
+                                        data.topFeatures.forEach(f => {
+                                                const v = (typeof f.value === 'boolean') ? (f.value ? 'Yes' : 'No') : (typeof f.value === 'number' ? f.value.toFixed(2) : f.value);
+                                                featuresEl.innerHTML += `<div class="flex justify-between items-center py-1 border-b border-outline-variant/10">
+                                                        <span class="font-body-md text-[12px] text-on-surface-variant">${f.label}</span>
+                                                        <span class="font-mono-technical text-[12px] font-bold text-on-surface">${v}</span>
+                                                </div>`;
+                                        });
+                                }
+                                mlBlock.classList.remove('hidden');
+                        } else if (mlBlock) {
+                                mlBlock.classList.add('hidden');
+                        }
+
+                        // Network Evidence block
+                        const netBlock = document.getElementById('drawer-network-block');
+                        if (netBlock && data.networkEvidence) {
+                                const ev = data.networkEvidence;
+                                const netGrid = document.getElementById('drawer-network-grid');
+                                if (netGrid) {
+                                        const items = [
+                                                ['Cycle Participation', ev.cycleParticipation > 0 ? 'Detected' : 'None', ev.cycleParticipation > 0],
+                                                ['Network HHI', ev.networkConcentration.toFixed(2), ev.networkConcentration > 0.7],
+                                                ['Fan-In', ev.fanIn, ev.fanIn >= 3],
+                                                ['Fan-Out', ev.fanOut, ev.fanOut >= 3],
+                                                ['2-Hop Reach', ev.multiHopConnectivity, ev.multiHopConnectivity > 5],
+                                                ['Temporal Gap', `${ev.temporalProximity} min`, ev.temporalProximity < 30]
+                                        ];
+                                        netGrid.innerHTML = items.map(([label, val, highlight]) =>
+                                                `<div class="p-2 rounded bg-surface-container-low border ${highlight ? 'border-orange-300 bg-orange-50/40' : 'border-outline-variant/30'}">
+                                                        <div class="font-mono-technical text-[9px] text-on-surface-variant uppercase">${label}</div>
+                                                        <div class="font-mono-technical text-[13px] font-bold ${highlight ? 'text-orange-700' : 'text-on-surface'} mt-0.5">${val}</div>
+                                                </div>`
+                                        ).join('');
+                                }
+                                netBlock.classList.remove('hidden');
+                        } else if (netBlock) {
+                                netBlock.classList.add('hidden');
+                        }
+
+                        // Severity level styling
+                        const severityLabel = document.getElementById('drawer-severity-label');
+                        severityLabel.textContent = data.severity;
+                        if (data.severity === 'Critical') {
+                                severityLabel.className = "font-body-md text-[13px] text-red-600 font-bold";
+                        } else if (data.severity === 'High') {
+                                severityLabel.className = "font-body-md text-[13px] text-orange-600 font-bold";
+                        } else if (data.severity === 'Medium') {
+                                severityLabel.className = "font-body-md text-[13px] text-yellow-600 font-bold";
+                        } else {
+                                severityLabel.className = "font-body-md text-[13px] text-blue-600 font-bold";
+                        }
+
+                        // Style Risk Badge on Score criteria
+                        const scoreBadge = document.getElementById('drawer-risk-score');
+                        if (data.score >= 90) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200";
+                        } else if (data.score >= 70) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200";
+                        } else if (data.score >= 50) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200";
+                        } else {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200";
+                        }
+
+                        // Generate risk tags lists dynamically
+                        const tagsContainer = document.getElementById('drawer-risk-tags');
+                        if (tagsContainer) {
+                                tagsContainer.innerHTML = '';
+                                const indicators = data.triggeredRules || data.indicators || [];
+                                indicators.forEach(ind => {
+                                        let bgClass = "bg-blue-50 text-blue-800 border-blue-200";
+                                        if (data.score >= 90) bgClass = "bg-red-50 text-red-700 border-red-200";
+                                        else if (data.score >= 70) bgClass = "bg-orange-50 text-orange-700 border-orange-200";
+                                        
+                                        tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded border text-[11px] font-semibold font-sans cursor-pointer ${bgClass}">${ind}</span>`;
+                                });
+                                if (indicators.length === 0) {
+                                        tagsContainer.innerHTML = '<span class="text-[12px] text-on-surface-variant italic">No rule triggers for this alert.</span>';
+                                }
+                        }
+
+                        // Trigger staggered slide load transitions
+                        const items = document.querySelectorAll('.drawer-section');
+                        items.forEach((item, index) => {
+                                item.classList.remove('show-content');
+                                const t = setTimeout(() => {
+                                        item.classList.add('show-content');
+                                }, 40 + index * 30);
+                                drawerTimeouts.push(t);
+                        });
+
+                        detailDrawerEl.classList.remove('translate-x-full');
+                        detailDrawerEl.classList.add('show-content');
+                        drawerOverlayEl.classList.remove('opacity-0', 'pointer-events-none');
+                        drawerOverlayEl.classList.add('opacity-100', 'pointer-events-auto');
+                }
+
+                // Close slide drawer
+                function closeDetailDrawer() {
+                        // Restore body scroll
+                        document.body.classList.remove('overflow-hidden');
+
+                        clearDrawerTimeouts();
+                        const items = document.querySelectorAll('.drawer-section');
+                        items.forEach(item => item.classList.remove('show-content'));
+
+                        detailDrawerEl.classList.add('translate-x-full');
+                        detailDrawerEl.classList.remove('show-content');
+                        drawerOverlayEl.classList.remove('opacity-100', 'pointer-events-auto');
+                        drawerOverlayEl.classList.add('opacity-0', 'pointer-events-none');
+                }
+
+                // Confirm actions logic flow
+                let pendingAction = null;
+                let pendingAlertId = null;
+
+                function triggerDrawerAction(actionName) {
+                        const alertId = document.getElementById('drawer-title-id').textContent;
+                        const data = alertsDb[alertId];
+                        if (!data) return;
+
+                        pendingAction = actionName;
+                        pendingAlertId = alertId;
+
+                        const modal = document.getElementById('confirm-modal');
+                        const modalTitle = document.getElementById('confirm-modal-title');
+                        const modalBody = document.getElementById('confirm-modal-body');
+                        const submitBtn = document.getElementById('confirm-submit-btn');
+
+                        if (actionName === 'Dismiss') {
+                                modalTitle.textContent = "Confirm Alert Dismissal";
+                                modalBody.textContent = `Are you sure you want to dismiss alert ${alertId} associated with ${data.target}? This will remove it from active queues.`;
+                                submitBtn.className = "bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none";
+                                submitBtn.textContent = "Dismiss Alert";
+                                modal.classList.remove('hidden');
+                                setTimeout(() => {
+                                        modal.firstElementChild.classList.remove('scale-95');
+                                        modal.firstElementChild.classList.add('scale-100');
+                                }, 10);
+                        } else if (actionName === 'Escalate') {
+                                modalTitle.textContent = "Confirm Escalation";
+                                modalBody.textContent = `Are you sure you want to escalate alert ${alertId} to a formal investigation Case?`;
+                                submitBtn.className = "bg-risk-high hover:bg-red-700 text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm";
+                                submitBtn.textContent = "Escalate Case";
+                                modal.classList.remove('hidden');
+                                setTimeout(() => {
+                                        modal.firstElementChild.classList.remove('scale-95');
+                                        modal.firstElementChild.classList.add('scale-100');
+                                }, 10);
+                        } else {
+                                // Acknowledge direct trigger
+                                submitConfirmModal();
+                        }
+                }
+
+                function closeConfirmModal() {
+                        const modal = document.getElementById('confirm-modal');
+                        modal.firstElementChild.classList.remove('scale-100');
+                        modal.firstElementChild.classList.add('scale-95');
+                        setTimeout(() => {
+                                modal.classList.add('hidden');
+                        }, 150);
+                        pendingAction = null;
+                        pendingAlertId = null;
+                }
+
+                function submitConfirmModal() {
+                        const alertId = pendingAlertId;
+                        const action = pendingAction;
+                        const data = alertsDb[alertId];
+
+                        closeConfirmModal();
+
+                        if (action === 'Dismiss') {
+                                data.status = 'Dismissed';
+                                if (window.MuleGuardStore) {
+                                        window.MuleGuardStore.resolveAlert(alertId);
+                                }
+                                const row = document.querySelector("#alerts-tbody tr[data-alert-id='" + alertId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Dismissed');
+                                        const badge = row.querySelector('.status-badge-cell');
+                                        if (badge) {
+                                                badge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200";
+                                                badge.textContent = "Dismissed";
+                                        }
+                                }
+                                showToast(`Success: Alert ${alertId} has been dismissed.`);
+                        } else if (action === 'Escalate') {
+                                data.status = 'Escalated';
+                                if (window.MuleGuardStore) {
+                                        window.MuleGuardStore.escalateCase(data.caseId || 'CS-982714', 'Escalated alert review from workspace queue.', 'J. Doe');
+                                }
+                                const row = document.querySelector("#alerts-tbody tr[data-alert-id='" + alertId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Escalated');
+                                        const badge = row.querySelector('.status-badge-cell');
+                                        if (badge) {
+                                                badge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200";
+                                                badge.textContent = "Escalated";
+                                        }
+                                }
+                                showToast(`Success: Alert ${alertId} escalated to formal case queue.`);
+                        } else if (action === 'Acknowledge') {
+                                data.status = 'Investigating';
+                                if (window.MuleGuardStore) {
+                                        window.MuleGuardStore.log('Bank Investigator', `Acknowledged Alert ${alertId}`, `Started manual analysis.`);
+                                }
+                                const row = document.querySelector("#alerts-tbody tr[data-alert-id='" + alertId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Investigating');
+                                        const badge = row.querySelector('.status-badge-cell');
+                                        if (badge) {
+                                                badge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200";
+                                                badge.textContent = "Investigating";
+                                        }
+                                }
+                                showToast(`Success: Alert ${alertId} acknowledged.`);
+                        }
+
+                        applyWorkspaceFilters();
+                        closeDetailDrawer();
+                }
+
+                // Row clicking delegates inspect drawer open
+                function rowClickAction(event, alertId) {
+                        if (event.target.tagName.toLowerCase() === 'button' || event.target.tagName.toLowerCase() === 'a' || event.target.closest('button')) {
+                                return;
+                        }
+                        openDetailDrawer(alertId);
+                }
+
+                // ── renderAlerts ───────────────────────────────────────────────────────
+                // Dynamically renders all alerts from the store into #alerts-tbody.
+                // Also rebuilds alertsDb lookup and cachedRows array.
+                function renderAlerts() {
+                        if (!window.MuleGuardStore) return;
+                        const allAlerts = window.MuleGuardStore.getAlerts();
+
+                        // Rebuild alertsDb lookup
+                        Object.keys(alertsDb).forEach(k => delete alertsDb[k]);
+                        allAlerts.forEach(a => { alertsDb[a.id] = a; });
+
+                        // Sort by severity then createdAt
+                        const SORDER = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+                        const sorted = allAlerts.slice().sort((a, b) =>
+                                (SORDER[a.severity] || 3) - (SORDER[b.severity] || 3)
+                        );
+
+                        const tbody = document.getElementById('alerts-tbody');
+                        if (!tbody) return;
+
+                        tbody.innerHTML = sorted.map(a => {
+                                const sevBadge = a.severity === 'Critical' ? 'bg-red-50 text-red-700 border-red-200' :
+                                        a.severity === 'High' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                        a.severity === 'Medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                        'bg-blue-50 text-blue-700 border-blue-200';
+                                const scoreClass = a.score >= 90 ? 'text-red-600 bg-red-50 border-red-200' :
+                                        a.score >= 70 ? 'text-orange-600 bg-orange-50 border-orange-200' :
+                                        a.score >= 50 ? 'text-yellow-600 bg-yellow-50 border-yellow-200' :
+                                        'text-blue-800 bg-blue-50 border-blue-200';
+                                const stBadge = a.status === 'New' ? 'bg-red-50 text-red-700 border-red-200' :
+                                        a.status === 'Resolved' || a.status === 'False Positive' ? 'bg-slate-50 text-slate-600 border-slate-200' :
+                                        a.status === 'Escalated' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                        'bg-blue-50 text-blue-700 border-blue-200';
+                                // Detection source badge
+                                const srcLabel = a.detectionSource === 'Combined' ? 'Corroborated' :
+                                        a.detectionSource === 'ML' ? 'ML Risk' :
+                                        a.detectionSource === 'Rule' ? 'Rule Alert' : (a.detectionSource || 'Legacy');
+                                const srcClass = a.detectionSource === 'Combined' ? 'bg-red-50 text-red-700 border-red-200' :
+                                        a.detectionSource === 'ML' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                        'bg-amber-50 text-amber-700 border-amber-200';
+                                const displayName = a.accountName || a.target || a.accountId || '—';
+                                return `<tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-alert-id="${a.id}" data-severity="${a.severity}" data-status="${a.status}" data-category="${a.category}" data-source="${a.detectionSource || ''}" onclick="rowClickAction(event, '${a.id}')">
+                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">${a.id}</td>
+                                        <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">${displayName}</td>
+                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">${a.category}</td>
+                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${srcClass}">${srcLabel}</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                <span class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded border ${scoreClass}">${a.score} / 100</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">${a.amount || '—'}</td>
+                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${a.time || 'Just now'}</td>
+                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${sevBadge}">${a.severity}</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${stBadge}">${a.status}</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${a.id}')">
+                                                        Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                </button>
+                                        </td>
+                                </tr>`;
+                        }).join('');
+
+                        // Rebuild cachedRows from freshly rendered DOM
+                        cachedRows = Array.from(tbody.querySelectorAll('tr')).map(row => {
+                                const aid = row.getAttribute('data-alert-id');
+                                const d = alertsDb[aid] || {};
+                                return {
+                                        element:  row,
+                                        id:       (aid || '').toLowerCase(),
+                                        target:   (d.accountName || d.target || '').toLowerCase(),
+                                        category: (d.category || '').toLowerCase(),
+                                        severity: row.getAttribute('data-severity'),
+                                        source:   row.getAttribute('data-source') || '',
+                                        status:   d.status
+                                };
+                        });
+
+                        recountSummaryCards();
+                }
+
+                // Refresh: re-run alert engine then re-render
+                function refreshAlerts() {
+                        if (window.MuleGuardStore) {
+                                const btn = document.getElementById('refresh-alerts-btn');
+                                if (btn) btn.textContent = '↻ Refreshing...';
+                                window.MuleGuardStore.evaluateRules();
+                                window.MuleGuardStore.generateAlertsFromAllAccounts();
+                                renderAlerts();
+                                if (btn) btn.textContent = '↻ Refresh Alerts';
+                                showToast('Alerts refreshed from ML engine and rule evaluation.');
+                        }
+                }
+
+                // Debounce search box input keyups
+                function onSearchInput() {
+                        clearTimeout(searchDebounceTimeout);
+                        searchDebounceTimeout = setTimeout(() => {
+                                applyWorkspaceFilters();
+                        }, 120);
+                }
+
+                // Filter logic using cached DOM elements to prevent reflow bottlenecks
+                function applyWorkspaceFilters() {
+                        const searchQuery = document.getElementById('filter-search').value.toLowerCase().trim();
+                        const severityVal = document.getElementById('filter-severity').value;
+                        const categoryVal = document.getElementById('filter-category').value;
+                        const statusVal = document.getElementById('filter-status').value;
+
+                        cachedRows.forEach(row => {
+                                const aid = row.id.toUpperCase();
+                                const currentStatus = (alertsDb[aid] || {}).status || row.status;
+
+                                const matchesSearch = !searchQuery ||
+                                        row.id.includes(searchQuery) ||
+                                        row.target.includes(searchQuery) ||
+                                        row.category.includes(searchQuery);
+
+                                const matchesSeverity = (severityVal === 'All' || row.severity === severityVal);
+                                const matchesCategory = (categoryVal === 'All' || row.category.includes(categoryVal.toLowerCase()));
+                                const matchesStatus = (statusVal === 'All' || currentStatus === statusVal);
+
+                                if (matchesSearch && matchesSeverity && matchesCategory && matchesStatus) {
+                                        row.element.classList.remove('hidden');
+                                } else {
+                                        row.element.classList.add('hidden');
+                                }
+                        });
+
+                        recountSummaryCards();
+                }
+
+                // Recount summary cards from cached elements
+                function recountSummaryCards() {
+                        let totalCount = 0;
+                        let criticalCount = 0;
+                        let mediumHighCount = 0;
+                        let investigatingCount = 0;
+
+                        cachedRows.forEach(row => {
+                                if (row.element.classList.contains('hidden')) {
+                                        return;
+                                }
+                                totalCount++;
+                                
+                                const aid = row.id.toUpperCase();
+                                const status = (alertsDb[aid] || {}).status || '';
+                                const severity = row.severity;
+
+                                if (severity === 'Critical') {
+                                        criticalCount++;
+                                }
+                                if (severity === 'High' || severity === 'Medium') {
+                                        mediumHighCount++;
+                                }
+                                if (status === 'Investigating' || status === 'Acknowledged') {
+                                        investigatingCount++;
+                                }
+                        });
+
+                        document.getElementById('count-total').textContent = totalCount;
+                        document.getElementById('count-critical').textContent = criticalCount;
+                        document.getElementById('count-medium-high').textContent = mediumHighCount;
+                        document.getElementById('count-investigating').textContent = investigatingCount;
+                }
+
+                // Clear all filters
+                function clearAllWorkspaceFilters() {
+                        document.getElementById('filter-search').value = '';
+                        document.getElementById('filter-severity').value = 'All';
+                        document.getElementById('filter-category').value = 'All';
+                        document.getElementById('filter-status').value = 'All';
+                        applyWorkspaceFilters();
+                        showToast("Alert queue filters reset successfully.");
+                }
+
+                // Global header search using caches
+                function triggerGlobalSearch() {
+                        const headerQuery = document.getElementById('global-header-search').value.toLowerCase().trim();
+                        cachedRows.forEach(row => {
+                                const matches = !headerQuery || row.id.includes(headerQuery) || row.target.includes(headerQuery);
+                                row.element.classList.toggle('hidden', !matches);
+                        });
+                        recountSummaryCards();
+                }
+
+                // Listen for Escape keyboard presses to close popups
+                document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                                closeDetailDrawer();
+                                closeConfirmModal();
+                        }
+                });
+
+                // DOMContentLoaded — run alert engine then render dynamically
+                window.addEventListener('DOMContentLoaded', () => {
+                        if (window.MuleGuardStore) {
+                                window.MuleGuardStore.evaluateRules();
+                                window.MuleGuardStore.generateAlertsFromAllAccounts();
+                        }
+                        renderAlerts();
+                });
+
+                window.addEventListener('muleguard:transaction-ingested', () => {
+                        if (typeof renderAlerts === 'function') renderAlerts();
+                });
+        </script>
+
+</body>
+
+</html>

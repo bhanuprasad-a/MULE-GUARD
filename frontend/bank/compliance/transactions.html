@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Transactions Workspace</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+                rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <script>
+                // Suppress Chrome extension errors
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || 
+                                        msg.includes('widget') || 
+                                        msg.includes('publicKey') || 
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+
+                        console.warn = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalWarn.apply(console, args);
+                        };
+
+                        console.error = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalError.apply(console, args);
+                        };
+
+                        console.log = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalLog.apply(console, args);
+                        };
+                })();
+        </script>
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                /* Custom scrollbar styles */
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+
+                /* Chart SVG path transition animations */
+                #volume-path, #volume-area, #flagged-path, #flagged-area {
+                        transition: opacity 0.12s ease-in-out;
+                }
+
+                /* Staggered entrance page animations */
+                @keyframes headingFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(6px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .heading-animate {
+                        animation: headingFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes cardFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(8px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .kpi-card-animate {
+                        opacity: 0;
+                        animation: cardFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes simpleFadeIn {
+                        from {
+                                opacity: 0;
+                        }
+                        to {
+                                opacity: 1;
+                        }
+                }
+                .fade-in-animate {
+                        opacity: 0;
+                        animation: simpleFadeIn 0.4s ease-out forwards;
+                }
+
+                /* Staggered loading card delays */
+                .stagger-1 { animation-delay: 0.05s; }
+                .stagger-2 { animation-delay: 0.12s; }
+                .stagger-3 { animation-delay: 0.19s; }
+                .stagger-4 { animation-delay: 0.26s; }
+
+                /* Timeline staggered reveals */
+                .timeline-item {
+                        opacity: 0;
+                        transform: translateY(4px);
+                        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+                }
+                .timeline-item.show {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+
+                /* Table hover animations */
+                tr:hover .inspect-arrow {
+                        transform: translateX(3px);
+                }
+                tr:hover .case-id-cell {
+                        color: #1d4ed8 !important;
+                        text-decoration: underline;
+                }
+
+                /* Custom tooltips mapping coordinates absolute */
+                .custom-tooltip {
+                        position: absolute;
+                        background: #0b1f3a;
+                        border: 1px solid #1e293b;
+                        color: #ffffff;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        font-size: 11px;
+                        font-family: 'Poppins', sans-serif;
+                        pointer-events: none;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+                        z-index: 100;
+                        opacity: 0;
+                        transition: opacity 0.15s ease-in-out;
+                }
+
+                /* Live Indicator subtly pulsing */
+                @keyframes livePulse {
+                        0%, 100% {
+                                opacity: 1;
+                                transform: scale(1);
+                        }
+                        50% {
+                                opacity: 0.65;
+                                transform: scale(0.95);
+                        }
+                }
+                .live-pulse-dot {
+                        animation: livePulse 2s infinite ease-in-out;
+                }
+
+                /* Drawer sections staggered fade/slide transitions */
+                .drawer-section {
+                        opacity: 0;
+                        transform: translateY(6px);
+                        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+                }
+                .show-content .drawer-section {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+                .drawer-stagger-1 { transition-delay: 0.04s; }
+                .drawer-stagger-2 { transition-delay: 0.10s; }
+                .drawer-stagger-3 { transition-delay: 0.16s; }
+                .drawer-stagger-4 { transition-delay: 0.22s; }
+                .drawer-stagger-5 { transition-delay: 0.28s; }
+
+                /* Transaction Path SVGs Restrained Flow */
+                @keyframes dashFlow {
+                        to {
+                                stroke-dashoffset: -20;
+                        }
+                }
+                .flow-line {
+                        stroke-dasharray: 6, 4;
+                        animation: dashFlow 1.5s linear infinite;
+                }
+
+                @keyframes destPulse {
+                        0%, 100% {
+                                r: 14px;
+                                fill: #7f1d1d;
+                                stroke-opacity: 1;
+                        }
+                        50% {
+                                r: 15.5px;
+                                fill: #991b1b;
+                                stroke-opacity: 0.8;
+                        }
+                }
+                .network-pulse {
+                        animation: destPulse 2s infinite ease-in-out;
+                }
+
+                /* Risk badges hover */
+                .risk-tag {
+                        transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+                }
+                .risk-tag:hover {
+                        transform: translateY(-1px);
+                        filter: brightness(0.96);
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Details Drawer Backdrop Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-primary/45 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none" onclick="closeDetailDrawer()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                
+                <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- Sidebar Header & Logo -->
+                        <div class="h-[70px] flex items-center px-6 border-b border-[#1e293b] gap-3">
+                                <img alt="MuleGuard Logo" class="w-[110px] h-auto object-contain" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+                        </div>
+
+                        <!-- Sidebar Menu Groups -->
+                        <nav class="flex-1 px-4 py-6 space-y-7">
+                                <!-- Command Center Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Command Center</span>
+                                        </div>
+                                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                                                <span>Dashboard</span>
+                                        </a>
+                                        <a href="investigations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">search_insights</span>
+                                                <span>Investigations</span>
+                                        </a>
+                                        <!-- Transactions set as active navigation state indicator link -->
+                                        <a href="transactions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px] text-secondary-container">receipt_long</span>
+                                                <span class="font-medium">Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">group</span>
+                                                <span>Entities</span>
+                                        </a>
+                                        <a href="fraud_networks.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">share</span>
+                                                <span>Fraud Networks</span>
+                                        </a>
+                                        <a href="alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+                                                <span>Alerts</span>
+                                        </a>
+                                        <a href="cases.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">work</span>
+                                                <span>Cases</span>
+                                        </a>
+                                </div>
+
+                                <!-- Intelligence Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
+                                        </div>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                                                <span>Risk Analytics</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">hub</span>
+                                                <span>Network Intelligence</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">rule_folder</span>
+                                                <span>Watchlists</span>
+                                        </a>
+                                </div>
+                        </nav>
+                </div>
+
+                <!-- Sidebar Footer Status -->
+                <div class="p-4 border-t border-[#1e293b] space-y-4">
+                        <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Systems OK</span>
+                                </div>
+                                <span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]">
+                                <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[13px] text-on-primary font-bold">
+                                                AK
+                                        </div>
+                                        <div class="flex flex-col">
+                                                <span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight">A. Kumar</span>
+                                                <span class="font-body-md text-[11px] text-on-primary-container/50">Senior Analyst</span>
+                                        </div>
+                                </div>
+                                <button class="text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none" onclick="showToast('Analyst configuration opened.')">
+                                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                                </button>
+                        </div>
+                </div>
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <!-- Mobile Menu Toggle Trigger -->
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Transactions</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Real-time transaction monitoring, risk analysis and anomaly investigation.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <!-- Global Search Container -->
+                                <div class="relative hidden sm:block">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-outline">search</span>
+                                        <input id="global-header-search" class="w-[240px] bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-4 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200" placeholder="Search accounts, entities, IPs..." type="text" oninput="triggerGlobalSearch()" />
+                                </div>
+
+                                <!-- Notification Bell -->
+                                <button class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors focus:outline-none" onclick="showToast('No new urgent cases in queue.')">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+                                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-risk-high rounded-full ring-2 ring-white"></span>
+                                </button>
+
+                                <!-- System Badge Online -->
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Secure Systems Online</span>
+                                </div>
+
+                                <!-- Separator -->
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- Small User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <!-- Profile Dropdown Menu -->
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading profile panel...')">My Profile</a>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading system configurations...')">System Configuration</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" onclick="logoutUser()" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main Content Queue Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- Queue Header Controls -->
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left heading-animate">
+                                <div class="flex flex-col">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Transactions</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant leading-none mt-1">Real-time transaction monitoring, risk analysis and anomaly investigation.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                        <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="showToast('Exporting current transaction matrix...')">
+                                                Export Transactions
+                                        </button>
+                                        <button class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="showToast('Creating new manual transaction item...')">
+                                                + Add Transaction
+                                        </button>
+                                </div>
+                        </div>
+
+                        <!-- Summary KPI Cards Row -->
+                        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                
+                                <!-- Card 1 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-1">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container opacity-40"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Transactions Today</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#316bf3]">receipt_long</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-transactions" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">2.48M</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-low leading-none">trending_up</span>
+                                                <span class="font-semibold text-risk-low">+8.4%</span>
+                                                <span>vs previous period</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 2 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-2">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-orange-600">Flagged Transactions</span>
+                                                <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500">flag</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-flagged" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">1,284</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-orange-600 font-semibold leading-none">Requires review</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 3 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-3">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-risk-high"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-risk-high">High-Risk Value</span>
+                                                <div class="w-8 h-8 rounded-lg bg-risk-high/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-risk-high">monetization_on</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-risk-value" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">₹84.20 Lakh</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-high leading-none">trending_up</span>
+                                                <span class="font-body-md text-[12px] text-risk-high font-semibold leading-none">+14.2%</span>
+                                                <span class="font-body-md text-[11px] text-on-surface-variant opacity-70 leading-none">this month</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 4 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-4">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-red-600"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-red-600">Anomalies Detected</span>
+                                                <div class="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-red-600">warning</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-anomalies" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">347</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-red-600 font-semibold leading-none">28 critical alerts</span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Transaction Monitoring Area (Large white card containing SVG Chart) -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm flex flex-col justify-between select-none fade-in-animate">
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                                        <div class="flex flex-col text-left">
+                                                <div class="flex items-center gap-2">
+                                                        <h2 class="font-headline-md text-[16px] text-on-surface font-bold">Transaction Monitoring</h2>
+                                                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-green-50 text-risk-low border border-green-200 text-[9px] font-bold tracking-wider uppercase"><span class="live-pulse-dot select-none">●</span>Live Monitoring</span>
+                                                </div>
+                                                <p class="font-body-md text-[12px] text-on-surface-variant mt-0.5">Live transaction activity and risk signals</p>
+                                        </div>
+                                        
+                                        <!-- Time Controls -->
+                                        <div class="flex items-center bg-surface-container-low border border-outline-variant/50 rounded-lg p-1">
+                                        <button id="btn-24h" class="px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none" onclick="updateTimeframe('24H')">24H</button>
+                                                <button id="btn-7d" class="px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none" onclick="updateTimeframe('7D')">7D</button>
+                                                <button id="btn-30d" class="px-3 py-1 rounded font-body-md text-[11px] bg-interface-base shadow-sm text-secondary font-bold focus:outline-none" onclick="updateTimeframe('30D')">30D</button>
+                                                <button id="btn-90d" class="px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none" onclick="updateTimeframe('90D')">90D</button>
+                                        </div>
+                                </div>
+
+                                <!-- SVG Line Chart wrapper -->
+                                <div class="flex-grow w-full h-[220px] relative" id="chart-container">
+                                        <div id="chart-tooltip" class="custom-tooltip"></div>
+                                        <svg id="chart-svg" class="w-full h-full overflow-visible" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                                                <defs>
+                                                        <linearGradient id="gradient-volume" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/>
+                                                                <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0"/>
+                                                        </linearGradient>
+                                                        <linearGradient id="gradient-flagged" x1="0" y1="0" x2="0" y2="1">
+                                                                <stop offset="0%" stop-color="#EF4444" stop-opacity="0.12"/>
+                                                                <stop offset="100%" stop-color="#EF4444" stop-opacity="0.0"/>
+                                                        </linearGradient>
+                                                </defs>
+
+                                                <!-- Horizontal background lines -->
+                                                <line x1="0" y1="40" x2="600" y2="40" stroke="#f1f5f9" stroke-width="1.2" />
+                                                <line x1="0" y1="80" x2="600" y2="80" stroke="#f1f5f9" stroke-width="1.2" />
+                                                <line x1="0" y1="120" x2="600" y2="120" stroke="#f1f5f9" stroke-width="1.2" />
+                                                <line x1="0" y1="160" x2="600" y2="160" stroke="#f1f5f9" stroke-width="1.2" />
+
+                                                <!-- Volume path area -->
+                                                <path id="volume-area" d="M 0 160 C 100 110, 200 40, 300 100 C 400 140, 500 60, 600 80 L 600 180 L 0 180 Z" fill="url(#gradient-volume)" />
+                                                <path id="volume-path" d="M 0 160 C 100 110, 200 40, 300 100 C 400 140, 500 60, 600 80" fill="none" stroke="#3b82f6" stroke-width="2.5" />
+
+                                                <!-- Flagged path area -->
+                                                <path id="flagged-area" d="M 0 175 C 100 150, 200 120, 300 155 C 400 165, 500 130, 600 145 L 600 180 L 0 180 Z" fill="url(#gradient-flagged)" />
+                                                <path id="flagged-path" d="M 0 175 C 100 150, 200 120, 300 155 C 400 165, 500 130, 600 145" fill="none" stroke="#EF4444" stroke-dasharray="4,3" stroke-width="2" />
+
+                                                <line id="hover-line" x1="0" y1="0" x2="0" y2="180" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2,2" class="opacity-0" />
+                                                <line x1="0" y1="180" x2="600" y2="180" stroke="#cbd5e1" stroke-width="1" />
+                                        </svg>
+                                </div>
+
+                                <!-- X-Axis Labels -->
+                                <div class="flex justify-between mt-2 px-1 font-mono-technical text-[10px] text-on-surface-variant font-medium select-none" id="chart-x-labels">
+                                        <span>12:00 PM</span>
+                                        <span>03:00 PM</span>
+                                        <span>06:00 PM</span>
+                                        <span>09:00 PM</span>
+                                        <span>12:00 AM</span>
+                                        <span>03:00 AM</span>
+                                </div>
+
+                                <!-- Chart Legend -->
+                                <div class="flex gap-6 mt-4 px-1 border-t border-[#f1f5f9] pt-3">
+                                        <div class="flex items-center gap-2">
+                                                <span class="w-3.5 h-1.5 bg-[#3b82f6] rounded-full"></span>
+                                                <span class="font-body-md text-[11px] text-on-surface-variant font-medium">Transaction Volume</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                                <span class="w-3.5 h-1.5 border-t border-dashed border-[#EF4444] rounded-full"></span>
+                                                <span class="font-body-md text-[11px] text-on-surface-variant font-medium">Flagged Transactions</span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Filter & Search Toolbar Card -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-4 rounded-xl shadow-sm select-none fade-in-animate">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                        
+                                        <!-- Text Search input -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Search Transactions</label>
+                                                <input id="filter-search" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150" placeholder="ID, entity, value, IP..." type="text" oninput="onSearchInput()" />
+                                        </div>
+
+                                        <!-- Risk levels dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Risk Level</label>
+                                                <select id="filter-risk" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150 cursor-pointer" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Risk Levels</option>
+                                                        <option value="Low">Low</option>
+                                                        <option value="Medium">Medium</option>
+                                                        <option value="High">High</option>
+                                                        <option value="Critical">Critical</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Transaction Type dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Transaction Type</label>
+                                                <select id="filter-type" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150 cursor-pointer" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Types</option>
+                                                        <option value="Transfer">Transfer</option>
+                                                        <option value="Payment">Payment</option>
+                                                        <option value="Withdrawal">Withdrawal</option>
+                                                        <option value="Deposit">Deposit</option>
+                                                        <option value="Cross-border">Cross-border</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Status dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Status</label>
+                                                <select id="filter-status" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150 cursor-pointer" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Statuses</option>
+                                                        <option value="Normal">Normal</option>
+                                                        <option value="Flagged">Flagged</option>
+                                                        <option value="Under Review">Under Review</option>
+                                                        <option value="Blocked">Blocked</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Date range filter button actions -->
+                                        <div class="flex flex-col text-left justify-end">
+                                                <button class="w-full border border-outline-variant hover:border-secondary hover:text-secondary rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="clearAllWorkspaceFilters()">
+                                                        Clear Filters
+                                                </button>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Main Grid Table Cases Queue -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm fade-in-animate">
+                                
+                                <div class="w-full overflow-x-auto">
+                                        <table class="w-full border-collapse text-left" id="transactions-table">
+                                                <thead>
+                                                        <tr class="border-b border-[#e2e8f0]">
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Transaction ID</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Account / Entity</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Transaction Type</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Amount</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Risk Score</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Detected</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Location</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Status</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="transactions-tbody">
+                                                        <!-- Row 1 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982741" data-risk="Critical" data-status="Flagged" data-type="Cross-border" onclick="rowClickAction(event, 'TX-982741')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982741</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Cross-border Transfer</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,27,500</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">91 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 min ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Singapore → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">Flagged</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982741')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 2 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982736" data-risk="High" data-status="Under Review" data-type="Transfer" onclick="rowClickAction(event, 'TX-982736')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982736</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Orion Financial</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Wire Transfer</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹86,200</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">78 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">28 min ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">London → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982736')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 3 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982728" data-risk="Medium" data-status="Under Review" data-type="Payment" onclick="rowClickAction(event, 'TX-982728')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982728</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vertex Imports</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Payment</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹42,800</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">62 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">41 min ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Dubai → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">Monitoring</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982728')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 4 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982714" data-risk="Critical" data-status="Flagged" data-type="Cross-border" onclick="rowClickAction(event, 'TX-982714')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982714</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Northstar Holdings</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Cross-border Transfer</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹3,12,400</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">96 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">1 hr ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Hong Kong → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Critical</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982714')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 5 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982705" data-risk="Medium" data-status="Normal" data-type="Deposit" onclick="rowClickAction(event, 'TX-982705')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982705</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Meridian Capital</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Deposit</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹94,600</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">45 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">2 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">New York → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982705')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 6 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982698" data-risk="Low" data-status="Normal" data-type="Transfer" onclick="rowClickAction(event, 'TX-982698')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982698</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Atlas Global Trading</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Wire Transfer</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹28,450</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">32 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">3 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Singapore → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982698')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 7 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982685" data-risk="Low" data-status="Normal" data-type="Payment" onclick="rowClickAction(event, 'TX-982685')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982685</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vanguard Logistics</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Payment</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹15,600</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">18 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">5 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Tokyo → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982685')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 8 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982672" data-risk="Critical" data-status="Blocked" data-type="Cross-border" onclick="rowClickAction(event, 'TX-982672')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982672</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Blackwood Assets</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Cross-border Transfer</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹6,20,000</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">98 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">8 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Zurich → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Blocked</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982672')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 9 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982659" data-risk="High" data-status="Under Review" data-type="Payment" onclick="rowClickAction(event, 'TX-982659')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982659</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Phoenix Ventures</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Payment</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,05,300</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">75 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Frankfurt → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982659')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 10 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982641" data-risk="High" data-status="Normal" data-type="Withdrawal" onclick="rowClickAction(event, 'TX-982641')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982641</td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Swift Logistics Corp</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Withdrawal</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹38,200</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">52 / 100</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">18 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Sydney → India</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982641')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Footer System status bar -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Network: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Transaction Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Risk Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Intelligence Graph: Online</span>
+                                </div>
+                        </div>
+                        <div class="hidden sm:block">
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Fraud Intelligence</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Professional Slider Drawer detail workspace -->
+        <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-interface-base border-l border-outline-variant/60 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between select-none overflow-hidden text-left">
+                
+                <!-- Sticky Drawer Header -->
+                <div class="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low sticky top-0 z-10 flex-shrink-0">
+                        <div class="flex flex-col text-left">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Transaction Workspace</span>
+                                <h3 id="drawer-title-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">TX-982741</h3>
+                        </div>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-outline-variant/30 transition-colors focus:outline-none" onclick="closeDetailDrawer()">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface">close</span>
+                        </button>
+                </div>
+
+                <!-- Scrollable Drawer Body -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <!-- Status Card -->
+                        <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Account / Entity:</span>
+                                        <span id="drawer-entity-name" class="font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Transaction Amount:</span>
+                                        <span id="drawer-amount" class="font-mono-technical text-[13px] text-on-surface font-bold">₹1,27,500</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Risk Score:</span>
+                                        <span id="drawer-risk-score" class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded">91 / 100</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Transaction Type:</span>
+                                        <span id="drawer-type" class="font-body-md text-[13px] text-on-surface">Cross-border Transfer</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Detected:</span>
+                                        <span id="drawer-time" class="font-body-md text-[13px] text-on-surface">12 min ago</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Origin:</span>
+                                        <span id="drawer-origin" class="font-body-md text-[13px] text-on-surface">Singapore</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Destination:</span>
+                                        <span id="drawer-destination" class="font-body-md text-[13px] text-on-surface">India</span>
+                                </div>
+                        </div>
+
+                        <!-- 1. Transaction Summary -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-2">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">1. Transaction Summary</span>
+                                <p id="drawer-summary" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed bg-[#f8fafc] border border-[#e2e8f0] p-3 rounded-lg mt-1">
+                                        Apex Trading Ltd initiated a cross-border wire transfer of ₹1,27,500 to beneficiary accounts in India. Anomaly alerts triggered based on high baseline velocity ratios.
+                                </p>
+                        </div>
+
+                        <!-- 2. Risk Indicators -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-3">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">2. Risk Indicators</span>
+                                <div class="flex flex-wrap gap-2 mt-1" id="drawer-risk-tags">
+                                        <span class="px-2.5 py-1 rounded bg-[#fef2f2] text-[#ef4444] border border-[#fca5a5] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Unusual transaction velocity</span>
+                                        <span class="px-2.5 py-1 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Cross-border activity</span>
+                                        <span class="px-2.5 py-1 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] text-[11px] font-semibold font-sans risk-tag cursor-pointer">High-value transfer</span>
+                                        <span class="px-2.5 py-1 rounded bg-[#f0f9ff] text-[#0284c7] border border-[#e0f2fe] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Connected beneficiary</span>
+                                        <span class="px-2.5 py-1 rounded bg-[#f0f9ff] text-[#0284c7] border border-[#e0f2fe] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Device anomaly</span>
+                                </div>
+                        </div>
+
+                        <!-- 3. Transaction Timeline -->
+                        <div class="space-y-3 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">3. Transaction Timeline</span>
+                                <div class="space-y-3 pl-3 border-l-2 border-[#e2e8f0] ml-2 font-body-md text-[12px] mt-2">
+                                        <div class="timeline-item relative">
+                                                <span class="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-[#38BDF8] ring-4 ring-white"></span>
+                                                <div class="flex justify-between font-bold text-on-surface">
+                                                        <span>Transaction Initiated</span>
+                                                        <span class="font-mono-technical font-medium text-on-surface-variant" id="timeline-t1">14 min ago</span>
+                                                </div>
+                                                <p class="text-on-surface-variant mt-0.5">Originating account setup confirmed.</p>
+                                        </div>
+                                        <div class="timeline-item relative">
+                                                <span class="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-[#f59e0b] ring-4 ring-white"></span>
+                                                <div class="flex justify-between font-bold text-on-surface">
+                                                        <span>Risk Engine Triggered</span>
+                                                        <span class="font-mono-technical font-medium text-on-surface-variant" id="timeline-t2">12 min ago</span>
+                                                </div>
+                                                <p class="text-on-surface-variant mt-0.5">Scoring model evaluated threshold flags.</p>
+                                        </div>
+                                        <div class="timeline-item relative">
+                                                <span class="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-4 ring-white"></span>
+                                                <div class="flex justify-between font-bold text-on-surface">
+                                                        <span>Anomaly Threshold Exceeded</span>
+                                                        <span class="font-mono-technical font-medium text-on-surface-variant" id="timeline-t3">12 min ago</span>
+                                                </div>
+                                                <p class="text-on-surface-variant mt-0.5">Value bounds exceeded baselines by 400%.</p>
+                                        </div>
+                                        <div class="timeline-item relative">
+                                                <span class="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-[#EF4444] ring-4 ring-white"></span>
+                                                <div class="flex justify-between font-bold text-on-surface">
+                                                        <span>Transaction Flagged</span>
+                                                        <span class="font-mono-technical font-medium text-on-surface-variant" id="timeline-t4">10 min ago</span>
+                                                </div>
+                                                <p class="text-on-surface-variant mt-0.5">System auto-generated priority warning.</p>
+                                        </div>
+                                        <div class="timeline-item relative">
+                                                <span class="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-[#3b82f6] ring-4 ring-white"></span>
+                                                <div class="flex justify-between font-bold text-on-surface">
+                                                        <span>Assigned for Review</span>
+                                                        <span class="font-mono-technical font-medium text-on-surface-variant" id="timeline-t5">8 min ago</span>
+                                                </div>
+                                                <p class="text-on-surface-variant mt-0.5">Assigned to senior intelligence pool.</p>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- 4. Transaction Path -->
+                        <div class="space-y-3 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-5">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">4. Transaction Path</span>
+                                <div class="h-[140px] bg-[#0b1f3a] rounded-lg relative overflow-hidden flex items-center justify-center mt-1 border border-[#1e293b]">
+                                        <svg class="w-full h-full" viewBox="0 0 400 140">
+                                                <!-- Path arrows -->
+                                                <line x1="60" y1="70" x2="140" y2="70" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="4,2" />
+                                                <line x1="160" y1="70" x2="240" y2="70" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="4,2" />
+                                                <line x1="260" y1="70" x2="340" y2="70" stroke="#EF4444" stroke-width="2.0" class="flow-line" />
+                                                
+                                                <!-- Source Node -->
+                                                <circle cx="50" cy="70" r="14" fill="#1e293b" stroke="#38BDF8" stroke-width="1.5" />
+                                                <text x="50" y="73" fill="#ffffff" font-size="8" text-anchor="middle" font-family="monospace">SRC</text>
+                                                <text id="path-origin-label" x="50" y="98" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="monospace">Origin</text>
+
+                                                <!-- Txn Node -->
+                                                <circle cx="150" cy="70" r="14" fill="#316bf3" stroke="#ffffff" stroke-width="1.5" />
+                                                <text x="150" y="73" fill="#ffffff" font-size="8" text-anchor="middle" font-family="monospace">TXN</text>
+                                                <text x="150" y="98" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="monospace">Amount</text>
+
+                                                <!-- Beneficiary Node -->
+                                                <circle cx="250" cy="70" r="14" fill="#1e293b" stroke="#38BDF8" stroke-width="1.5" />
+                                                <text x="250" y="73" fill="#ffffff" font-size="8" text-anchor="middle" font-family="monospace">BEN</text>
+                                                <text x="250" y="98" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="monospace">Recipient</text>
+
+                                                <!-- Destination Node -->
+                                                <circle cx="350" cy="70" r="14" fill="#7f1d1d" stroke="#EF4444" stroke-width="1.5" class="network-pulse" />
+                                                <text x="350" y="73" fill="#ffffff" font-size="8" text-anchor="middle" font-family="monospace">DEST</text>
+                                                <text id="path-dest-label" x="350" y="98" fill="#EF4444" font-size="8" text-anchor="middle" font-family="monospace">Target</text>
+                                        </svg>
+                                </div>
+                        </div>
+
+                        <!-- 5. Risk Explanation -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-5">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">5. Risk Explanation</span>
+                                <div class="bg-surface-container-low border border-outline-variant/40 rounded-xl p-3 space-y-2 mt-1 text-[13px] leading-relaxed text-on-surface-variant font-body-md">
+                                        <p class="font-bold text-on-surface">Why was this transaction flagged?</p>
+                                        <ul class="list-disc pl-5 space-y-1.5 text-on-surface-variant">
+                                                <li>Transaction velocity exceeded the historical account baseline by 400%.</li>
+                                                <li>The destination account is connected to multiple previously flagged beneficiaries.</li>
+                                                <li>The transaction originated from a new geographic region.</li>
+                                        </ul>
+                                </div>
+                        </div>
+                </div>
+
+                <!-- Sticky Drawer Actions Footer -->
+                <div class="p-6 border-t border-outline-variant/30 bg-surface-container-low flex flex-wrap gap-3 sticky bottom-0 z-10 flex-shrink-0">
+                        <button class="flex-1 bg-secondary hover:bg-secondary-container text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="triggerDrawerAction('Review')">
+                                Review Transaction
+                        </button>
+                        <button class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="triggerDrawerAction('Flag')">
+                                Flag Transaction
+                        </button>
+                        <button class="flex-1 bg-risk-high hover:bg-red-700 text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="triggerDrawerAction('Block')">
+                                Block Transaction
+                        </button>
+                </div>
+        </div>
+
+        <!-- Professional Confirmation Dialog Modal -->
+        <div id="confirm-modal" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-200">
+                <div class="bg-interface-base border border-outline-variant/60 rounded-xl shadow-2xl w-full max-w-md p-6 transform scale-95 transition-all duration-200 select-none text-left">
+                        <h4 id="confirm-modal-title" class="font-headline-md text-[16px] text-on-surface font-extrabold">Confirm Action</h4>
+                        <p id="confirm-modal-body" class="font-body-md text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                                Are you sure you want to perform this action on this transaction?
+                        </p>
+                        <div class="flex justify-end gap-3 mt-6">
+                                <button class="border border-outline-variant hover:border-on-surface-variant hover:text-on-surface text-on-surface-variant px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="closeConfirmModal()">
+                                        Cancel
+                                </button>
+                                <button id="confirm-submit-btn" class="bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="submitConfirmModal()">
+                                        Confirm
+                                </button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <!-- JS Filter / Details Workspace Core Logic -->
+        <script>
+                // Transactions mock database records
+                const transactionsDb = {
+                        'TX-982741': {
+                                id: 'TX-982741',
+                                entity: 'Apex Trading Ltd',
+                                type: 'Cross-border Transfer',
+                                value: '₹1,27,500',
+                                amountNumeric: 127500,
+                                score: 91,
+                                time: '12 min ago',
+                                origin: 'Singapore',
+                                destination: 'India',
+                                status: 'Flagged',
+                                summary: 'Apex Trading Ltd initiated a cross-border wire transfer of ₹1,27,500 to beneficiary accounts in India. Anomaly alerts triggered based on high baseline velocity ratios.'
+                        },
+                        'TX-982736': {
+                                id: 'TX-982736',
+                                entity: 'Orion Financial',
+                                type: 'Wire Transfer',
+                                value: '₹86,200',
+                                amountNumeric: 86200,
+                                score: 78,
+                                time: '28 min ago',
+                                origin: 'London',
+                                destination: 'India',
+                                status: 'Under Review',
+                                summary: 'Frequent intermediate wiring setup initiated between Orion Financial branch accounts. Suspicious beneficiary account match triggered review.'
+                        },
+                        'TX-982728': {
+                                id: 'TX-982728',
+                                entity: 'Vertex Imports',
+                                type: 'Payment',
+                                value: '₹42,800',
+                                amountNumeric: 42800,
+                                score: 62,
+                                time: '41 min ago',
+                                origin: 'Dubai',
+                                destination: 'India',
+                                status: 'Normal',
+                                summary: 'Normal high-value import payment ledger setup for Vertex Imports. Account historically conducts transaction bounds of this magnitude.'
+                        },
+                        'TX-982714': {
+                                id: 'TX-982714',
+                                entity: 'Northstar Holdings',
+                                type: 'Cross-border Transfer',
+                                value: '₹3,12,400',
+                                amountNumeric: 312400,
+                                score: 96,
+                                time: '1 hr ago',
+                                origin: 'Hong Kong',
+                                destination: 'India',
+                                status: 'Critical',
+                                summary: 'Critical value threshold exceeded during offshore clearance wire routing. Beneficiary matching indicator linked to active blacklists.'
+                        },
+                        'TX-982705': {
+                                id: 'TX-982705',
+                                entity: 'Meridian Capital',
+                                type: 'Deposit',
+                                value: '₹94,600',
+                                amountNumeric: 94600,
+                                score: 45,
+                                time: '2 hrs ago',
+                                origin: 'New York',
+                                destination: 'India',
+                                status: 'Normal',
+                                summary: 'Standard clearing treasury deposit logged from Meridian Capital accounts. Value complies with standard corporate baselines.'
+                        },
+                        'TX-982698': {
+                                id: 'TX-982698',
+                                entity: 'Atlas Global Trading',
+                                type: 'Wire Transfer',
+                                value: '₹28,450',
+                                amountNumeric: 28450,
+                                score: 32,
+                                time: '3 hrs ago',
+                                origin: 'Singapore',
+                                destination: 'India',
+                                status: 'Normal',
+                                summary: 'Standard supplier payment wire matching normal business trade baselines for Atlas Global.'
+                        },
+                        'TX-982685': {
+                                id: 'TX-982685',
+                                entity: 'Vanguard Logistics',
+                                type: 'Payment',
+                                value: '₹15,600',
+                                amountNumeric: 15600,
+                                score: 18,
+                                time: '5 hrs ago',
+                                origin: 'Tokyo',
+                                destination: 'India',
+                                status: 'Normal',
+                                summary: 'Vanguard Logistics shipping clearing charge payment. Validated profile history matches perfectly.'
+                        },
+                        'TX-982672': {
+                                id: 'TX-982672',
+                                entity: 'Blackwood Assets',
+                                type: 'Cross-border Transfer',
+                                value: '₹6,20,000',
+                                amountNumeric: 620000,
+                                score: 98,
+                                time: '8 hrs ago',
+                                origin: 'Zurich',
+                                destination: 'India',
+                                status: 'Blocked',
+                                summary: 'High risk wealth transfer block active. Destination beneficiary matched verified mule network accounts.'
+                        },
+                        'TX-982659': {
+                                id: 'TX-982659',
+                                entity: 'Phoenix Ventures',
+                                type: 'Payment',
+                                value: '₹1,05,300',
+                                amountNumeric: 105300,
+                                score: 75,
+                                time: '12 hrs ago',
+                                origin: 'Frankfurt',
+                                destination: 'India',
+                                status: 'Under Review',
+                                summary: 'Clearance bounds matched secondary flags. Assigned to analyst for manual invoice audit.'
+                        },
+                        'TX-982641': {
+                                id: 'TX-982641',
+                                entity: 'Swift Logistics Corp',
+                                type: 'Withdrawal',
+                                value: '₹38,200',
+                                amountNumeric: 38200,
+                                score: 52,
+                                time: '18 hrs ago',
+                                origin: 'Sydney',
+                                destination: 'India',
+                                status: 'Normal',
+                                summary: 'Corporate ATM vault withdrawal setup logged from Swift Logistics. Authenticated tokens match device baselines.'
+                        }
+                };
+
+                // Sync stateful transaction statuses from MuleGuardStore on load
+                if (window.MuleGuardStore) {
+                        const storeTxs = window.MuleGuardStore.getTransactions();
+                        storeTxs.forEach(t => {
+                                if (transactionsDb[t.id]) {
+                                        transactionsDb[t.id].status = t.status;
+                                        
+                                        // Update matching row elements status attributes dynamically
+                                        const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + t.id + "']");
+                                        if (row) {
+                                                row.setAttribute('data-status', t.status);
+                                                const statusBadge = row.querySelector('.status-badge-cell');
+                                                if (statusBadge) {
+                                                        statusBadge.textContent = t.status;
+                                                        if (t.status === 'Blocked') {
+                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
+                                                        } else if (t.status === 'Flagged') {
+                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200";
+                                                        } else if (t.status === 'Under Review') {
+                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200";
+                                                        } else {
+                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200";
+                                                        }
+                                                }
+                                        }
+                                }
+                        });
+                }
+
+                // Timeframe datasets for redrawing SVG chart paths
+                const chartData = {
+                        '24H': {
+                                volume: "M 0 160 C 100 110, 200 40, 300 100 C 400 140, 500 60, 600 80",
+                                volumeArea: "M 0 160 C 100 110, 200 40, 300 100 C 400 140, 500 60, 600 80 L 600 180 L 0 180 Z",
+                                flagged: "M 0 175 C 100 150, 200 120, 300 155 C 400 165, 500 130, 600 145",
+                                flaggedArea: "M 0 175 C 100 150, 200 120, 300 155 C 400 165, 500 130, 600 145 L 600 180 L 0 180 Z",
+                                labels: ["12:00 PM", "03:00 PM", "06:00 PM", "09:00 PM", "12:00 AM", "03:00 AM"]
+                        },
+                        '7D': {
+                                volume: "M 0 120 C 100 140, 200 50, 300 95 C 400 85, 500 130, 600 70",
+                                volumeArea: "M 0 120 C 100 140, 200 50, 300 95 C 400 85, 500 130, 600 70 L 600 180 L 0 180 Z",
+                                flagged: "M 0 155 C 100 165, 200 130, 300 140 C 400 120, 500 150, 600 130",
+                                flaggedArea: "M 0 155 C 100 165, 200 130, 300 140 C 400 120, 500 150, 600 130 L 600 180 L 0 180 Z",
+                                labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+                        },
+                        '30D': {
+                                volume: "M 0 140 C 100 95, 200 130, 300 75 C 400 120, 500 65, 600 85",
+                                volumeArea: "M 0 140 C 100 95, 200 130, 300 75 C 400 120, 500 65, 600 85 L 600 180 L 0 180 Z",
+                                flagged: "M 0 165 C 100 140, 200 155, 300 130 C 400 145, 500 120, 600 125",
+                                flaggedArea: "M 0 165 C 100 140, 200 155, 300 130 C 400 145, 500 120, 600 125 L 600 180 L 0 180 Z",
+                                labels: ["Nov 02", "Nov 09", "Nov 16", "Nov 23", "Nov 30", "Dec 07"]
+                        },
+                        '90D': {
+                                volume: "M 0 90 C 100 120, 200 55, 300 110 C 400 65, 500 100, 600 45",
+                                volumeArea: "M 0 90 C 100 120, 200 55, 300 110 C 400 65, 500 100, 600 45 L 600 180 L 0 180 Z",
+                                flagged: "M 0 130 C 100 145, 200 105, 300 135 C 400 100, 500 125, 600 100",
+                                flaggedArea: "M 0 130 C 100 145, 200 105, 300 135 C 400 100, 500 125, 600 100 L 600 180 L 0 180 Z",
+                                labels: ["Sep", "Oct", "Nov", "Dec", "Jan", "Feb"]
+                        }
+                };
+
+                // Toggle mobile navigation sidebar
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                // Show custom alert toast notification
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        toast.classList.remove('translate-y-20', 'opacity-0');
+                        clearTimeout(toastTimeout);
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.add('translate-y-20', 'opacity-0');
+                        }, 2500);
+                }
+
+                // Update timeframe selector UI and redraw paths
+                // Update timeframe selector UI and redraw paths
+                function updateTimeframe(period) {
+                        const buttons = ['btn-24h', 'btn-7d', 'btn-30d', 'btn-90d'];
+                        buttons.forEach(btnId => {
+                                const btn = document.getElementById(btnId);
+                                if (btnId === `btn-${period.toLowerCase()}`) {
+                                        btn.className = "px-3 py-1 rounded font-body-md text-[11px] bg-interface-base shadow-sm text-secondary font-bold focus:outline-none";
+                                } else {
+                                        btn.className = "px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none";
+                                }
+                        });
+
+                        const data = chartData[period];
+                        if (data) {
+                                const volPath = document.getElementById('volume-path');
+                                const volArea = document.getElementById('volume-area');
+                                const flagPath = document.getElementById('flagged-path');
+                                const flagArea = document.getElementById('flagged-area');
+
+                                // Short fade out, switch, fade in to prevent layout recalculation bottlenecks
+                                volPath.style.opacity = '0';
+                                volArea.style.opacity = '0';
+                                flagPath.style.opacity = '0';
+                                flagArea.style.opacity = '0';
+
+                                setTimeout(() => {
+                                        volPath.setAttribute('d', data.volume);
+                                        volArea.setAttribute('d', data.volumeArea);
+                                        flagPath.setAttribute('d', data.flagged);
+                                        flagArea.setAttribute('d', data.flaggedArea);
+
+                                        // Update X-axis text values
+                                        const labelDivs = document.getElementById('chart-x-labels').children;
+                                        for (let i = 0; i < labelDivs.length; i++) {
+                                                if (data.labels[i]) {
+                                                        labelDivs[i].textContent = data.labels[i];
+                                                }
+                                        }
+
+                                        volPath.style.opacity = '1';
+                                        volArea.style.opacity = '1';
+                                        flagPath.style.opacity = '1';
+                                        flagArea.style.opacity = '1';
+                                }, 85);
+
+                                showToast(`Monitoring interval adjusted to ${period}.`);
+                        }
+                }
+
+                // Global UI drawer element lookups
+                const detailDrawerEl = document.getElementById('detail-drawer');
+                const drawerOverlayEl = document.getElementById('drawer-overlay');
+                let drawerTimeouts = [];
+
+                function clearDrawerTimeouts() {
+                        drawerTimeouts.forEach(t => clearTimeout(t));
+                        drawerTimeouts = [];
+                }
+
+                // Open Slide-over Drawer Workspace
+                function openDetailDrawer(txnId) {
+                        const data = transactionsDb[txnId];
+                        if (!data) return;
+
+                        // Clear any pending staggered load timeouts
+                        clearDrawerTimeouts();
+
+                        // Populate details drawer dynamically matching selected transaction
+                        document.getElementById('drawer-title-id').textContent = data.id;
+                        document.getElementById('drawer-entity-name').textContent = data.entity;
+                        document.getElementById('drawer-amount').textContent = data.value;
+                        document.getElementById('drawer-risk-score').textContent = `${data.score} / 100`;
+                        document.getElementById('drawer-type').textContent = data.type;
+                        document.getElementById('drawer-time').textContent = data.time;
+                        document.getElementById('drawer-origin').textContent = data.origin;
+                        document.getElementById('drawer-destination').textContent = data.destination;
+                        document.getElementById('drawer-summary').textContent = data.summary;
+
+                        // SVG labels
+                        document.getElementById('path-origin-label').textContent = data.origin;
+                        document.getElementById('path-dest-label').textContent = data.destination;
+
+                        // Update risk badge classes
+                        const scoreBadge = document.getElementById('drawer-risk-score');
+                        if (data.score >= 90) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200";
+                        } else if (data.score >= 70) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200";
+                        } else if (data.score >= 50) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200";
+                        } else {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200";
+                        }
+
+                        // Generate risk indicators tags programmatically
+                        const tagsContainer = document.getElementById('drawer-risk-tags');
+                        if (tagsContainer) {
+                                tagsContainer.innerHTML = '';
+                                if (data.score >= 90) {
+                                        tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded bg-[#fef2f2] text-[#ef4444] border border-[#fca5a5] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Unusual transaction velocity</span>`;
+                                } else if (data.score >= 70) {
+                                        tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Elevated risk score</span>`;
+                                }
+                                if (data.origin !== data.destination) {
+                                        tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Cross-border activity</span>`;
+                                }
+                                if (data.amountNumeric >= 100000) {
+                                        tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] text-[11px] font-semibold font-sans risk-tag cursor-pointer">High-value transfer</span>`;
+                                } else {
+                                        tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded bg-[#f0f9ff] text-[#0284c7] border border-[#e0f2fe] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Standard valuation</span>`;
+                                }
+                                tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded bg-[#f0f9ff] text-[#0284c7] border border-[#e0f2fe] text-[11px] font-semibold font-sans risk-tag cursor-pointer">Device verified</span>`;
+                        }
+
+                        // Update timeline dynamically
+                        document.getElementById('timeline-t1').textContent = data.time;
+
+                        // Staggered reveals
+                        const items = document.querySelectorAll('.timeline-item');
+                        items.forEach((item, index) => {
+                                item.classList.remove('show');
+                                const t = setTimeout(() => {
+                                        item.classList.add('show');
+                                }, 50 + index * 40);
+                                drawerTimeouts.push(t);
+                        });
+
+                        detailDrawerEl.classList.remove('translate-x-full');
+                        detailDrawerEl.classList.add('show-content');
+                        drawerOverlayEl.classList.remove('opacity-0', 'pointer-events-none');
+                        drawerOverlayEl.classList.add('opacity-100', 'pointer-events-auto');
+                }
+
+                // Close Drawer
+                function closeDetailDrawer() {
+                        clearDrawerTimeouts();
+                        const items = document.querySelectorAll('.timeline-item');
+                        items.forEach(item => item.classList.remove('show'));
+
+                        detailDrawerEl.classList.add('translate-x-full');
+                        detailDrawerEl.classList.remove('show-content');
+                        drawerOverlayEl.classList.remove('opacity-100', 'pointer-events-auto');
+                        drawerOverlayEl.classList.add('opacity-0', 'pointer-events-none');
+                }
+
+                // Confirmation Modals actions flow
+                let pendingAction = null;
+                let pendingTxnId = null;
+
+                function triggerDrawerAction(actionName) {
+                        const txnId = document.getElementById('drawer-title-id').textContent;
+                        const data = transactionsDb[txnId];
+                        if (!data) return;
+
+                        pendingAction = actionName;
+                        pendingTxnId = txnId;
+
+                        const modal = document.getElementById('confirm-modal');
+                        const modalTitle = document.getElementById('confirm-modal-title');
+                        const modalBody = document.getElementById('confirm-modal-body');
+                        const submitBtn = document.getElementById('confirm-submit-btn');
+
+                        if (actionName === 'Block') {
+                                modalTitle.textContent = "Confirm Transaction Block";
+                                modalBody.textContent = `Are you sure you want to block transaction ${txnId} (₹${data.amountNumeric.toLocaleString('en-IN')}) for entity ${data.entity}?`;
+                                submitBtn.className = "bg-risk-high hover:bg-red-700 text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm";
+                        } else {
+                                // Review or Flag actions do not require overlay warnings
+                                submitConfirmModal();
+                                return;
+                        }
+
+                        modal.classList.remove('hidden');
+                        setTimeout(() => {
+                                modal.firstElementChild.classList.remove('scale-95');
+                                modal.firstElementChild.classList.add('scale-100');
+                        }, 10);
+                }
+
+                function closeConfirmModal() {
+                        const modal = document.getElementById('confirm-modal');
+                        modal.firstElementChild.classList.remove('scale-100');
+                        modal.firstElementChild.classList.add('scale-95');
+                        setTimeout(() => {
+                                modal.classList.add('hidden');
+                        }, 150);
+                        pendingAction = null;
+                        pendingTxnId = null;
+                }
+
+                function submitConfirmModal() {
+                        const txnId = pendingTxnId;
+                        const action = pendingAction;
+                        const data = transactionsDb[txnId];
+
+                        closeConfirmModal();
+
+                        if (action === 'Block') {
+                                data.status = 'Blocked';
+                                if (window.MuleGuardStore) {
+                                        window.MuleGuardStore.updateTransactionStatus(txnId, 'Blocked');
+                                }
+                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + txnId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Blocked');
+                                        const statusBadge = row.querySelector('.status-badge-cell');
+                                        if (statusBadge) {
+                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
+                                                statusBadge.textContent = "Blocked";
+                                        }
+                                }
+                                showToast(`Success: Transaction ${txnId} blocked successfully.`);
+                        } else if (action === 'Flag') {
+                                data.status = 'Flagged';
+                                if (window.MuleGuardStore) {
+                                        window.MuleGuardStore.updateTransactionStatus(txnId, 'Flagged');
+                                }
+                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + txnId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Flagged');
+                                        const statusBadge = row.querySelector('.status-badge-cell');
+                                        if (statusBadge) {
+                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200";
+                                                statusBadge.textContent = "Flagged";
+                                        }
+                                }
+                                showToast(`Success: Transaction ${txnId} flagged for review.`);
+                        } else if (action === 'Review') {
+                                data.status = 'Normal';
+                                if (window.MuleGuardStore) {
+                                        window.MuleGuardStore.updateTransactionStatus(txnId, 'Normal');
+                                }
+                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + txnId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Normal');
+                                        const statusBadge = row.querySelector('.status-badge-cell');
+                                        if (statusBadge) {
+                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200";
+                                                statusBadge.textContent = "Normal";
+                                        }
+                                }
+                                showToast(`Success: Transaction ${txnId} marked as normal.`);
+                        }
+
+                        applyWorkspaceFilters();
+                }
+
+                // Row click action
+                function rowClickAction(event, txnId) {
+                        if (event.target.tagName.toLowerCase() === 'button' || event.target.tagName.toLowerCase() === 'a' || event.target.closest('button')) {
+                                return;
+                        }
+                        openDetailDrawer(txnId);
+                }
+
+                // Global variables for optimized operations
+                let cachedRows = [];
+                let searchDebounceTimeout;
+                let chartSvgRect = null;
+
+                // Debounce search input callback
+                function onSearchInput() {
+                        clearTimeout(searchDebounceTimeout);
+                        searchDebounceTimeout = setTimeout(() => {
+                                applyWorkspaceFilters();
+                        }, 120);
+                }
+
+                // Filter logic utilizing cached DOM rows to prevent layout thrashing
+                function applyWorkspaceFilters() {
+                        const searchQuery = document.getElementById('filter-search').value.toLowerCase().trim();
+                        const riskVal = document.getElementById('filter-risk').value;
+                        const typeVal = document.getElementById('filter-type').value;
+                        const statusVal = document.getElementById('filter-status').value;
+
+                        cachedRows.forEach(row => {
+                                // Sync dynamic status from the DB object
+                                const currentStatus = transactionsDb[row.id.toUpperCase()].status;
+
+                                const matchesSearch = !searchQuery || 
+                                        row.id.includes(searchQuery) || 
+                                        row.entity.includes(searchQuery) || 
+                                        row.valueString.includes(searchQuery) || 
+                                        row.cleanValueString.includes(searchQuery);
+
+                                const matchesRisk = (riskVal === 'All' || row.risk === riskVal);
+                                const matchesType = (typeVal === 'All' || row.type.includes(typeVal.toLowerCase()));
+                                const matchesStatus = (statusVal === 'All' || currentStatus === statusVal);
+
+                                if (matchesSearch && matchesRisk && matchesType && matchesStatus) {
+                                        row.element.classList.remove('hidden');
+                                } else {
+                                        row.element.classList.add('hidden');
+                                }
+                        });
+
+                        recountSummaryCards();
+                }
+
+                // Recount summary cards based on filtered rows from the cache
+                function recountSummaryCards() {
+                        let totalCount = 0;
+                        let flaggedCount = 1280;
+                        let highRiskValue = 0;
+                        let anomaliesCount = 344;
+
+                        cachedRows.forEach(row => {
+                                if (row.element.classList.contains('hidden')) {
+                                        return;
+                                }
+                                totalCount++;
+                                // Sync dynamic status from DB
+                                const currentStatus = transactionsDb[row.id.toUpperCase()].status;
+                                const risk = row.risk;
+                                const amount = row.amountNumeric;
+
+                                if (currentStatus === 'Flagged' || currentStatus === 'Under Review') {
+                                        flaggedCount++;
+                                }
+                                if (risk === 'High' || risk === 'Critical') {
+                                        highRiskValue += amount;
+                                        if (risk === 'Critical') {
+                                                anomaliesCount++;
+                                        }
+                                }
+                        });
+
+                        const totalHighRiskValFormatted = "₹" + ((84.20 + highRiskValue / 100000).toFixed(2)) + " Lakh";
+
+                        document.getElementById('count-flagged').textContent = flaggedCount.toLocaleString('en-IN');
+                        document.getElementById('count-risk-value').textContent = totalHighRiskValFormatted;
+                        document.getElementById('count-anomalies').textContent = anomaliesCount;
+                }
+
+                // Clear all filters
+                function clearAllWorkspaceFilters() {
+                        document.getElementById('filter-search').value = '';
+                        document.getElementById('filter-risk').value = 'All';
+                        document.getElementById('filter-type').value = 'All';
+                        document.getElementById('filter-status').value = 'All';
+                        applyWorkspaceFilters();
+                        showToast("Transaction filters reset successfully.");
+                }
+
+                // Global header search using cached rows
+                function triggerGlobalSearch() {
+                        const headerQuery = document.getElementById('global-header-search').value.toLowerCase().trim();
+                        cachedRows.forEach(row => {
+                                const matches = !headerQuery || row.id.includes(headerQuery) || row.entity.includes(headerQuery);
+                                row.element.classList.toggle('hidden', !matches);
+                        });
+                        recountSummaryCards();
+                }
+
+                // SVG line chart dynamic tracking cursor using cached SVG boundaries
+                const chartSvg = document.getElementById('chart-svg');
+                const hoverLine = document.getElementById('hover-line');
+                const chartTooltip = document.getElementById('chart-tooltip');
+
+                chartSvg.addEventListener('mouseenter', () => {
+                        chartSvgRect = chartSvg.getBoundingClientRect();
+                });
+                
+                window.addEventListener('resize', () => {
+                        chartSvgRect = null;
+                });
+
+                chartSvg.addEventListener('mousemove', (e) => {
+                        if (!chartSvgRect) {
+                                chartSvgRect = chartSvg.getBoundingClientRect();
+                        }
+                        const x = e.clientX - chartSvgRect.left;
+                        const percentX = x / chartSvgRect.width;
+                        const dataPointX = Math.round(percentX * 600);
+
+                        hoverLine.setAttribute('x1', dataPointX);
+                        hoverLine.setAttribute('x2', dataPointX);
+                        hoverLine.classList.remove('opacity-0');
+
+                        // Custom mock values for coordinates
+                        const volValue = Math.round(14000 - (dataPointX * 12) + Math.sin(dataPointX / 10) * 800);
+                        const flagValue = Math.round(180 - (dataPointX / 8) + Math.cos(dataPointX / 12) * 20);
+
+                        chartTooltip.innerHTML = `
+                                <div class="font-bold text-secondary">Vol: ${volValue.toLocaleString('en-IN')}</div>
+                                <div class="text-risk-high mt-0.5">Flags: ${flagValue}</div>
+                        `;
+                        chartTooltip.style.left = `${e.clientX - chartSvgRect.left + 15}px`;
+                        chartTooltip.style.top = `${e.clientY - chartSvgRect.top - 15}px`;
+                        chartTooltip.style.opacity = '1';
+                });
+
+                chartSvg.addEventListener('mouseleave', () => {
+                        hoverLine.classList.add('opacity-0');
+                        chartTooltip.style.opacity = '0';
+                });
+
+                // Global escape key event listener
+                document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                                closeDetailDrawer();
+                                closeConfirmModal();
+                        }
+                });
+
+                // Initial count setup and caching DOM elements
+                window.addEventListener('DOMContentLoaded', () => {
+                        const rows = document.querySelectorAll('#transactions-tbody tr');
+                        cachedRows = Array.from(rows).map(row => {
+                                const txnId = row.getAttribute('data-txn-id');
+                                const data = transactionsDb[txnId];
+                                return {
+                                        element: row,
+                                        id: txnId.toLowerCase(),
+                                        entity: data.entity.toLowerCase(),
+                                        type: data.type.toLowerCase(),
+                                        risk: row.getAttribute('data-risk'),
+                                        amountNumeric: data.amountNumeric,
+                                        valueString: data.value.toLowerCase(),
+                                        cleanValueString: data.amountNumeric.toString()
+                                };
+                        });
+                        recountSummaryCards();
+                        animateChartOnLoad();
+                });
+
+                function animateChartOnLoad() {
+                        const volumePath = document.getElementById('volume-path');
+                        const flaggedPath = document.getElementById('flagged-path');
+                        if (!volumePath || !flaggedPath) return;
+
+                        try {
+                                const volLength = volumePath.getTotalLength();
+                                volumePath.style.strokeDasharray = volLength;
+                                volumePath.style.strokeDashoffset = volLength;
+
+                                // Trigger layout reflow once on load
+                                volumePath.getBoundingClientRect();
+
+                                volumePath.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                                volumePath.style.strokeDashoffset = '0';
+
+                                // Fade in flagged path
+                                flaggedPath.style.opacity = '0';
+                                flaggedPath.style.transition = 'opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                                setTimeout(() => {
+                                        flaggedPath.style.opacity = '1';
+                                }, 50);
+                        } catch (e) {
+                                console.warn('SVG path animation skipped:', e);
+                        }
+                }
+
+                // Listen to live transaction ingestion events
+                window.addEventListener('muleguard:transaction-ingested', () => {
+                        if (window.MuleGuardStore) {
+                                const storeTxs = window.MuleGuardStore.getTransactions();
+                                storeTxs.forEach(t => {
+                                        if (transactionsDb[t.id]) {
+                                                transactionsDb[t.id].status = t.status;
+                                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + t.id + "']");
+                                                if (row) {
+                                                        row.setAttribute('data-status', t.status);
+                                                        const statusBadge = row.querySelector('.status-badge-cell');
+                                                        if (statusBadge) {
+                                                                statusBadge.textContent = t.status;
+                                                        }
+                                                }
+                                        }
+                                });
+                        }
+                        recountSummaryCards();
+                });
+        </script>
+</body>
+
+</html>

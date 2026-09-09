@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Secure Sign In</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap"
+                rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+        <link rel="stylesheet" href="style.css" />
+        <script>
+                // Intercept and suppress external Chrome extension errors/warnings
+                (function () {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') ||
+                                        msg.includes('widget') ||
+                                        msg.includes('publicKey') ||
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+
+                        console.warn = function (...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalWarn.apply(console, args);
+                        };
+
+                        console.error = function (...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalError.apply(console, args);
+                        };
+
+                        console.log = function (...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalLog.apply(console, args);
+                        };
+
+                        // Clear the console after page loads to keep it completely clean
+                        window.addEventListener('DOMContentLoaded', () => {
+                                setTimeout(() => {
+                                        console.clear();
+                                        // Re-print only the clean initialization log
+                                        console.log("MuleGuard Three.js initialized successfully");
+                                }, 250);
+                        });
+                })();
+        </script>
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 24
+                }
+
+                .login-btn {
+                        background-color: #3B82F6 !important;
+                        color: #ffffff !important;
+                        height: 50px;
+                        font-weight: 600;
+                        border-radius: 8px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 8px;
+                        cursor: pointer;
+                        transition: background-color 0.2s, transform 0.1s;
+                        width: 100%;
+                }
+
+                .login-btn:hover {
+                        background-color: #2563EB !important;
+                }
+
+                .login-btn:active {
+                        transform: scale(0.98);
+                }
+
+                .login-btn:disabled {
+                        background-color: #94a3b8 !important;
+                        cursor: not-allowed;
+                }
+        </style>
+</head>
+
+<body
+        class="bg-surface text-on-surface h-screen w-full flex overflow-hidden selection:bg-secondary-container selection:text-on-secondary-container">
+        <!-- Desktop Split Layout Container -->
+        <div class="flex flex-col md:flex-row w-full h-full">
+                <!-- Left Side: 3D Visualization (Hidden on Mobile) -->
+                <div
+                        class="hidden md:flex w-1/2 h-full bg-primary-container relative flex-col justify-between p-container-padding-desktop overflow-hidden">
+                        <!-- Background Gradient to ensure 3D scene sits nicely -->
+                        <div class="absolute inset-0 bg-gradient-to-b from-[#0B1F3A] to-[#081629] opacity-100 z-0">
+                        </div>
+                        <!-- Logo overlay on viz -->
+                        <div class="absolute top-[15px] left-[15px] z-10">
+                                <img alt="MuleGuard" class="w-[120px] h-auto object-contain muleguard-logo"
+                                        src="../assets/MULEGUARD_LOGO-Photoroom.png" />
+                        </div>
+                        <!-- The 3D Scene -->
+                        <div class="absolute inset-0 w-full h-full z-0 flex items-center justify-center">
+                                <!-- STITCH_THREEJS_START:ANIMATION_7 class="absolute inset-0 w-full h-full bg-transparent" -->
+                                <div class="absolute inset-0 w-full h-full bg-transparent" style="display:block;">
+                                        <script
+                                                src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+                                        <div id="threejs-container-ANIMATION_7" style="width:100%;height:100%"></div>
+                                        <script src="three.js"></script>
+                                </div>
+                                <!-- STITCH_THREEJS_END:ANIMATION_7 -->
+                        </div>
+                        <!-- Conceptual Support Text Overlay -->
+                        <div class="absolute bottom-[32px] left-[32px] z-10 max-w-md select-none">
+                                <div class="flex items-center gap-2 mb-2">
+                                        <span
+                                                class="inline-block w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span
+                                                class="font-mono-technical text-mono-technical text-[#38BDF8] tracking-wider uppercase">MuleGuard
+                                                // Fraud Intelligence</span>
+                                </div>
+                                <h2 class="font-headline-md text-headline-md text-on-primary mb-unit">Sovereign Security
+                                        Guaranteed.</h2>
+                                <p class="font-body-md text-body-md text-on-primary-container opacity-80">Advanced
+                                        transaction intelligence and threat detection for high-stakes financial
+                                        environments.</p>
+                        </div>
+                </div>
+
+                <!-- Right Side: Authentication Form -->
+                <div
+                        class="w-full md:w-1/2 h-full bg-interface-base flex flex-col justify-center items-center p-container-padding-mobile md:p-container-padding-desktop overflow-y-auto relative">
+
+                        <!-- Premium Background Texture Layer -->
+                        <div class="absolute inset-0 z-0 pointer-events-none select-none overflow-hidden bg-white">
+                                <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000"
+                                        preserveAspectRatio="none">
+                                        <defs>
+                                                <!-- Radial gradient for soft cool light overlaying the login area -->
+                                                <radialGradient id="glow" cx="50%" cy="50%" r="65%">
+                                                        <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+                                                        <stop offset="60%" stop-color="#f1f5f9" stop-opacity="0.8" />
+                                                        <stop offset="100%" stop-color="#ffffff" stop-opacity="1" />
+                                                </radialGradient>
+
+                                                <!-- Halftone Dot Pattern -->
+                                                <pattern id="dots" x="0" y="0" width="24" height="24"
+                                                        patternUnits="userSpaceOnUse">
+                                                        <circle cx="12" cy="12" r="1.5" fill="#475569" opacity="0.22" />
+                                                </pattern>
+
+                                                <!-- Fading Linear Mask for Dots (Fades from Right to Left) -->
+                                                <linearGradient id="dotMaskGrad" x1="100%" y1="50%" x2="45%" y2="50%">
+                                                        <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+                                                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                                                </linearGradient>
+                                                <mask id="dotMask">
+                                                        <rect width="100%" height="100%" fill="url(#dotMaskGrad)" />
+                                                </mask>
+                                        </defs>
+
+                                        <!-- Soft cool glow background -->
+                                        <rect width="100%" height="100%" fill="url(#glow)" />
+
+                                        <!-- Topographic Flow Lines -->
+                                        <g stroke="#94a3b8" stroke-width="0.75" fill="none" opacity="0.22">
+                                                <!-- Bottom Right Flows -->
+                                                <path d="M 280 1000 C 400 880, 480 800, 800 750" />
+                                                <path d="M 310 1000 C 430 860, 510 780, 800 720" />
+                                                <path d="M 340 1000 C 460 840, 540 760, 800 690" />
+                                                <path d="M 370 1000 C 490 820, 570 740, 800 660" />
+                                                <path d="M 400 1000 C 520 800, 600 720, 800 630" />
+                                                <path d="M 430 1000 C 550 780, 630 700, 800 600" />
+                                                <path d="M 460 1000 C 580 760, 660 680, 800 570" />
+
+                                                <!-- Top Right Flows -->
+                                                <path d="M 800 40 C 680 50, 600 120, 800 240" />
+                                                <path d="M 800 0 C 650 20, 560 100, 800 280" />
+                                                <path d="M 800 -40 C 620 -10, 520 80, 800 320" />
+                                                <path d="M 800 -80 C 580 -40, 480 60, 800 360" />
+                                                <path d="M 800 -120 C 540 -70, 440 40, 800 400" />
+                                                <path d="M 800 -160 C 500 -100, 400 20, 800 440" />
+                                        </g>
+
+                                        <!-- Bottom Right Geometric Accent -->
+                                        <g stroke="#64748b" stroke-width="0.5" fill="none" opacity="0.14">
+                                                <polygon points="650,920 720,840 700,950" />
+                                                <polygon points="700,950 720,840 770,890" />
+                                                <polygon points="700,950 770,890 750,970" />
+                                                <polygon points="750,970 770,890 820,930" />
+                                                <polygon points="580,940 650,920 620,980" />
+                                                <polygon points="620,980 650,920 700,950" />
+
+                                                <!-- Connecting lines -->
+                                                <line x1="650" y1="920" x2="700" y2="950" />
+                                                <line x1="720" y1="840" x2="770" y2="890" />
+
+                                                <!-- Faint nodes -->
+                                                <circle cx="650" cy="920" r="2" fill="#64748b" />
+                                                <circle cx="720" cy="840" r="2" fill="#64748b" />
+                                                <circle cx="700" cy="950" r="2" fill="#64748b" />
+                                                <circle cx="770" cy="890" r="2" fill="#64748b" />
+                                                <circle cx="750" cy="970" r="2" fill="#64748b" />
+                                                <circle cx="820" cy="930" r="2" fill="#64748b" />
+                                                <circle cx="580" cy="940" r="2" fill="#64748b" />
+                                                <circle cx="620" cy="980" r="2" fill="#64748b" />
+                                        </g>
+
+                                        <!-- Top Right Geometric Accent -->
+                                        <g stroke="#64748b" stroke-width="0.5" fill="none" opacity="0.14">
+                                                <polygon points="700,80 760,20 740,110" />
+                                                <polygon points="740,110 760,20 800,60" />
+                                                <polygon points="740,110 800,60 790,140" />
+                                                <polygon points="700,80 740,110 650,150" />
+                                                <polygon points="650,150 740,110 710,180" />
+                                                <polygon points="740,110 790,140 710,180" />
+
+                                                <!-- Connecting lines -->
+                                                <line x1="700" y1="80" x2="740" y2="110" />
+                                                <line x1="760" y1="20" x2="800" y2="60" />
+
+                                                <!-- Faint nodes -->
+                                                <circle cx="700" cy="80" r="2" fill="#64748b" />
+                                                <circle cx="760" cy="20" r="2" fill="#64748b" />
+                                                <circle cx="740" cy="110" r="2" fill="#64748b" />
+                                                <circle cx="800" cy="60" r="2" fill="#64748b" />
+                                                <circle cx="790" cy="140" r="2" fill="#64748b" />
+                                                <circle cx="650" cy="150" r="2" fill="#64748b" />
+                                                <circle cx="710" cy="180" r="2" fill="#64748b" />
+                                        </g>
+
+                                        <!-- Halftone Dots with Fading Mask -->
+                                        <rect width="100%" height="100%" fill="url(#dots)" mask="url(#dotMask)" />
+                                </svg>
+                        </div>
+
+                        <div class="w-full max-w-[450px] flex flex-col gap-stack-gap relative z-10">
+                                <!-- Mobile Logo (Visible only on small screens) -->
+                                <div class="md:hidden flex justify-center mb-4">
+                                        <img alt="MuleGuard Logo" class="h-10 object-contain"
+                                                src="../assets/MULEGUARD_LOGO-Photoroom.png" />
+                                </div>
+                                <!-- Header -->
+                                <div class="text-left flex flex-col gap-2">
+                                        <h1
+                                                class="font-headline-lg text-headline-lg text-on-surface font-extrabold tracking-tight flex items-center gap-0">
+                                                <span>Sign in to MuleGuard</span>
+                                                <img src="../assets/MULEGUARD_SYMBOL.png" alt="MuleGuard Logo Symbol"
+                                                        class="object-contain" style="width: 52px; height: 52px;" />
+                                        </h1>
+                                        <p class="font-body-md text-body-md text-on-surface-variant text-[14px]">Secure
+                                                access to the financial investigation environment.</p>
+                                </div>
+                                <!-- Form -->
+                                <form class="flex flex-col gap-[20px]" onsubmit="event.preventDefault();">
+                                        <!-- Institutional Role Selector -->
+                                        <div class="flex flex-col gap-2">
+                                                <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-500"
+                                                        for="role-select">Institutional Role</label>
+                                                <div class="relative">
+                                                        <select id="role-select" name="role-select"
+                                                                class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200 appearance-none cursor-pointer pr-10"
+                                                                style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 16px top 50%; background-size: 12px auto;">
+                                                                <option value="bank_investigator" selected>Bank
+                                                                        Investigator</option>
+                                                                <option value="bank_compliance">Bank Compliance Officer
+                                                                </option>
+                                                                <option value="internal_team">Internal Team</option>
+                                                        </select>
+                                                </div>
+                                        </div>
+                                        <!-- Email / ID Input -->
+                                        <div class="flex flex-col gap-2">
+                                                <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-500"
+                                                        for="identifier">Email / Employee ID</label>
+                                                <div class="relative">
+                                                        <input class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200"
+                                                                id="identifier" name="identifier"
+                                                                placeholder="Enter your email or ID" required=""
+                                                                type="text" />
+                                                </div>
+                                        </div>
+                                        <!-- Password Input -->
+                                        <div class="flex flex-col gap-2">
+                                                <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-500"
+                                                        for="password">Password</label>
+                                                <div class="relative">
+                                                        <input class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200 pr-12"
+                                                                id="password" name="password"
+                                                                placeholder="Enter your password" required=""
+                                                                type="password" />
+                                                        <button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface focus:outline-none"
+                                                                onclick="togglePassword()" type="button">
+                                                                <span class="material-symbols-outlined text-[20px]"
+                                                                        id="visibility-icon">visibility</span>
+                                                        </button>
+                                                </div>
+                                        </div>
+                                        <!-- Actions Row -->
+                                        <div class="flex items-center justify-between mt-1">
+                                                <label class="flex items-center gap-2 cursor-pointer group">
+                                                        <input class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary focus:ring-offset-0 bg-interface-base transition-colors cursor-pointer"
+                                                                type="checkbox" />
+                                                        <span
+                                                                class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-surface transition-colors text-[14px]">Remember
+                                                                me</span>
+                                                </label>
+                                                <a class="font-label-sm text-label-sm text-secondary hover:text-secondary-container transition-colors text-[13px]"
+                                                        href="#" onclick="showToast('Password reset link sent.')">Forgot
+                                                        password?</a>
+                                        </div>
+                                        <!-- Submit Button -->
+                                        <button class="login-btn" type="submit">
+                                                Sign In
+                                                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                        </button>
+                                </form>
+                                <!-- Environment Badge -->
+                                <div
+                                        class="mt-8 flex items-center justify-center gap-2 bg-surface-container-low border border-surface-container-highest rounded-lg p-3 text-center">
+                                        <span
+                                                class="material-symbols-outlined text-outline text-[16px]">shield_lock</span>
+                                        <span
+                                                class="font-mono-technical text-mono-technical text-on-surface-variant uppercase">Protected
+                                                Bank Investigation Environment</span>
+                                </div>
+                        </div>
+                        <!-- Footer Text -->
+                        <div class="absolute bottom-6 font-label-sm text-label-sm text-outline-variant md:hidden z-10">
+                                © 2024 MuleGuard Financial Intelligence
+                        </div>
+                </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast"
+                class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <script>
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                function togglePassword() {
+                        const passwordInput = document.getElementById('password');
+                        const icon = document.getElementById('visibility-icon');
+
+                        if (passwordInput.type === 'password') {
+                                passwordInput.type = 'text';
+                                icon.textContent = 'visibility_off';
+                        } else {
+                                passwordInput.type = 'password';
+                                icon.textContent = 'visibility';
+                        }
+                }
+
+                // Connect form submission redirect to role-based dashboard
+                window.addEventListener('DOMContentLoaded', () => {
+                        const form = document.querySelector('form');
+                        if (form) {
+                                form.addEventListener('submit', (e) => {
+                                        e.preventDefault();
+                                        const selectedRoleVal = document.getElementById('role-select').value;
+                                        const identifierInput = document.getElementById('identifier').value.trim();
+                                        const passwordInput = document.getElementById('password').value.trim();
+
+                                        if (!identifierInput || !passwordInput) {
+                                                showToast("Please enter your credentials.");
+                                                return;
+                                        }
+
+                                        let role = 'bank_investigator';
+                                        let subRole = '';
+                                        let userName = 'J. Doe';
+                                        let userTitle = 'Bank Investigator';
+
+                                        if (selectedRoleVal === 'bank_compliance') {
+                                                role = 'bank_compliance';
+                                                userName = 'A. Kumar';
+                                                userTitle = 'Bank Compliance Officer';
+                                        } else if (selectedRoleVal === 'internal_team') {
+                                                role = 'internal_team';
+                                                userName = 'T. Miller';
+                                                userTitle = 'Platform Administrator';
+                                        } else {
+                                                role = 'bank_investigator';
+                                                userName = 'J. Doe';
+                                                userTitle = 'Bank Investigator';
+                                        }
+
+                                        // Save session
+                                        const session = {
+                                                authenticated: true,
+                                                role: role,
+                                                subRole: subRole,
+                                                user: {
+                                                        name: userName,
+                                                        title: userTitle
+                                                }
+                                        };
+                                        sessionStorage.setItem('muleguard_session', JSON.stringify(session));
+
+                                        // Set loading state on button
+                                        const submitBtn = form.querySelector('button[type="submit"]');
+                                        if (submitBtn) {
+                                                submitBtn.disabled = true;
+                                                submitBtn.innerHTML = `Signing In... <span class="material-symbols-outlined text-[18px] animate-spin">sync</span>`;
+                                        }
+
+                                        // Redirect to dashboard based on role
+                                        setTimeout(() => {
+                                                if (role === 'internal_team') {
+                                                        window.location.href = 'internal/dashboard.html';
+                                                } else if (role === 'bank_compliance') {
+                                                        window.location.href = 'bank/compliance/dashboard.html';
+                                                } else {
+                                                        window.location.href = 'bank/investigator/dashboard.html';
+                                                }
+                                        }, 150);
+                                });
+                        }
+                });
+        </script>
+</body>
+
+</html>

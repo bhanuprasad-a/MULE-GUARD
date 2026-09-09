@@ -1,0 +1,1384 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>`n        <script src="../../scripts/data-store.js"></script>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Investigations Workspace</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+                rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <script>
+                // Intercept and suppress external Chrome extension errors/warnings
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || 
+                                        msg.includes('widget') || 
+                                        msg.includes('publicKey') || 
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+
+                        console.warn = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalWarn.apply(console, args);
+                        };
+
+                        console.error = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalError.apply(console, args);
+                        };
+
+                        console.log = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalLog.apply(console, args);
+                        };
+                })();
+        </script>
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                /* Custom scrollbar styles */
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+
+                /* Keyframe pulse animation for network nodes */
+                @keyframes nodePulse {
+                        0% {
+                                r: 5px;
+                                stroke-opacity: 1;
+                                stroke-width: 1px;
+                        }
+                        100% {
+                                r: 14px;
+                                stroke-opacity: 0;
+                                stroke-width: 3px;
+                        }
+                }
+                .network-pulse {
+                        animation: nodePulse 2s infinite ease-out;
+                }
+
+                /* Custom tooltips mapping coordinates absolute */
+                .custom-tooltip {
+                        position: absolute;
+                        background: #0b1f3a;
+                        border: 1px solid #1e293b;
+                        color: #ffffff;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        font-size: 11px;
+                        font-family: 'Poppins', sans-serif;
+                        pointer-events: none;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+                        z-index: 100;
+                        opacity: 0;
+                        transition: opacity 0.15s ease-in-out;
+                }
+
+                /* Restrained load animations */
+                @keyframes headingFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(6px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .heading-animate {
+                        animation: headingFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes cardFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(8px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .kpi-card-animate {
+                        opacity: 0;
+                        animation: cardFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes simpleFadeIn {
+                        from {
+                                opacity: 0;
+                        }
+                        to {
+                                opacity: 1;
+                        }
+                }
+                .fade-in-animate {
+                        opacity: 0;
+                        animation: simpleFadeIn 0.4s ease-out forwards;
+                }
+
+                /* Staggered loading card delays */
+                .stagger-1 { animation-delay: 0.05s; }
+                .stagger-2 { animation-delay: 0.12s; }
+                .stagger-3 { animation-delay: 0.19s; }
+                .stagger-4 { animation-delay: 0.26s; }
+
+                /* Timeline staggered reveals */
+                .timeline-item {
+                        opacity: 0;
+                        transform: translateY(4px);
+                        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+                }
+                .timeline-item.show {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+
+                /* Table hover arrow shift animations */
+                tr:hover .inspect-arrow {
+                        transform: translateX(3px);
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Details Drawer Backdrop Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-primary/30 backdrop-blur-sm z-40 hidden transition-opacity duration-200" onclick="closeDetailDrawer()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                
+                <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- Sidebar Header & Logo -->
+                        <div class="h-[70px] flex items-center px-6 border-b border-[#1e293b] gap-3">
+                                <img alt="MuleGuard Logo" class="w-[110px] h-auto object-contain" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+                        </div>
+
+                        <!-- Sidebar Menu Groups -->
+                        <nav class="flex-1 px-4 py-6 space-y-7">
+                                <!-- Command Center Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Command Center</span>
+                                        </div>
+                                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                                                <span>Dashboard</span>
+                                        </a>
+                                        <!-- Investigations active navigation state indicator link -->
+                                        <a href="investigations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px] text-secondary-container">search_insights</span>
+                                                <span class="font-medium">Investigations</span>
+                                        </a>
+                                        <a href="transactions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                                                <span>Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">group</span>
+                                                <span>Entities</span>
+                                        </a>
+                                        <a href="fraud_networks.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">share</span>
+                                                <span>Fraud Networks</span>
+                                        </a>
+                                        <a href="alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+                                                <span>Alerts</span>
+                                        </a>
+                                        <a href="cases.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">work</span>
+                                                <span>Cases</span>
+                                        </a>
+                                </div>
+
+                                <!-- Intelligence Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
+                                        </div>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                                                <span>Risk Analytics</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">hub</span>
+                                                <span>Network Intelligence</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">rule_folder</span>
+                                                <span>Watchlists</span>
+                                        </a>
+                                </div>
+                        </nav>
+                </div>
+
+                <!-- Sidebar Footer Status -->
+                <div class="p-4 border-t border-[#1e293b] space-y-4">
+                        <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Systems OK</span>
+                                </div>
+                                <span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]">
+                                <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[13px] text-on-primary font-bold">
+                                                AK
+                                        </div>
+                                        <div class="flex flex-col">
+                                                <span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight">A. Kumar</span>
+                                                <span class="font-body-md text-[11px] text-on-primary-container/50">Senior Analyst</span>
+                                        </div>
+                                </div>
+                                <button class="text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none" onclick="showToast('Analyst configuration opened.')">
+                                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                                </button>
+                        </div>
+                </div>
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <!-- Mobile Menu Toggle Trigger -->
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Investigations</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Financial threat investigations and case intelligence</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <!-- Global Search Container -->
+                                <div class="relative hidden sm:block">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-outline">search</span>
+                                        <input id="global-header-search" class="w-[240px] bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-4 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200" placeholder="Search accounts, entities, IPs..." type="text" oninput="triggerGlobalSearch()" />
+                                </div>
+
+                                <!-- Notification Bell -->
+                                <button class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors focus:outline-none" onclick="showToast('No new urgent cases in queue.')">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+                                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-risk-high rounded-full ring-2 ring-white"></span>
+                                </button>
+
+                                <!-- System Badge Online -->
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Secure Systems Online</span>
+                                </div>
+
+                                <!-- Separator -->
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- Small User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <!-- Profile Dropdown Menu -->
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading profile panel...')">My Profile</a>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading system configurations...')">System Configuration</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" onclick="logoutUser()" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main Content Queue Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- Queue Header Controls -->
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left heading-animate">
+                                <div class="flex flex-col">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Investigation Queue</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant leading-none mt-1">Review, prioritize, and manage active financial investigations.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                        <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="showToast('Exporting current filter matrix...')">
+                                                Export
+                                        </button>
+                                        <button class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="showToast('Creating new investigation case...')">
+                                                + New Investigation
+                                        </button>
+                                </div>
+                        </div>
+
+                        <!-- Summary KPI Cards Row -->
+                        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                
+                                <!-- Card 1 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-1">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container opacity-40"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Active Investigations</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#316bf3]">troubleshoot</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-active" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">47</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span class="font-semibold text-secondary">Active</span>
+                                                <span>cases currently in queue</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 2 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-2">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-risk-high"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-risk-high">Critical Cases</span>
+                                                <div class="w-8 h-8 rounded-lg bg-risk-high/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-risk-high animate-pulse">warning</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-critical" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight text-risk-high">3</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-risk-high font-semibold leading-none">Requires immediate action</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 3 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-3">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-orange-600">High Risk</span>
+                                                <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500">report</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-high" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight text-orange-600">18</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-orange-600 font-semibold leading-none">Under active review</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 4 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-4">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-risk-low"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-risk-low">Resolved This Month</span>
+                                                <div class="w-8 h-8 rounded-lg bg-risk-low/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-risk-low">verified_user</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-resolved" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight text-risk-low">126</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-low leading-none">trending_up</span>
+                                                <span class="font-body-md text-[12px] text-risk-low font-semibold leading-none">+14.2%</span>
+                                                <span class="font-body-md text-[11px] text-on-surface-variant opacity-70 leading-none font-medium">resolved this month</span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Filter & Search Toolbar Card -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-4 rounded-xl shadow-sm select-none fade-in-animate">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                        
+                                        <!-- Text Search input -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Search Cases</label>
+                                                <input id="filter-search" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150" placeholder="ID, entity, value..." type="text" oninput="applyWorkspaceFilters()" />
+                                        </div>
+
+                                        <!-- Risk levels dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Risk Level</label>
+                                                <select id="filter-risk" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150 cursor-pointer" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Risk Levels</option>
+                                                        <option value="Critical">Critical</option>
+                                                        <option value="High">High</option>
+                                                        <option value="Medium">Medium</option>
+                                                        <option value="Low">Low</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Status dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Status</label>
+                                                <select id="filter-status" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150 cursor-pointer" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Statuses</option>
+                                                        <option value="New">New</option>
+                                                        <option value="Investigating">Investigating</option>
+                                                        <option value="Escalated">Escalated</option>
+                                                        <option value="Monitoring">Monitoring</option>
+                                                        <option value="Resolved">Resolved</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Assigned analyst dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Assigned Analyst</label>
+                                                <select id="filter-analyst" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150 cursor-pointer" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Analysts</option>
+                                                        <option value="A. Kumar">A. Kumar</option>
+                                                        <option value="R. Sharma">R. Sharma</option>
+                                                        <option value="S. Patel">S. Patel</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Date range filter button actions -->
+                                        <div class="flex flex-col text-left justify-end">
+                                                <button class="w-full border border-outline-variant hover:border-secondary hover:text-secondary rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="clearAllWorkspaceFilters()">
+                                                        Clear Filters
+                                                </button>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Main Grid Table Cases Queue -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm fade-in-animate">
+                                
+                                <div class="w-full overflow-x-auto">
+                                        <table class="w-full border-collapse text-left" id="investigations-table">
+                                                <thead>
+                                                        <tr class="border-b border-[#e2e8f0]">
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Investigation ID</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Risk Level</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Target Entity / Account</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Transaction Value</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Detected</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Assigned To</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Status</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Action</th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="investigations-tbody">
+                                                        <!-- Row 1 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20479" data-risk="Critical" data-status="Escalated" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20479')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20479</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-[#ef4444] border border-[#fca5a5]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse"></span>Critical
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,27,500</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 min ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Escalated</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20479')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 2 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20473" data-risk="High" data-status="Investigating" data-analyst="S. Patel" onclick="rowClickAction(event, 'MG-20473')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20473</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-[#ea580c] border border-[#ffedd5]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>High
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Orion Financial</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹86,200</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">28 min ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">S. Patel</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20473')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 3 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20468" data-risk="Medium" data-status="Monitoring" data-analyst="A. Kumar" onclick="rowClickAction(event, 'MG-20468')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20468</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-[#d97706] border border-[#fef3c7]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>Medium
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vertex Imports</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹42,800</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">41 min ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">A. Kumar</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">Monitoring</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20468')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 4 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20461" data-risk="Critical" data-status="Escalated" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20461')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20461</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-[#ef4444] border border-[#fca5a5]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse"></span>Critical
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Northstar Holdings</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹3,12,400</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">1 hr ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Escalated</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20461')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 5 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20455" data-risk="High" data-status="Investigating" data-analyst="A. Kumar" onclick="rowClickAction(event, 'MG-20455')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20455</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-[#ea580c] border border-[#ffedd5]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>High
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Meridian Capital</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹94,600</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">2 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">A. Kumar</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20455')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 6 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20441" data-risk="Medium" data-status="Monitoring" data-analyst="S. Patel" onclick="rowClickAction(event, 'MG-20441')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20441</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-[#d97706] border border-[#fef3c7]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>Medium
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Atlas Global Trading</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹28,450</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">3 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">S. Patel</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">Monitoring</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20441')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 7 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20436" data-risk="Low" data-status="Resolved" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20436')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20436</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#2563eb] border border-[#dbeafe]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#2563eb]"></span>Low
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vanguard Logistics</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹15,600</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">5 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Resolved</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20436')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 8 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20430" data-risk="Critical" data-status="Investigating" data-analyst="S. Patel" onclick="rowClickAction(event, 'MG-20430')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20430</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-[#ef4444] border border-[#fca5a5]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse"></span>Critical
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Blackwood Assets</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹6,20,000</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">8 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">S. Patel</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20430')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 9 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20424" data-risk="High" data-status="Escalated" data-analyst="A. Kumar" onclick="rowClickAction(event, 'MG-20424')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20424</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-[#ea580c] border border-[#ffedd5]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>High
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Phoenix Ventures</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,05,300</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">A. Kumar</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Escalated</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20424')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 10 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20418" data-risk="Medium" data-status="Resolved" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20418')">
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20418</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-[#d97706] border border-[#fef3c7]">
+                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>Medium
+                                                                        </span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Swift Logistics Corp</td>
+                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹38,200</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">18 hrs ago</td>
+                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
+                                                                <td class="py-3.5 px-4">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Resolved</span>
+                                                                </td>
+                                                                <td class="py-3.5 px-4 text-right">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20418')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Footer System status bar -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Network: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Transaction Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Risk Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Intelligence Graph: Online</span>
+                                </div>
+                        </div>
+                        <div class="hidden sm:block">
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Fraud Intelligence</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Professional Slider Drawer detail workspace (scrollable body, sticky header/footer) -->
+        <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-interface-base border-l border-outline-variant/60 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between select-none overflow-hidden">
+                
+                <!-- Sticky Drawer Header -->
+                <div class="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low sticky top-0 z-10 flex-shrink-0">
+                        <div class="flex flex-col text-left">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Investigation Workspace</span>
+                                <h3 id="drawer-title-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">MG-20479</h3>
+                        </div>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-outline-variant/30 transition-colors focus:outline-none" onclick="closeDetailDrawer()">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface">close</span>
+                        </button>
+                </div>
+
+                <!-- Scrollable Drawer Body -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6 text-left">
+                        <!-- Status Card -->
+                        <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3">
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Target Entity:</span>
+                                        <span id="drawer-entity-name" class="font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Transaction Value:</span>
+                                        <span id="drawer-txn-value" class="font-mono-technical text-[13px] text-on-surface font-bold">₹1,27,500</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Risk Score:</span>
+                                        <span id="drawer-risk-score" class="font-mono-technical text-[12px] font-bold text-risk-high px-2 py-0.5 rounded bg-red-50 border border-red-200">94 / 100</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Detected Time:</span>
+                                        <span id="drawer-time" class="font-body-md text-[13px] text-on-surface">12 min ago</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Assigned Analyst:</span>
+                                        <span id="drawer-analyst" class="font-body-md text-[13px] text-on-surface">R. Sharma</span>
+                                </div>
+                                <!-- Funds Frozen Indicator -->
+                                <div id="drawer-frozen-badge" class="flex justify-between items-center pt-2 border-t border-outline-variant/30 hidden">
+                                        <span class="font-body-md text-[13px] text-risk-high font-bold">Funds Frozen:</span>
+                                        <span class="px-2 py-0.5 rounded bg-red-50 text-risk-high border border-red-200 font-mono-technical text-[11px] font-bold">HOLD ACTIVE</span>
+                                </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">1. Investigation Summary</span>
+                                <p class="font-body-md text-[13px] text-on-surface-variant leading-relaxed bg-[#f8fafc] border border-[#e2e8f0] p-3 rounded-lg mt-1">
+                                        Multiple high-value cross-border transactions were detected across connected accounts. The activity pattern indicates potential beneficiary relationships requiring further investigation and entity verification.
+                                </p>
+                        </div>
+
+                        <!-- Threat Indicators -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">2. Risk Indicators</span>
+                                <div class="flex flex-wrap gap-2 mt-1" id="drawer-risk-tags">
+                                        <span class="px-2.5 py-1 rounded bg-[#fef2f2] text-[#ef4444] border border-[#fca5a5] text-[11px] font-semibold font-sans">Unusual transaction velocity</span>
+                                        <span class="px-2.5 py-1 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] text-[11px] font-semibold font-sans">Cross-border activity</span>
+                                        <span class="px-2.5 py-1 rounded bg-[#fff7ed] text-[#ea580c] border border-[#ffedd5] text-[11px] font-semibold font-sans">Multiple connected beneficiaries</span>
+                                        <span class="px-2.5 py-1 rounded bg-[#f0f9ff] text-[#0284c7] border border-[#e0f2fe] text-[11px] font-semibold font-sans">High-value transfer pattern</span>
+                                </div>
+                        </div>
+
+                        <!-- Timeline -->
+                        <div class="space-y-3 border-t border-outline-variant/20 pt-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">3. Transaction Timeline</span>
+                                <div class="space-y-3 pl-3 border-l-2 border-[#e2e8f0] ml-2 font-body-md text-[12px] mt-2">
+                                        <div class="timeline-item relative">
+                                                <span class="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-[#ef4444] ring-4 ring-white"></span>
+                                                <div class="flex justify-between font-bold text-on-surface">
+                                                        <span>Anomaly Threshold Triggered</span>
+                                                        <span class="font-mono-technical font-medium text-on-surface-variant">12m ago</span>
+                                                </div>
+                                                <p class="text-on-surface-variant mt-0.5">Velocity exceeded 400% of historical average.</p>
+                                        </div>
+                                        <div class="timeline-item relative">
+                                                <span class="absolute -left-[17px] top-1 w-2.5 h-2.5 rounded-full bg-[#3b82f6] ring-4 ring-white"></span>
+                                                <div class="flex justify-between font-bold text-on-surface">
+                                                        <span>Case Logged in Queue</span>
+                                                        <span class="font-mono-technical font-medium text-on-surface-variant">10m ago</span>
+                                                </div>
+                                                <p class="text-on-surface-variant mt-0.5">Assigned to senior analyst pool.</p>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- SVG Relationship network visual -->
+                        <div class="space-y-3 border-t border-outline-variant/20 pt-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">4. Connected Entities</span>
+                                <div class="h-[160px] bg-[#0b1f3a] rounded-lg relative overflow-hidden flex items-center justify-center mt-1 border border-[#1e293b]">
+                                        <svg class="w-full h-full" viewBox="0 0 400 160" id="network-svg">
+                                                <!-- Lines -->
+                                                <line id="edge-orion" x1="200" y1="80" x2="100" y2="40" stroke="#38BDF8" stroke-width="1.5" opacity="0.3" class="transition-all duration-150" />
+                                                <line id="edge-meridian" x1="200" y1="80" x2="300" y2="40" stroke="#38BDF8" stroke-width="1.5" opacity="0.3" class="transition-all duration-150" />
+                                                <line id="edge-shell" x1="200" y1="80" x2="200" y2="130" stroke="#EF4444" stroke-width="2.0" class="flow-line transition-all duration-150" opacity="0.7" />
+                                                
+                                                <!-- Center entity -->
+                                                <g class="cursor-pointer group/node" onmouseover="hoverNode(event, 'Apex Trading', 'Primary Entity', 'edge-orion,edge-meridian,edge-shell')" onmouseout="unhoverNode()">
+                                                        <circle cx="200" cy="80" r="8" fill="#316bf3" stroke="#ffffff" stroke-width="1.5" class="transition-all duration-150" />
+                                                        <text x="200" y="65" fill="#ffffff" font-size="9" text-anchor="middle" font-family="monospace" class="pointer-events-none font-bold">Apex Trading</text>
+                                                </g>
+
+                                                <!-- Connections -->
+                                                <g class="cursor-pointer group/node" onmouseover="hoverNode(event, 'Orion Financial', 'Financial Institution', 'edge-orion')" onmouseout="unhoverNode()">
+                                                        <circle cx="100" cy="40" r="5" fill="#38BDF8" stroke="#ffffff" stroke-width="1" class="transition-all duration-150" />
+                                                        <text x="100" y="28" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="monospace" class="pointer-events-none">Orion Fin</text>
+                                                </g>
+
+                                                <g class="cursor-pointer group/node" onmouseover="hoverNode(event, 'Meridian Capital', 'Foreign Intermediary', 'edge-meridian')" onmouseout="unhoverNode()">
+                                                        <circle cx="300" cy="40" r="5" fill="#38BDF8" stroke="#ffffff" stroke-width="1" class="transition-all duration-150" />
+                                                        <text x="300" y="28" fill="#94a3b8" font-size="8" text-anchor="middle" font-family="monospace" class="pointer-events-none">Meridian Cap</text>
+                                                </g>
+                                                
+                                                <!-- Flagged destination -->
+                                                <g class="cursor-pointer group/node" onmouseover="hoverNode(event, 'Shell Destination', 'Flagged Beneficiary Account', 'edge-shell')" onmouseout="unhoverNode()">
+                                                        <circle cx="200" cy="130" r="6.5" fill="#EF4444" stroke="#ffffff" stroke-width="1.5" class="network-pulse transition-all duration-150" />
+                                                        <text x="200" y="146" fill="#EF4444" font-size="8" text-anchor="middle" font-family="monospace" class="pointer-events-none font-bold">Shell Dest</text>
+                                                </g>
+                                        </svg>
+                                        <!-- Absolute node floating tooltip box inside layout -->
+                                        <div id="svg-tooltip" class="absolute bg-[#0b1f3a] border border-[#1e293b] text-white px-2.5 py-1.5 rounded-md text-[11px] font-sans pointer-events-none opacity-0 shadow-lg transition-opacity duration-150 z-50">
+                                                <div class="font-bold text-[#38BDF8]" id="svg-tooltip-title">Node Title</div>
+                                                <div class="text-[9px] text-[#94a3b8]" id="svg-tooltip-type">Node Type</div>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- Analyst Notes -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">5. Analyst Notes</span>
+                                <textarea id="drawer-notes-field" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg p-2.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary transition-colors" rows="3" placeholder="Enter investigation notes log..."></textarea>
+                        </div>
+                </div>
+
+                <!-- Sticky Drawer Action Footer -->
+                <div class="p-6 border-t border-outline-variant/30 bg-surface-container-low flex flex-wrap gap-3 sticky bottom-0 z-10 flex-shrink-0">
+                        <button class="flex-1 bg-secondary hover:bg-secondary-container text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="triggerDrawerAction('Freeze Funds')">
+                                Freeze Funds
+                        </button>
+                        <button class="flex-1 bg-risk-high hover:bg-red-700 text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="triggerDrawerAction('Escalate')">
+                                Escalate
+                        </button>
+                        <button class="flex-1 bg-outline-variant/40 hover:bg-outline-variant text-on-surface py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="triggerDrawerAction('Resolve')">
+                                Resolve Case
+                        </button>
+                </div>
+        </div>
+
+        <!-- Professional Confirmation Dialog Modal -->
+        <div id="confirm-modal" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-200">
+                <div class="bg-interface-base border border-outline-variant/60 rounded-xl shadow-2xl w-full max-w-md p-6 transform scale-95 transition-all duration-200 select-none text-left">
+                        <h4 id="confirm-modal-title" class="font-headline-md text-[16px] text-on-surface font-extrabold">Confirm Action</h4>
+                        <p id="confirm-modal-body" class="font-body-md text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                                Are you sure you want to perform this action on this case?
+                        </p>
+                        <div class="flex justify-end gap-3 mt-6">
+                                <button class="border border-outline-variant hover:border-on-surface-variant hover:text-on-surface text-on-surface-variant px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="closeConfirmModal()">
+                                        Cancel
+                                </button>
+                                <button id="confirm-submit-btn" class="bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="submitConfirmModal()">
+                                        Confirm
+                                </button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <!-- JS Filter / Details Workspace Core Logic -->
+        <script>
+                // Investigations Queue mock database records
+                const investigationsDb = {
+                        'MG-20479': {
+                                id: 'MG-20479',
+                                risk: 'Critical',
+                                entity: 'Apex Trading Ltd',
+                                value: '₹1,27,500',
+                                score: '94 / 100',
+                                time: '12 min ago',
+                                analyst: 'R. Sharma',
+                                status: 'Escalated',
+                                summary: 'Multiple high-value cross-border transactions were detected across connected accounts. The activity pattern indicates potential beneficiary relationships requiring further investigation and entity verification.',
+                                fundsFrozen: false
+                        },
+                        'MG-20473': {
+                                id: 'MG-20473',
+                                risk: 'High',
+                                entity: 'Orion Financial',
+                                value: '₹86,200',
+                                score: '78 / 100',
+                                time: '28 min ago',
+                                analyst: 'S. Patel',
+                                status: 'Investigating',
+                                summary: 'Repetitive settlement requests sent from unverified entity addresses within brief succession thresholds. Triggered alert due to high risk country matching indicators.',
+                                fundsFrozen: false
+                        },
+                        'MG-20468': {
+                                id: 'MG-20468',
+                                risk: 'Medium',
+                                entity: 'Vertex Imports',
+                                value: '₹42,800',
+                                score: '56 / 100',
+                                time: '41 min ago',
+                                analyst: 'A. Kumar',
+                                status: 'Monitoring',
+                                summary: 'Structured deposits flagged under structural velocity thresholds. Ongoing tracking of beneficiary IP fingerprints recommended.',
+                                fundsFrozen: false
+                        },
+                        'MG-20461': {
+                                id: 'MG-20461',
+                                risk: 'Critical',
+                                entity: 'Northstar Holdings',
+                                value: '₹3,12,400',
+                                score: '91 / 100',
+                                time: '1 hr ago',
+                                analyst: 'R. Sharma',
+                                status: 'Escalated',
+                                summary: 'Significant outbound clearing volumes channeled to offshore destinations matching blocklist entities. Immediate legal hold suggested.',
+                                fundsFrozen: false
+                        },
+                        'MG-20455': {
+                                id: 'MG-20455',
+                                risk: 'High',
+                                entity: 'Meridian Capital',
+                                value: '₹94,600',
+                                score: '82 / 100',
+                                time: '2 hrs ago',
+                                analyst: 'A. Kumar',
+                                status: 'Investigating',
+                                summary: 'High correlation with verified mule account clusters in regional banking nodes. Case file escalated to international intelligence department.',
+                                fundsFrozen: false
+                        },
+                        'MG-20441': {
+                                id: 'MG-20441',
+                                risk: 'Medium',
+                                entity: 'Atlas Global Trading',
+                                value: '₹28,450',
+                                score: '48 / 100',
+                                time: '3 hrs ago',
+                                analyst: 'S. Patel',
+                                status: 'Monitoring',
+                                summary: 'Unusual device authorization patterns identified during wire transmission setups. Multi-factor verification requested.',
+                                fundsFrozen: false
+                        },
+                        'MG-20436': {
+                                id: 'MG-20436',
+                                risk: 'Low',
+                                entity: 'Vanguard Logistics',
+                                value: '₹15,600',
+                                score: '24 / 100',
+                                time: '5 hrs ago',
+                                analyst: 'R. Sharma',
+                                status: 'Resolved',
+                                summary: 'Investigated and resolved. Account verified as a valid institutional commercial transaction portal.',
+                                fundsFrozen: false
+                        },
+                        'MG-20430': {
+                                id: 'MG-20430',
+                                risk: 'Critical',
+                                entity: 'Blackwood Assets',
+                                value: '₹6,20,000',
+                                score: '96 / 100',
+                                time: '8 hrs ago',
+                                analyst: 'S. Patel',
+                                status: 'Investigating',
+                                summary: 'Large deposit threshold exceeded with zero matching source of funds records. Case assigned to senior advisory audit team.',
+                                fundsFrozen: false
+                        },
+                        'MG-20424': {
+                                id: 'MG-20424',
+                                risk: 'High',
+                                entity: 'Phoenix Ventures',
+                                value: '₹1,05,300',
+                                score: '84 / 100',
+                                time: '12 hrs ago',
+                                analyst: 'A. Kumar',
+                                status: 'Escalated',
+                                summary: 'Linked proxy routing loops identified during audit of incoming transactional settlement hashes.',
+                                fundsFrozen: false
+                        },
+                        'MG-20418': {
+                                id: 'MG-20418',
+                                risk: 'Medium',
+                                entity: 'Swift Logistics Corp',
+                                value: '₹38,200',
+                                score: '42 / 100',
+                                time: '18 hrs ago',
+                                analyst: 'R. Sharma',
+                                status: 'Resolved',
+                                summary: 'Investigated. Corporate validation papers filed and confirmed as legitimate.',
+                                fundsFrozen: false
+                        }
+                };
+
+                // Toggle sidebar on mobile
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                // Show action toast
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        toast.classList.remove('translate-y-20', 'opacity-0');
+                        clearTimeout(toastTimeout);
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.add('translate-y-20', 'opacity-0');
+                        }, 2500);
+                }
+
+                // Open Slide-over Drawer
+                function openDetailDrawer(caseId) {
+                        const drawer = document.getElementById('detail-drawer');
+                        const overlay = document.getElementById('drawer-overlay');
+                        const data = investigationsDb[caseId];
+
+                        if (data) {
+                                document.getElementById('drawer-title-id').textContent = data.id;
+                                document.getElementById('drawer-entity-name').textContent = data.entity;
+                                document.getElementById('drawer-txn-value').textContent = data.value;
+                                document.getElementById('drawer-risk-score').textContent = `${data.score}`;
+                                document.getElementById('drawer-time').textContent = data.time;
+                                document.getElementById('drawer-analyst').textContent = data.analyst;
+                                document.getElementById('drawer-notes-field').value = '';
+
+                                // Update risk badge color
+                                const riskBox = document.getElementById('drawer-risk-score');
+                                if (data.risk === 'Critical') {
+                                        riskBox.className = "font-mono-technical text-[12px] font-bold text-risk-high px-2 py-0.5 rounded bg-red-50 border border-red-200";
+                                } else if (data.risk === 'High') {
+                                        riskBox.className = "font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200";
+                                } else {
+                                        riskBox.className = "font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200";
+                                }
+
+                                // Update funds frozen indicator state
+                                const frozenBadge = document.getElementById('drawer-frozen-badge');
+                                if (data.fundsFrozen) {
+                                        frozenBadge.classList.remove('hidden');
+                                } else {
+                                        frozenBadge.classList.add('hidden');
+                                }
+
+                                // Staggered timeline animations load reveal
+                                const timelineItems = document.querySelectorAll('.timeline-item');
+                                timelineItems.forEach((item, index) => {
+                                        item.classList.remove('show');
+                                        setTimeout(() => {
+                                                item.classList.add('show');
+                                        }, 120 + index * 100);
+                                });
+
+                                drawer.classList.remove('translate-x-full');
+                                overlay.classList.remove('hidden');
+                        }
+                }
+
+                // Close Drawer
+                function closeDetailDrawer() {
+                        const drawer = document.getElementById('detail-drawer');
+                        const overlay = document.getElementById('drawer-overlay');
+                        drawer.classList.add('translate-x-full');
+                        overlay.classList.add('hidden');
+                }
+
+                // Confirm Modal Action state
+                let pendingAction = null;
+                let pendingCaseId = null;
+
+                function triggerDrawerAction(actionName) {
+                        const caseId = document.getElementById('drawer-title-id').textContent;
+                        const data = investigationsDb[caseId];
+                        if (!data) return;
+
+                        pendingAction = actionName;
+                        pendingCaseId = caseId;
+
+                        const modal = document.getElementById('confirm-modal');
+                        const modalTitle = document.getElementById('confirm-modal-title');
+                        const modalBody = document.getElementById('confirm-modal-body');
+                        const submitBtn = document.getElementById('confirm-submit-btn');
+
+                        // Set custom warning message based on context
+                        if (actionName === 'Freeze Funds') {
+                                modalTitle.textContent = "Confirm Funds Hold";
+                                modalBody.textContent = `Are you sure you want to freeze all transaction assets for entity ${data.entity} under case ${caseId}?`;
+                                submitBtn.className = "bg-risk-high hover:bg-red-700 text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm";
+                        } else if (actionName === 'Escalate') {
+                                modalTitle.textContent = "Confirm Case Escalation";
+                                modalBody.textContent = `Are you sure you want to escalate case ${caseId} (${data.entity}) to high-priority review?`;
+                                submitBtn.className = "bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm";
+                        } else if (actionName === 'Resolve') {
+                                modalTitle.textContent = "Confirm Case Resolution";
+                                modalBody.textContent = `Are you sure you want to mark case ${caseId} (${data.entity}) as resolved?`;
+                                submitBtn.className = "bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm";
+                        }
+
+                        modal.classList.remove('hidden');
+                        setTimeout(() => {
+                                modal.firstElementChild.classList.remove('scale-95');
+                                modal.firstElementChild.classList.add('scale-100');
+                        }, 10);
+                }
+
+                function closeConfirmModal() {
+                        const modal = document.getElementById('confirm-modal');
+                        modal.firstElementChild.classList.remove('scale-100');
+                        modal.firstElementChild.classList.add('scale-95');
+                        setTimeout(() => {
+                                modal.classList.add('hidden');
+                        }, 150);
+                        pendingAction = null;
+                        pendingCaseId = null;
+                }
+
+                function submitConfirmModal() {
+                        if (!pendingCaseId || !pendingAction) return;
+
+                        const caseId = pendingCaseId;
+                        const action = pendingAction;
+                        const data = investigationsDb[caseId];
+
+                        closeConfirmModal();
+
+                        if (action === 'Freeze Funds') {
+                                data.fundsFrozen = true;
+                                showToast(`Success: Funds frozen for entity ${data.entity}.`);
+                                const frozenBadge = document.getElementById('drawer-frozen-badge');
+                                if (frozenBadge) {
+                                        frozenBadge.classList.remove('hidden');
+                                }
+                        } else if (action === 'Escalate') {
+                                data.status = 'Escalated';
+                                const row = document.querySelector("#investigations-tbody tr[data-case-id='" + caseId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Escalated');
+                                        const statusCell = row.querySelector('.status-badge-cell');
+                                        if (statusCell) {
+                                                statusCell.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
+                                                statusCell.textContent = "Escalated";
+                                        }
+                                }
+                                showToast(`Success: Case ${caseId} escalated to senior queue.`);
+                        } else if (action === 'Resolve') {
+                                data.status = 'Resolved';
+                                const row = document.querySelector("#investigations-tbody tr[data-case-id='" + caseId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Resolved');
+                                        const statusCell = row.querySelector('.status-badge-cell');
+                                        if (statusCell) {
+                                                statusCell.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200";
+                                                statusCell.textContent = "Resolved";
+                                        }
+                                }
+                                showToast(`Success: Case ${caseId} marked as resolved.`);
+                        }
+
+                        applyWorkspaceFilters();
+                        closeDetailDrawer();
+                }
+
+                // Row action helper
+                function rowClickAction(event, caseId) {
+                        if (event.target.tagName.toLowerCase() === 'button' || event.target.tagName.toLowerCase() === 'a' || event.target.closest('button')) {
+                                return;
+                        }
+                        openDetailDrawer(caseId);
+                }
+
+                // Filter logic
+                function applyWorkspaceFilters() {
+                        const searchQuery = document.getElementById('filter-search').value.toLowerCase();
+                        const riskVal = document.getElementById('filter-risk').value;
+                        const statusVal = document.getElementById('filter-status').value;
+                        const analystVal = document.getElementById('filter-analyst').value;
+
+                        const rows = document.querySelectorAll('#investigations-tbody tr');
+
+                        rows.forEach(row => {
+                                const id = row.getAttribute('data-case-id').toLowerCase();
+                                const entity = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                                const risk = row.getAttribute('data-risk');
+                                const status = row.getAttribute('data-status');
+                                const analyst = row.getAttribute('data-analyst');
+                                const value = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                                const cleanValue = value.replace(/[\₹,]/g, '');
+
+                                const matchesSearch = id.includes(searchQuery) || entity.includes(searchQuery) || value.includes(searchQuery) || cleanValue.includes(searchQuery);
+                                const matchesRisk = (riskVal === 'All' || risk === riskVal);
+                                const matchesStatus = (statusVal === 'All' || status === statusVal);
+                                const matchesAnalyst = (analystVal === 'All' || analyst === analystVal);
+
+                                if (matchesSearch && matchesRisk && matchesStatus && matchesAnalyst) {
+                                        row.classList.remove('hidden');
+                                } else {
+                                        row.classList.add('hidden');
+                                }
+                        });
+
+                        recountSummaryCards();
+                }
+
+                // Recount summary cards dynamically based on visible table records
+                function recountSummaryCards() {
+                        let activeCount = 0;
+                        let criticalCount = 0;
+                        let highCount = 0;
+                        let resolvedCount = 0;
+
+                        const rows = document.querySelectorAll('#investigations-tbody tr');
+                        rows.forEach(row => {
+                                if (row.classList.contains('hidden')) {
+                                        return;
+                                }
+                                const risk = row.getAttribute('data-risk');
+                                const status = row.getAttribute('data-status');
+
+                                if (status === 'Resolved') {
+                                        resolvedCount++;
+                                } else {
+                                        activeCount++;
+                                        if (risk === 'Critical') {
+                                                criticalCount++;
+                                        } else if (risk === 'High') {
+                                                highCount++;
+                                        }
+                                }
+                        });
+
+                        document.getElementById('count-active').textContent = activeCount;
+                        document.getElementById('count-critical').textContent = criticalCount;
+                        document.getElementById('count-high').textContent = highCount;
+                        document.getElementById('count-resolved').textContent = resolvedCount;
+                }
+
+                // Reset filter
+                function clearAllWorkspaceFilters() {
+                        document.getElementById('filter-search').value = '';
+                        document.getElementById('filter-risk').value = 'All';
+                        document.getElementById('filter-status').value = 'All';
+                        document.getElementById('filter-analyst').value = 'All';
+                        applyWorkspaceFilters();
+                        showToast("Queue filters reset successfully.");
+                }
+
+                function triggerGlobalSearch() {
+                        const headerQuery = document.getElementById('global-header-search').value.toLowerCase();
+                        const rows = document.querySelectorAll('#investigations-tbody tr');
+                        rows.forEach(row => {
+                                const id = row.getAttribute('data-case-id').toLowerCase();
+                                const entity = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                                if (id.includes(headerQuery) || entity.includes(headerQuery)) {
+                                        row.classList.remove('hidden');
+                                } else {
+                                        row.classList.add('hidden');
+                                }
+                        });
+                        recountSummaryCards();
+                }
+
+                // Node interactive hover highlight inside network visual
+                function hoverNode(event, name, type, edgesString) {
+                        const tooltip = document.getElementById('svg-tooltip');
+                        const titleEl = document.getElementById('svg-tooltip-title');
+                        const typeEl = document.getElementById('svg-tooltip-type');
+
+                        titleEl.textContent = name;
+                        typeEl.textContent = type;
+
+                        // Position tooltip relative to the SVG wrapper container box
+                        const rect = event.currentTarget.ownerSVGElement.getBoundingClientRect();
+                        const x = event.clientX - rect.left + 12;
+                        const y = event.clientY - rect.top + 12;
+
+                        tooltip.style.left = `${x}px`;
+                        tooltip.style.top = `${y}px`;
+                        tooltip.style.opacity = '1';
+
+                        // Highlight matching edges
+                        const edges = edgesString.split(',');
+                        edges.forEach(edgeId => {
+                                const edge = document.getElementById(edgeId);
+                                if (edge) {
+                                        edge.style.opacity = '1.0';
+                                        edge.style.stroke = '#38BDF8';
+                                        if (edgeId === 'edge-shell') {
+                                                edge.style.strokeWidth = '3.0';
+                                                edge.style.stroke = '#EF4444';
+                                        } else {
+                                                edge.style.strokeWidth = '2.5';
+                                        }
+                                }
+                        });
+                }
+
+                function unhoverNode() {
+                        const tooltip = document.getElementById('svg-tooltip');
+                        tooltip.style.opacity = '0';
+
+                        const edgeOrion = document.getElementById('edge-orion');
+                        const edgeMeridian = document.getElementById('edge-meridian');
+                        const edgeShell = document.getElementById('edge-shell');
+
+                        if (edgeOrion) {
+                                edgeOrion.style.opacity = '0.3';
+                                edgeOrion.style.strokeWidth = '1.5';
+                                edgeOrion.style.stroke = '#38BDF8';
+                        }
+                        if (edgeMeridian) {
+                                edgeMeridian.style.opacity = '0.3';
+                                edgeMeridian.style.strokeWidth = '1.5';
+                                edgeMeridian.style.stroke = '#38BDF8';
+                        }
+                        if (edgeShell) {
+                                edgeShell.style.opacity = '0.7';
+                                edgeShell.style.strokeWidth = '2.0';
+                                edgeShell.style.stroke = '#EF4444';
+                        }
+                }
+
+                // Initial count on page load
+                window.addEventListener('DOMContentLoaded', () => {
+                        recountSummaryCards();
+                });
+        </script>
+</body>
+
+</html>
+

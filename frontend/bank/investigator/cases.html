@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MuleGuard - Cases Queue</title>
+        <!-- Google Fonts Inter & Outfit -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <!-- Google Material Symbols Icons -->
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" rel="stylesheet" />
+        <!-- Compiled Stylesheet assets -->
+        <link rel="stylesheet" href="../../style.css">
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                /* Custom scrollbar styles */
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+
+                /* Staggered entrance page animations */
+                @keyframes headingFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(6px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .heading-animate {
+                        animation: headingFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes cardFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(8px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .kpi-card-animate {
+                        opacity: 0;
+                        animation: cardFadeIn 0.35s ease-out forwards;
+                }
+
+                @keyframes simpleFadeIn {
+                        from {
+                                opacity: 0;
+                        }
+                        to {
+                                opacity: 1;
+                        }
+                }
+                .fade-in-animate {
+                        opacity: 0;
+                        animation: simpleFadeIn 0.4s ease-out forwards;
+                }
+
+                /* Staggered loading card delays */
+                .stagger-1 { animation-delay: 0.05s; }
+                .stagger-2 { animation-delay: 0.12s; }
+                .stagger-3 { animation-delay: 0.19s; }
+                .stagger-4 { animation-delay: 0.26s; }
+
+                /* Table hover animations */
+                tr:hover .inspect-arrow {
+                        transform: translateX(3px);
+                }
+                tr:hover .case-id-cell {
+                        color: #1d4ed8 !important;
+                        text-decoration: underline;
+                }
+
+                /* Drawer sections staggered fade/slide transitions */
+                .drawer-section {
+                        opacity: 0;
+                        transform: translateY(6px);
+                        transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+                }
+                .show-content .drawer-section {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+                .drawer-stagger-1 { transition-delay: 0.04s; }
+                .drawer-stagger-2 { transition-delay: 0.10s; }
+                .drawer-stagger-3 { transition-delay: 0.16s; }
+                .drawer-stagger-4 { transition-delay: 0.22s; }
+                .drawer-stagger-5 { transition-delay: 0.28s; }
+                .drawer-stagger-6 { transition-delay: 0.34s; }
+
+                /* Risk badges hover */
+                .risk-tag {
+                        transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+                }
+                .risk-tag:hover {
+                        transform: translateY(-1px);
+                        filter: brightness(0.96);
+                }
+
+                /* Respect prefers-reduced-motion settings */
+                @media (prefers-reduced-motion: reduce) {
+                        .heading-animate, 
+                        .kpi-card-animate, 
+                        .fade-in-animate, 
+                        .drawer-section {
+                                animation: none !important;
+                                transition: none !important;
+                        }
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Details Drawer Backdrop Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-primary/45 backdrop-blur-sm z-40 transition-opacity duration-300 opacity-0 pointer-events-none" onclick="closeDetailDrawer()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                
+                <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- Sidebar Header & Logo -->
+                        <div class="h-[70px] flex items-center px-6 border-b border-[#1e293b] gap-3">
+                                <img alt="MuleGuard Logo" class="w-[110px] h-auto object-contain" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+                        </div>
+
+                        <!-- Sidebar Menu Groups -->
+                        <nav class="flex-1 px-4 py-6 space-y-7">
+                                <!-- Command Center Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Command Center</span>
+                                        </div>
+                                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                                                <span>Dashboard</span>
+                                        </a>
+                                        <a href="investigations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">search_insights</span>
+                                                <span>Investigations</span>
+                                        </a>
+                                        <a href="transactions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                                                <span>Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">group</span>
+                                                <span>Entities</span>
+                                        </a>
+                                        <a href="fraud_networks.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">share</span>
+                                                <span>Fraud Networks</span>
+                                        </a>
+                                        <a href="alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+                                                <span>Alerts</span>
+                                        </a>
+                                        <!-- Active Navigation State for Cases Page -->
+                                        <a href="cases.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px] text-secondary-container">work</span>
+                                                <span class="font-medium">Cases</span>
+                                        </a>
+                                </div>
+
+                                <!-- Intelligence Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
+                                        </div>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                                                <span>Risk Analytics</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">hub</span>
+                                                <span>Network Intelligence</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">rule_folder</span>
+                                                <span>Watchlists</span>
+                                        </a>
+                                </div>
+                        </nav>
+                </div>
+
+                <!-- Sidebar Footer Status -->
+                <div class="p-4 border-t border-[#1e293b] space-y-4">
+                        <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Systems OK</span>
+                                </div>
+                                <span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]">
+                                <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[13px] text-on-primary font-bold">
+                                                AK
+                                        </div>
+                                        <div class="flex flex-col">
+                                                <span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight">A. Kumar</span>
+                                                <span class="font-body-md text-[11px] text-on-primary-container/50">Senior Analyst</span>
+                                        </div>
+                                </div>
+                                <button class="text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none" onclick="showToast('Analyst configuration opened.')">
+                                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                                </button>
+                        </div>
+                </div>
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <!-- Mobile Menu Toggle Trigger -->
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Cases</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Case management, investigation workflows and analyst decision tracking.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <!-- Global Search Container -->
+                                <div class="relative hidden sm:block">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-outline">search</span>
+                                        <input id="global-header-search" class="w-[240px] bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-4 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200" placeholder="Search cases, entities, title..." type="text" oninput="triggerGlobalSearch()" />
+                                </div>
+
+                                <!-- Notification Bell -->
+                                <button class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors focus:outline-none" onclick="showToast('No new urgent cases in queue.')">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+                                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-risk-high rounded-full ring-2 ring-white"></span>
+                                </button>
+
+                                <!-- System Badge Online -->
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Secure Systems Online</span>
+                                </div>
+
+                                <!-- Separator -->
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- Small User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <!-- Profile Dropdown Menu -->
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('My Profile information loaded.')">My Profile</a>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading system configurations...')">System Configuration</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" onclick="logoutUser()" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- Queue Header Controls -->
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left heading-animate">
+                                <div class="flex flex-col">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Cases Workspace</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant leading-none mt-1">Review investigation queues, assign analyst ownership and track decision closures.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                        <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="showToast('Exporting Cases ledger...')">
+                                                Export Cases
+                                        </button>
+                                        <button class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="showToast('Add Case dialog opened.')">
+                                                + Add Case
+                                        </button>
+                                </div>
+                        </div>
+
+                        <!-- KPI Summary Cards Panel -->
+                        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                <!-- Card 1 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-1">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container opacity-40"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Total Cases</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#316bf3]">work</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-total" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">8</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-low leading-none">trending_up</span>
+                                                <span class="font-semibold text-risk-low">+3 new</span>
+                                                <span>this week</span>
+                                        </div>
+                                </div>
+                                <!-- Card 2 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-2">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-orange-600">Open Cases</span>
+                                                <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500">pending_actions</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-open" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">4</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span>Active investigations</span>
+                                        </div>
+                                </div>
+                                <!-- Card 3 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-3">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-red-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-red-600">High Priority</span>
+                                                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-red-500">error</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-critical-high" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">3</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-red-600 font-semibold leading-none">
+                                                <span>Requires attention</span>
+                                        </div>
+                                </div>
+                                <!-- Card 4 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-4">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-blue-600"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-blue-600">Assigned Cases</span>
+                                                <div class="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-blue-600">person</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-assigned" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">2</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span>Assigned to analysts</span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Filter & Search Toolbar Card -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-4 rounded-xl shadow-sm select-none fade-in-animate">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                        <!-- Text Search input -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Search Cases</label>
+                                                <input id="filter-search" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150" placeholder="Case ID, entity, investigator..." type="text" oninput="onSearchInput()" />
+                                        </div>
+
+                                        <!-- Priority dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Priority</label>
+                                                <select id="filter-priority" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Priorities</option>
+                                                        <option value="Critical">Critical</option>
+                                                        <option value="High">High</option>
+                                                        <option value="Medium">Medium</option>
+                                                        <option value="Low">Low</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Case Type dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Case Type</label>
+                                                <select id="filter-type" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Case Types</option>
+                                                        <option value="Investigation">Investigation</option>
+                                                        <option value="Structuring Review">Structuring Review</option>
+                                                        <option value="Behavioral Review">Behavioral Review</option>
+                                                        <option value="Identity Case">Identity Case</option>
+                                                        <option value="Velocity Review">Velocity Review</option>
+                                                        <option value="Treasury Review">Treasury Review</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Status dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Status</label>
+                                                <select id="filter-status" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Statuses</option>
+                                                        <option value="Open">Open</option>
+                                                        <option value="Investigating">Investigating</option>
+                                                        <option value="Escalated">Escalated</option>
+                                                        <option value="Closed">Closed</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Clear Filters button -->
+                                        <div class="flex flex-col text-left justify-end">
+                                                <button class="w-full border border-outline-variant hover:border-secondary hover:text-secondary rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="clearAllWorkspaceFilters()">
+                                                        Clear Filters
+                                                </button>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Main Table Cases Queue -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm fade-in-animate">
+                                <div class="w-full overflow-x-auto">
+                                        <table class="w-full border-collapse text-left" id="cases-table">
+                                                <thead>
+                                                         <tr class="border-b border-[#e2e8f0]">
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider whitespace-nowrap min-w-[95px]">Case ID</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[165px]">Case Title</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[135px]">Primary Entity</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[90px]">Priority</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[90px]">Risk Score</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Assigned To</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[105px]">Last Updated</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Status</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[80px]">Action</th>
+                                                         </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="cases-tbody">
+                                                         <!-- Rows rendered dynamically by renderCases() -->
+
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Footer System status bar -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Network: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Transaction Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Risk Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Cases Queue: Online</span>
+                                </div>
+                        </div>
+                        <div class="hidden sm:block">
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Fraud Intelligence</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Slider Drawer Workspace for Cases -->
+        <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-interface-base border-l border-outline-variant/60 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between select-none overflow-hidden text-left">
+                <!-- Sticky Drawer Header -->
+                <div class="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low sticky top-0 z-10 flex-shrink-0">
+                        <div class="flex flex-col text-left">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Case Workspace</span>
+                                <h3 id="drawer-title-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">CS-982736</h3>
+                        </div>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-outline-variant/30 transition-colors focus:outline-none" onclick="closeDetailDrawer()">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface">close</span>
+                        </button>
+                </div>
+
+                <!-- Scrollable Drawer Body -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <!-- Case Quick Overview Card -->
+                        <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Case Title:</span>
+                                        <span id="drawer-case-title" class="font-headline-md text-[13px] text-on-surface font-bold">Orion Structuring Review</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Primary Entity:</span>
+                                        <span id="drawer-primary-entity" class="font-body-md text-[13px] text-on-surface font-semibold">Orion Financial</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Risk Score:</span>
+                                        <span id="drawer-risk-score" class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded">78 / 100</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Priority Level:</span>
+                                        <span id="drawer-priority-label" class="font-body-md text-[13px] font-bold px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200">High</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Assigned Analyst:</span>
+                                        <span id="drawer-assignee" class="font-body-md text-[13px] text-on-surface font-semibold">S. Rao</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Created Time:</span>
+                                        <span id="drawer-created-time" class="font-body-md text-[13px] text-on-surface">2 hrs ago</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Last Updated:</span>
+                                        <span id="drawer-last-updated" class="font-body-md text-[13px] text-on-surface">28 min ago</span>
+                                </div>
+                        </div>
+
+                        <!-- 1. Case Summary -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-2">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">1. Case Summary</span>
+                                <p id="drawer-summary" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed bg-[#f8fafc] border border-[#e2e8f0] p-3 rounded-lg mt-1 text-left">
+                                        Brokerage deposits structuring audit. Multiple deposits made just under currency transaction reporting threshold.
+                                </p>
+                        </div>
+
+                        <!-- Linked Alerts & ML Evidence -->
+                        <div id="drawer-alerts-section" class="space-y-3 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-3">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">Linked Alerts & ML Evidence</span>
+                                <div id="drawer-linked-alerts-container" class="space-y-3">
+                                        <!-- Dynamic linked alerts cards -->
+                                </div>
+                        </div>
+
+                        <!-- 2. Risk Assessment -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">2. Risk Assessment</span>
+                                <p id="drawer-risk-explanation" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed text-left pt-1">
+                                        Structuring activities flagged across distinct regional terminals, indicating structured deposit patterns.
+                                </p>
+                        </div>
+
+                        <!-- 3. Investigation Findings -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-5">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">3. Investigation Findings</span>
+                                <ul id="drawer-findings" class="list-disc pl-5 mt-1 space-y-1.5 font-body-md text-[13px] text-on-surface-variant text-left leading-relaxed">
+                                        <!-- Dynamic findings list -->
+                                </ul>
+                        </div>
+
+                        <!-- 4. Connected Intelligence -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-6">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">4. Connected Intelligence</span>
+                                <div class="grid grid-cols-2 gap-3 mt-1">
+                                        <a href="transactions.html" class="flex items-center gap-2 p-2.5 rounded bg-surface-container-low border border-outline-variant/40 hover:border-secondary hover:text-secondary font-body-md text-[12px] transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+                                                <span>Inspect Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-2 p-2.5 rounded bg-surface-container-low border border-outline-variant/40 hover:border-secondary hover:text-secondary font-body-md text-[12px] transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">group</span>
+                                                <span>Inspect Entity</span>
+                                        </a>
+                                        <a href="fraud_networks.html" class="flex items-center gap-2 p-2.5 rounded bg-surface-container-low border border-outline-variant/40 hover:border-secondary hover:text-secondary font-body-md text-[12px] transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">share</span>
+                                                <span>Inspect Network</span>
+                                        </a>
+                                        <a href="alerts.html" class="flex items-center gap-2 p-2.5 rounded bg-surface-container-low border border-outline-variant/40 hover:border-secondary hover:text-secondary font-body-md text-[12px] transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">notifications_active</span>
+                                                <span>Inspect Alert</span>
+                                        </a>
+                                </div>
+                        </div>
+
+                        <!-- 5. Analyst Notes -->
+                        <div class="space-y-3 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-6">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">5. Analyst Notes</span>
+                                <div id="drawer-notes-list" class="space-y-2 max-h-[200px] overflow-y-auto pr-1">
+                                        <!-- Dynamic analyst notes list -->
+                                </div>
+                                <div class="space-y-2 mt-2 text-left">
+                                        <textarea id="drawer-note-input" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary transition-all duration-150" placeholder="Type a note here..." rows="2"></textarea>
+                                        <div class="flex justify-end">
+                                                <button class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-1.5 font-label-md text-[11px] font-bold active:scale-95 transition-all duration-150 focus:outline-none mt-1" onclick="saveCaseNote()">
+                                                        Add Note
+                                                </button>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- 6. Case Activity -->
+                        <div class="space-y-2.5 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-6">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left mb-1.5">6. Case Activity</span>
+                                <div id="drawer-activity-timeline" class="space-y-3 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[2px] before:bg-outline-variant/30 pl-8 text-left select-none">
+                                        <!-- Dynamic activity timeline items -->
+                                </div>
+                        </div>
+                </div>
+
+
+                <!-- Sticky Drawer Actions Footer -->
+                <div id="drawer-actions-footer" class="p-6 border-t border-outline-variant/30 bg-surface-container-low flex flex-wrap gap-3 sticky bottom-0 z-10 flex-shrink-0">
+                        <!-- Rendered dynamically by renderDrawerActions() -->
+                </div>
+
+        </div>
+
+        <!-- Professional Confirmation Dialog Modal -->
+        <div id="confirm-modal" class="fixed inset-0 bg-[#0f172a]/60 backdrop-blur-sm z-50 flex items-center justify-center hidden transition-opacity duration-200">
+                <div class="bg-interface-base border border-outline-variant/60 rounded-xl shadow-2xl w-full max-w-md p-6 transform scale-95 transition-all duration-200 select-none text-left">
+                        <h4 id="confirm-modal-title" class="font-headline-md text-[16px] text-on-surface font-extrabold">Confirm Escalation</h4>
+                        <p id="confirm-modal-body" class="font-body-md text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                                Are you sure you want to escalate this case?
+                        </p>
+                        <div class="flex justify-end gap-3 mt-6">
+                                <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="closeConfirmModal()">
+                                        Cancel
+                                </button>
+                                <button id="confirm-submit-btn" class="bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="submitConfirmModal()">
+                                        Confirm
+                                </button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <!-- Javascript Dynamic Page Interactions -->
+        <script>
+                // Cases database
+                const casesDb = {
+                        'CS-982741': {
+                                id: 'CS-982741',
+                                title: 'Apex Trading Investigation',
+                                entity: 'Apex Trading Ltd',
+                                priority: 'Critical',
+                                score: 91,
+                                assignee: 'A. Kumar',
+                                createdTime: '1 hr ago',
+                                lastUpdated: '12 min ago',
+                                status: 'Open',
+                                summary: 'Full case review initiated on Apex Trading Ltd for cross-border transaction velocity spikes and offshore entity routing.',
+                                riskExplanation: 'The case features a risk score of 91. This is driven by multiple structuring alerts, high-risk nesting profiles, and UBO correlations.',
+                                findings: [
+                                        'High velocity wire transfers totaling ₹2,40,000',
+                                        'Indirect routing via verified shell companies',
+                                        'Footprint correlation with blacklisted entities'
+                                ],
+                                notes: 'Active coordination with banking partners. UBO matches a known offshore trust.',
+                                activity: [
+                                        { time: '12 min ago', text: 'Case updated by Analyst A. Kumar' },
+                                        { time: '15 min ago', text: 'Analyst A. Kumar assigned to case' },
+                                        { time: '20 min ago', text: 'Entity Apex Trading Ltd reviewed' },
+                                        { time: '1 hr ago', text: 'Alert AL-982711 linked to case' },
+                                        { time: '1 hr ago', text: 'Case created automatically' }
+                                ]
+                        },
+                        'CS-982736': {
+                                id: '                 // Cases database loaded dynamically from MuleGuardStore
+                 const staticCasesFallback = {
+                         'CS-982701': {
+                                 id: 'CS-982701',
+                                 title: 'Orion Structuring Review',
+                                 entity: 'Orion Financial',
+                                 priority: 'High',
+                                 score: 78,
+                                 assignee: 'S. Rao',
+                                 createdTime: '2 hrs ago',
+                                 lastUpdated: '28 min ago',
+                                 status: 'Investigating',
+                                 summary: 'Brokerage deposits structuring audit. Multiple deposits made just under currency transaction reporting threshold.',
+                                 riskExplanation: 'Structuring activities (score 78) flagged across distinct regional terminals, indicating structured deposit patterns.',
+                                 findings: [
+                                         'Three structured cash deposits of ₹9,950 each',
+                                         'Multiple regional terminal usage in 3 hours',
+                                         'Account owner linked to politically exposed persons'
+                                 ],
+                                 notes: 'Awaiting sub-ledger details from deposit location terminals.',
+                                 activity: [
+                                         { time: '28 min ago', text: 'Investigation status updated' },
+                                         { time: '1 hr ago', text: 'Analyst S. Rao assigned to case' },
+                                         { time: '2 hrs ago', text: 'Alert AL-982705 linked to case' },
+                                         { time: '2 hrs ago', text: 'Case created automatically' }
+                                 ]
+                         },
+                         'CS-982728': {
+                                 id: 'CS-982728',
+                                 title: 'Vertex Behavioral Review',
+                                 entity: 'Vertex Imports',
+                                 priority: 'Medium',
+                                 score: 62,
+                                 assignee: 'A. Kumar',
+                                 createdTime: '2 hrs ago',
+                                 lastUpdated: '41 min ago',
+                                 status: 'Open',
+                                 summary: 'Sizing divergence monitoring. Vertex Imports experienced a significant deviation in clearance size compared to normal parameters.',
+                                 riskExplanation: 'Behavioral shift score of 62 triggered by a ₹1,50,000 credit routing from a foreign clearing counterparty.',
+                                 findings: [
+                                         'Clearing deviation of +2900% against avg',
+                                         'First-time transaction with foreign counterparty',
+                                         'Customs documentation matching domestic cargo bills'
+                                 ],
+                                 notes: 'Temporarily flagged for customs ledger invoice reconciliation.',
+                                 activity: [
+                                         { time: '41 min ago', text: 'Case created automatically' },
+                                         { time: '1 hr ago', text: 'Vertex Imports catalog profile updated' }
+                                 ]
+                         },
+                         'CS-982714': {
+                                 id: 'CS-982714',
+                                 title: 'Blackwood Identity Case',
+                                 entity: 'Blackwood Assets',
+                                 priority: 'Critical',
+                                 score: 97,
+                                 assignee: 'R. Singh',
+                                 createdTime: '3 hrs ago',
+                                 lastUpdated: '1 hr ago',
+                                 status: 'Escalated',
+                                 summary: 'Corporate filing fraud and device footprint overlap on Blackwood Clearing accounts.',
+                                 riskExplanation: 'Critical risk score of 97. Identical corporate registration documents were mapped to previously deactivated shell entities.',
+                                 findings: [
+                                         'Duplicate registry files uploaded',
+                                         'Footprint matches deactivated corporate accounts',
+                                         'High-risk location device login credentials'
+                                 ],
+                                 notes: 'Accounts locked. SAR dossier compiled and transmitted to financial crime unit.',
+                                 activity: [
+                                         { time: '1 hr ago', text: 'Case escalated to senior management' },
+                                         { time: '2 hrs ago', text: 'Analyst R. Singh assigned to case' },
+                                         { time: '3 hrs ago', text: 'Alert AL-982684 linked to case' },
+                                         { time: '3 hrs ago', text: 'Case created automatically' }
+                                 ]
+                         },
+                         'CS-982705': {
+                                 id: 'CS-982705',
+                                 title: 'Phoenix Velocity Review',
+                                 entity: 'Phoenix Logistics',
+                                 priority: 'High',
+                                 score: 72,
+                                 assignee: 'Unassigned',
+                                 createdTime: '2 hrs ago',
+                                 lastUpdated: '2 hrs ago',
+                                 status: 'Open',
+                                 summary: 'Rapid balance transfer pass-through investigation for circular fund movement.',
+                                 riskExplanation: 'Pass-through velocity score of 72. Funds transferred within seconds of credit clearance without domestic trade backing.',
+                                 findings: [
+                                         'Pass-through wire clearance of ₹35,000',
+                                         'Transit latency of less than 12 seconds',
+                                         'Circular domestic routing across shell nodes'
+                                 ],
+                                 notes: 'Requires UBO identity checks and cargo manifest documentation review.',
+                                 activity: [
+                                         { time: '2 hrs ago', text: 'Case created automatically' },
+                                         { time: '3 hrs ago', text: 'Phoenix Logistics alert triggered' }
+                                 ]
+                         },
+                         'CS-982650': {
+                                 id: 'CS-982650',
+                                 title: 'Meridian Treasury Review',
+                                 entity: 'Meridian Treasury',
+                                 priority: 'Low',
+                                 score: 38,
+                                 assignee: 'S. Rao',
+                                 createdTime: '6 hrs ago',
+                                 lastUpdated: '3 hrs ago',
+                                 status: 'Closed',
+                                 summary: 'Institutional treasury dispatch review. Automated alert triggered on size threshold parameters.',
+                                 riskExplanation: 'Risk score low (38). Verified corporate transaction matching daily liquidity operations.',
+                                 findings: [
+                                         'Standard dispatch sizing validation',
+                                         'Pre-approved institutional counterparties',
+                                         'No high risk attributes or UBO alerts'
+                                 ],
+                                 notes: 'Audited, cleared, and closed by senior compliance team.',
+                                 activity: [
+                                         { time: '3 hrs ago', text: 'Case closed by Analyst S. Rao' },
+                                         { time: '4 hrs ago', text: 'Case approved and cleared' },
+                                         { time: '5 hrs ago', text: 'Analyst S. Rao assigned to case' },
+                                         { time: '6 hrs ago', text: 'Case created automatically' }
+                                 ]
+                         }
+                 };
+
+                 const casesDb = window.MuleGuardStore ? window.MuleGuardStore.getCases().reduce((acc, c) => {
+                         acc[c.id] = c;
+                         return acc;
+                 }, {}) : staticCasesFallback;
+
+                // Global variables for cached workspace operations
+                let cachedRows = [];
+                let searchDebounceTimeout;
+                const detailDrawerEl = document.getElementById('detail-drawer');
+                const drawerOverlayEl = document.getElementById('drawer-overlay');
+                let drawerTimeouts = [];
+
+                // Toggle mobile navigation sidebar
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                // Show Toast alerts
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                // Clear dynamic drawer staggered timeouts
+                function clearDrawerTimeouts() {
+                        drawerTimeouts.forEach(t => clearTimeout(t));
+                        drawerTimeouts = [];
+                }
+
+                // Render analyst notes list
+                function renderAnalystNotes(caseData) {
+                        const container = document.getElementById('drawer-notes-list');
+                        if (!container) return;
+                        
+                        const notesRaw = caseData.notes || '';
+                        if (!notesRaw.trim()) {
+                                container.innerHTML = '<span class="text-[12px] text-on-surface-variant italic">No notes recorded for this case.</span>';
+                                return;
+                        }
+                        
+                        const lines = notesRaw.split('\n').map(l => l.trim()).filter(l => l);
+                        container.innerHTML = lines.map(line => {
+                                const match = line.match(/^\[([^\]]+)\]:\s*(.*)$/);
+                                if (match) {
+                                        const header = match[1];
+                                        const content = match[2];
+                                        return `
+                                        <div class="p-2.5 rounded bg-surface-container-low border border-outline-variant/30 text-left mb-2">
+                                                <span class="font-mono-technical text-[9px] text-secondary font-bold block uppercase tracking-wider mb-1">${header}</span>
+                                                <p class="font-body-md text-[12px] text-on-surface leading-relaxed">${content}</p>
+                                        </div>`;
+                                }
+                                return `
+                                        <div class="p-2.5 rounded bg-surface-container-low border border-outline-variant/30 text-left mb-2">
+                                                <p class="font-body-md text-[12px] text-on-surface-variant leading-relaxed italic">${line}</p>
+                                        </div>`;
+                        }).join('');
+                }
+
+                // Render dynamic timeline activity
+                function renderTimelineActivity(caseData) {
+                        const container = document.getElementById('drawer-activity-timeline');
+                        if (!container) return;
+                        
+                        const acts = caseData.activity || [];
+                        if (acts.length === 0) {
+                                container.innerHTML = '<span class="text-[12px] text-on-surface-variant italic">No activity recorded.</span>';
+                                return;
+                        }
+                        
+                        container.innerHTML = acts.map(act => {
+                                const actorLabel = act.actor ? ` by ${act.actor}` : '';
+                                return `
+                                <div class="relative pl-2 mb-3">
+                                        <span class="absolute left-[-25px] top-1 w-2.5 h-2.5 rounded-full bg-secondary border border-white"></span>
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant block uppercase tracking-wider leading-none">${act.time || 'Just now'}</span>
+                                        <p class="font-body-md text-[12px] text-on-surface font-semibold mt-1">${act.text}${actorLabel}</p>
+                                </div>`;
+                        }).join('');
+                }
+
+                // Render Linked Alerts HTML
+                function renderLinkedAlertsHTML(caseData) {
+                        if (!window.MuleGuardStore || !caseData.linkedAlerts || caseData.linkedAlerts.length === 0) {
+                                return '<span class="text-[12px] text-on-surface-variant italic">No linked alerts for this case.</span>';
+                        }
+
+                        return caseData.linkedAlerts.map(aid => {
+                                const a = window.MuleGuardStore.getAlertById(aid);
+                                if (!a) return `<div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-left"><span class="font-mono-technical font-bold">${aid}</span> (alert data missing)</div>`;
+                                
+                                const srcLabel = a.detectionSource === 'Combined' ? 'Corroborated' :
+                                                 a.detectionSource === 'ML' ? 'ML Risk' : 'Rule Alert';
+                                const srcClass = a.detectionSource === 'Combined' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                 a.detectionSource === 'ML' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                 'bg-amber-50 text-amber-700 border-amber-200';
+                                
+                                let mlHtml = '';
+                                if (a.mlProbability !== undefined) {
+                                        const pct = Math.round(a.mlProbability * 100);
+                                        const threshPct = Math.round((a.mlThresholdUsed || 0.30) * 100);
+                                        
+                                        let featureRows = '';
+                                        if (a.topFeatures && a.topFeatures.length > 0) {
+                                                featureRows = `<div class="mt-2 text-[11px] text-on-surface-variant border-t border-blue-100/50 pt-1.5"><span class="font-bold uppercase tracking-wider block text-[9px] mb-1">Top Contributor Features</span>` + 
+                                                    a.topFeatures.map(f => {
+                                                        const v = (typeof f.value === 'boolean') ? (f.value ? 'Yes' : 'No') : (typeof f.value === 'number' ? f.value.toFixed(2) : f.value);
+                                                        return `<div class="flex justify-between items-center py-0.5"><span class="font-sans">${f.label}</span><span class="font-mono font-bold">${v}</span></div>`;
+                                                    }).join('') + `</div>`;
+                                        }
+
+                                        mlHtml = `
+                                        <div class="mt-2 p-2.5 bg-blue-50/60 border border-blue-200/60 rounded-lg space-y-1.5 text-left">
+                                                <div class="flex justify-between items-center text-[11px]">
+                                                        <span class="text-on-surface-variant">ML Suspicious Probability:</span>
+                                                        <span class="font-mono font-bold text-blue-700">${pct}% (threshold: ${threshPct}%)</span>
+                                                </div>
+                                                <div class="w-full bg-blue-100 rounded-full h-1.5">
+                                                        <div class="h-1.5 rounded-full bg-blue-600" style="width: ${pct}%"></div>
+                                                </div>
+                                                ${featureRows}
+                                        </div>`;
+                                }
+
+                                let ruleHtml = '';
+                                const rules = a.triggeredRules || a.indicators || [];
+                                if (rules.length > 0) {
+                                        ruleHtml = `
+                                        <div class="mt-2 text-left">
+                                                <span class="text-[10px] text-on-surface-variant uppercase font-bold block mb-1">Rule Triggers:</span>
+                                                <div class="flex flex-wrap gap-1.5">
+                                                        ${rules.map(r => `<span class="px-2 py-0.5 rounded border text-[10px] bg-amber-50 text-amber-800 border-amber-200">${r}</span>`).join('')}
+                                                </div>
+                                        </div>`;
+                                }
+
+                                let netHtml = '';
+                                if (a.networkEvidence) {
+                                        const ev = a.networkEvidence;
+                                        netHtml = `
+                                        <div class="mt-2 grid grid-cols-3 gap-1.5 text-left border-t border-slate-100 pt-2">
+                                                <div class="p-1 rounded border border-slate-100 text-[10px]">
+                                                        <span class="text-on-surface-variant uppercase text-[8px] block">Cycle</span>
+                                                        <span class="font-bold">${ev.cycleParticipation > 0 ? 'Yes' : 'No'}</span>
+                                                </div>
+                                                <div class="p-1 rounded border border-slate-100 text-[10px]">
+                                                        <span class="text-on-surface-variant uppercase text-[8px] block">HHI</span>
+                                                        <span class="font-bold">${ev.networkConcentration.toFixed(2)}</span>
+                                                </div>
+                                                <div class="p-1 rounded border border-slate-100 text-[10px]">
+                                                        <span class="text-on-surface-variant uppercase text-[8px] block">Fan In/Out</span>
+                                                        <span class="font-bold">${ev.fanIn}/${ev.fanOut}</span>
+                                                </div>
+                                        </div>`;
+                                }
+
+                                return `
+                                <div class="p-3 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-2 text-left mb-3">
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-mono-technical font-bold text-[12px] text-secondary hover:underline cursor-pointer" onclick="window.location.href='alerts.html?inspect=${a.id}'">${a.id}</span>
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${srcClass}">${srcLabel}</span>
+                                        </div>
+                                        <div class="text-[12px] text-on-surface"><span class="font-medium">Category:</span> ${a.category}</div>
+                                        <div class="text-[12px] text-on-surface"><span class="font-medium">Amount:</span> ${a.amount}</div>
+                                        ${mlHtml}
+                                        ${ruleHtml}
+                                        ${netHtml}
+                                </div>`;
+                        }).join('');
+                }
+
+                // Render dynamic action buttons in drawer
+                function renderDrawerActions(caseData) {
+                        const container = document.getElementById('drawer-actions-footer');
+                        if (!container) return;
+                        
+                        let html = '';
+                        if (caseData.status === 'New' || caseData.status === 'Open') {
+                                html += `
+                                <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] font-bold active:scale-95 transition-all duration-150 focus:outline-none flex-1 font-sans" onclick="triggerDrawerAction('Acknowledge')">
+                                        Acknowledge
+                                </button>
+                                <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none flex-1 font-sans" onclick="triggerDrawerAction('False Positive')">
+                                        Mark False Positive
+                                </button>`;
+                        } else if (caseData.status === 'Under Review' || caseData.status === 'Investigating') {
+                                html += `
+                                <button class="bg-risk-high hover:bg-red-700 text-white rounded-lg px-4 py-2 font-label-md text-[12px] font-bold active:scale-95 transition-all duration-150 focus:outline-none shadow-sm flex-1 font-sans" onclick="triggerDrawerAction('Escalate')">
+                                        Escalate Case
+                                </button>
+                                <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none flex-1 font-sans" onclick="triggerDrawerAction('Resolve')">
+                                        Resolve Case
+                                </button>
+                                <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none flex-shrink-0 font-sans" onclick="triggerDrawerAction('False Positive')">
+                                        False Positive
+                                </button>`;
+                        } else if (caseData.status === 'Escalated') {
+                                html += `
+                                <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none flex-1 font-sans" onclick="triggerDrawerAction('Resolve')">
+                                        Resolve Case
+                                </button>`;
+                        } else {
+                                html = `<div class="w-full text-center font-mono-technical text-[11px] text-on-surface-variant uppercase tracking-wider py-1 font-bold">Case is in terminal state (${caseData.status})</div>`;
+                        }
+                        
+                        container.innerHTML = html;
+                }
+
+                // Open workspace drawer details and render dynamic content
+                function openDetailDrawer(caseId) {
+                        const data = casesDb[caseId];
+                        if (!data) return;
+
+                        document.body.classList.add('overflow-hidden');
+                        clearDrawerTimeouts();
+
+                        document.getElementById('drawer-title-id').textContent = data.id;
+                        document.getElementById('drawer-case-title').textContent = data.title;
+                        document.getElementById('drawer-primary-entity').textContent = data.entity;
+                        document.getElementById('drawer-risk-score').textContent = `${data.score} / 100`;
+                        document.getElementById('drawer-assignee').textContent = data.assignee || 'Unassigned';
+                        document.getElementById('drawer-created-time').textContent = data.createdTime || 'Just now';
+                        document.getElementById('drawer-last-updated').textContent = data.lastUpdated || 'Just now';
+                        document.getElementById('drawer-summary').textContent = data.summary || '—';
+                        document.getElementById('drawer-risk-explanation').textContent = data.riskExplanation || '—';
+
+                        // Score Badge styling
+                        const scoreBadge = document.getElementById('drawer-risk-score');
+                        if (data.score >= 90) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200";
+                        } else if (data.score >= 70) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200";
+                        } else if (data.score >= 50) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200";
+                        } else {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200";
+                        }
+
+                        // Priority Badge styling
+                        const priorityLabel = document.getElementById('drawer-priority-label');
+                        priorityLabel.textContent = data.priority;
+                        if (data.priority === 'Critical') {
+                                priorityLabel.className = "font-body-md text-[13px] font-bold px-2 py-0.5 rounded bg-red-50 text-red-700 border border-red-200";
+                        } else if (data.priority === 'High') {
+                                priorityLabel.className = "font-body-md text-[13px] font-bold px-2 py-0.5 rounded bg-orange-50 text-orange-700 border border-orange-200";
+                        } else if (data.priority === 'Medium') {
+                                priorityLabel.className = "font-body-md text-[13px] font-bold px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 border border-yellow-200";
+                        } else {
+                                priorityLabel.className = "font-body-md text-[13px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200";
+                        }
+
+                        // Findings list
+                        const findingsList = document.getElementById('drawer-findings');
+                        findingsList.innerHTML = '';
+                        const findings = data.findings || [];
+                        findings.forEach(finding => {
+                                const li = document.createElement('li');
+                                li.textContent = finding;
+                                findingsList.appendChild(li);
+                        });
+                        if (findings.length === 0) {
+                                findingsList.innerHTML = '<li class="italic text-on-surface-variant list-none">No custom findings logged yet. Use analyst notes to log review points.</li>';
+                        }
+
+                        // Linked Alerts
+                        document.getElementById('drawer-linked-alerts-container').innerHTML = renderLinkedAlertsHTML(data);
+
+                        // Notes
+                        renderAnalystNotes(data);
+
+                        // Activity Timeline
+                        renderTimelineActivity(data);
+
+                        // Drawer Actions
+                        renderDrawerActions(data);
+
+                        const items = document.querySelectorAll('.drawer-section');
+                        items.forEach((item, index) => {
+                                item.classList.remove('show-content');
+                                const t = setTimeout(() => {
+                                        item.classList.add('show-content');
+                                }, 40 + index * 30);
+                                drawerTimeouts.push(t);
+                        });
+
+                        detailDrawerEl.classList.remove('translate-x-full');
+                        detailDrawerEl.classList.add('show-content');
+                        drawerOverlayEl.classList.remove('opacity-0', 'pointer-events-none');
+                        drawerOverlayEl.classList.add('opacity-100', 'pointer-events-auto');
+                }
+
+                // Close slide drawer
+                function closeDetailDrawer() {
+                        document.body.classList.remove('overflow-hidden');
+                        clearDrawerTimeouts();
+                        const items = document.querySelectorAll('.drawer-section');
+                        items.forEach(item => item.classList.remove('show-content'));
+
+                        detailDrawerEl.classList.add('translate-x-full');
+                        detailDrawerEl.classList.remove('show-content');
+                        drawerOverlayEl.classList.remove('opacity-100', 'pointer-events-auto');
+                        drawerOverlayEl.classList.add('opacity-0', 'pointer-events-none');
+                }
+
+                // Save dynamic analyst case note
+                function saveCaseNote() {
+                        const caseId = document.getElementById('drawer-title-id').textContent;
+                        const input = document.getElementById('drawer-note-input');
+                        const text = input.value.trim();
+                        if (!text) return;
+                        
+                        if (window.MuleGuardStore) {
+                                window.MuleGuardStore.addCaseNote(caseId, text, 'Analyst');
+                                input.value = '';
+                                const allCases = window.MuleGuardStore.getCases();
+                                Object.keys(casesDb).forEach(k => delete casesDb[k]);
+                                allCases.forEach(c => { casesDb[c.id] = c; });
+                                
+                                const c = casesDb[caseId];
+                                renderAnalystNotes(c);
+                                renderTimelineActivity(c);
+                                showToast('Analyst note saved successfully.');
+                        }
+                }
+
+                // Confirm actions logic flow
+                let pendingAction = null;
+                let pendingCaseId = null;
+
+                function triggerDrawerAction(actionName) {
+                        const caseId = document.getElementById('drawer-title-id').textContent;
+                        const data = casesDb[caseId];
+                        if (!data) return;
+
+                        pendingAction = actionName;
+                        pendingCaseId = caseId;
+
+                        const modal = document.getElementById('confirm-modal');
+                        const modalTitle = document.getElementById('confirm-modal-title');
+                        const modalBody = document.getElementById('confirm-modal-body');
+                        const submitBtn = document.getElementById('confirm-submit-btn');
+
+                        if (actionName === 'Close' || actionName === 'Resolve') {
+                                modalTitle.textContent = "Confirm Case Resolution";
+                                modalBody.textContent = `Are you sure you want to resolve Case ${caseId} associated with ${data.entity}? This will close the case and resolve linked alerts.`;
+                                submitBtn.className = "bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm font-sans";
+                                submitBtn.textContent = "Resolve Case";
+                                modal.classList.remove('hidden');
+                                setTimeout(() => {
+                                        modal.firstElementChild.classList.remove('scale-95');
+                                        modal.firstElementChild.classList.add('scale-100');
+                                }, 10);
+                        } else if (actionName === 'Escalate') {
+                                modalTitle.textContent = "Confirm Case Escalation";
+                                modalBody.textContent = `Are you sure you want to escalate Case ${caseId} to compliance queue review?`;
+                                submitBtn.className = "bg-risk-high hover:bg-red-700 text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm font-sans";
+                                submitBtn.textContent = "Escalate Case";
+                                modal.classList.remove('hidden');
+                                setTimeout(() => {
+                                        modal.firstElementChild.classList.remove('scale-95');
+                                        modal.firstElementChild.classList.add('scale-100');
+                                }, 10);
+                        } else if (actionName === 'False Positive') {
+                                modalTitle.textContent = "Confirm False Positive Action";
+                                modalBody.textContent = `Are you sure you want to mark Case ${caseId} as a False Positive? This will dismiss all linked alerts.`;
+                                submitBtn.className = "bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none font-sans";
+                                submitBtn.textContent = "Mark False Positive";
+                                modal.classList.remove('hidden');
+                                setTimeout(() => {
+                                        modal.firstElementChild.classList.remove('scale-95');
+                                        modal.firstElementChild.classList.add('scale-100');
+                                }, 10);
+                        } else {
+                                submitConfirmModal();
+                        }
+                }
+
+                function closeConfirmModal() {
+                        const modal = document.getElementById('confirm-modal');
+                        modal.firstElementChild.classList.remove('scale-100');
+                        modal.firstElementChild.classList.add('scale-95');
+                        setTimeout(() => {
+                                modal.classList.add('hidden');
+                        }, 150);
+                        pendingAction = null;
+                        pendingCaseId = null;
+                }
+
+                function submitConfirmModal() {
+                        const caseId = pendingCaseId;
+                        const action = pendingAction || 'Acknowledge';
+
+                        closeConfirmModal();
+
+                        if (!window.MuleGuardStore) return;
+
+                        if (action === 'Close' || action === 'Resolve') {
+                                window.MuleGuardStore.resolveCase(caseId, 'Resolved and closed by investigator.', 'Analyst');
+                                showToast(`Success: Case ${caseId} has been resolved.`);
+                        } else if (action === 'Escalate') {
+                                window.MuleGuardStore.escalateCase(caseId, 'Escalated from Investigator Cases queue.', 'Analyst');
+                                showToast(`Success: Case ${caseId} escalated to compliance.`);
+                        } else if (action === 'False Positive') {
+                                window.MuleGuardStore.markFalsePositive(caseId, 'Marked as false positive by investigator.', 'Analyst');
+                                showToast(`Success: Case ${caseId} marked as False Positive.`);
+                        } else if (action === 'Acknowledge') {
+                                window.MuleGuardStore.updateCaseStatus(caseId, 'Under Review', 'Analyst');
+                                showToast(`Success: Case ${caseId} acknowledged.`);
+                        }
+
+                        const allCases = window.MuleGuardStore.getCases();
+                        Object.keys(casesDb).forEach(k => delete casesDb[k]);
+                        allCases.forEach(c => { casesDb[c.id] = c; });
+
+                        renderCases();
+                        closeDetailDrawer();
+                }
+
+                // Debounce search box input keyups
+                function onSearchInput() {
+                        clearTimeout(searchDebounceTimeout);
+                        searchDebounceTimeout = setTimeout(() => {
+                                applyWorkspaceFilters();
+                        }, 120);
+                }
+
+                // Filter logic using cached DOM elements to prevent reflow bottlenecks
+                function applyWorkspaceFilters() {
+                        const searchQuery = document.getElementById('filter-search').value.toLowerCase().trim();
+                        const priorityVal = document.getElementById('filter-priority').value;
+                        const typeVal = document.getElementById('filter-type').value;
+                        const statusVal = document.getElementById('filter-status').value;
+
+                        cachedRows.forEach(row => {
+                                // Sync dynamic database properties
+                                const currentStatus = casesDb[row.id.toUpperCase()].status;
+                                const currentPriority = casesDb[row.id.toUpperCase()].priority;
+
+                                const matchesSearch = !searchQuery ||
+                                        row.id.includes(searchQuery) ||
+                                        row.title.includes(searchQuery) ||
+                                        row.entity.includes(searchQuery) ||
+                                        row.assignee.includes(searchQuery);
+
+                                const matchesPriority = (priorityVal === 'All' || currentPriority === priorityVal);
+                                const matchesType = (typeVal === 'All' || row.type === typeVal.toLowerCase());
+                                const matchesStatus = (statusVal === 'All' || currentStatus === statusVal);
+
+                                if (matchesSearch && matchesPriority && matchesType && matchesStatus) {
+                                        row.element.classList.remove('hidden');
+                                } else {
+                                        row.element.classList.add('hidden');
+                                }
+                        });
+
+                        recountSummaryCards();
+                }
+
+                // Recount summary cards from cached elements
+                function recountSummaryCards() {
+                        let totalCount = 0;
+                        let openCount = 0;
+                        let criticalHighCount = 0;
+                        let assignedCount = 0;
+
+                        cachedRows.forEach(row => {
+                                if (row.element.classList.contains('hidden')) {
+                                        return;
+                                }
+                                totalCount++;
+                                
+                                const status = casesDb[row.id.toUpperCase()].status;
+                                const priority = casesDb[row.id.toUpperCase()].priority;
+                                const assignee = casesDb[row.id.toUpperCase()].assignee;
+
+                                if (status === 'Open') {
+                                        openCount++;
+                                }
+                                if (priority === 'Critical' || priority === 'High') {
+                                        criticalHighCount++;
+                                }
+                                if (assignee && assignee !== 'Unassigned') {
+                                        assignedCount++;
+                                }
+                        });
+
+                        document.getElementById('count-total').textContent = totalCount;
+                        document.getElementById('count-open').textContent = openCount;
+                        document.getElementById('count-critical-high').textContent = criticalHighCount;
+                        document.getElementById('count-assigned').textContent = assignedCount;
+                }
+
+                // Clear all filters
+                function clearAllWorkspaceFilters() {
+                        document.getElementById('filter-search').value = '';
+                        document.getElementById('filter-priority').value = 'All';
+                        document.getElementById('filter-type').value = 'All';
+                        document.getElementById('filter-status').value = 'All';
+                        applyWorkspaceFilters();
+                        showToast("Case filters reset successfully.");
+                }
+
+                // Global header search using caches
+                function triggerGlobalSearch() {
+                        const headerQuery = document.getElementById('global-header-search').value.toLowerCase().trim();
+                        cachedRows.forEach(row => {
+                                const matches = !headerQuery || row.id.includes(headerQuery) || row.title.includes(headerQuery) || row.entity.includes(headerQuery);
+                                row.element.classList.toggle('hidden', !matches);
+                        });
+                        recountSummaryCards();
+                }
+
+                // Listen for Escape keyboard presses to close popups
+                document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                                closeDetailDrawer();
+                                closeConfirmModal();
+                        }
+                });
+
+                // Status → UI label mapping
+                function statusLabel(s) {
+                        return { 'New': 'Open', 'Under Review': 'Investigating', 'Escalated': 'Escalated', 'Resolved': 'Closed', 'False Positive': 'False Positive' }[s] || s;
+                }
+                function statusBadgeClass(s) {
+                        if (s === 'New' || s === 'Open') return 'bg-red-50 text-red-700 border-red-200';
+                        if (s === 'Under Review' || s === 'Investigating') return 'bg-blue-50 text-blue-700 border-blue-200';
+                        if (s === 'Escalated') return 'bg-red-50 text-red-700 border-red-200';
+                        if (s === 'Resolved' || s === 'Closed') return 'bg-green-50 text-green-700 border-green-200';
+                        if (s === 'False Positive') return 'bg-slate-100 text-slate-600 border-slate-200';
+                        return 'bg-slate-100 text-slate-600 border-slate-200';
+                }
+                function priorityBadgeClass(p) {
+                        if (p === 'Critical') return 'bg-red-50 text-red-700 border-red-200';
+                        if (p === 'High') return 'bg-orange-50 text-orange-700 border-orange-200';
+                        if (p === 'Medium') return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+                        return 'bg-blue-50 text-blue-700 border-blue-200';
+                }
+                function scoreBadgeClass(score) {
+                        if (score >= 90) return 'text-red-600 bg-red-50 border-red-200';
+                        if (score >= 70) return 'text-orange-600 bg-orange-50 border-orange-200';
+                        if (score >= 50) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+                        return 'text-blue-800 bg-blue-50 border-blue-200';
+                }
+
+                // Dynamic renderCases — fully rebuilds table from store state
+                function renderCases() {
+                        const tbody = document.getElementById('cases-tbody');
+                        if (!tbody) return;
+
+                        // Reload casesDb from store
+                        if (window.MuleGuardStore) {
+                                const allCases = window.MuleGuardStore.getCases();
+                                Object.keys(casesDb).forEach(k => delete casesDb[k]);
+                                allCases.forEach(c => { casesDb[c.id] = c; });
+                        }
+
+                        const cases = Object.values(casesDb);
+
+                        if (cases.length === 0) {
+                                tbody.innerHTML = `
+                                <tr>
+                                        <td colspan="9" class="py-16 text-center text-on-surface-variant font-body-md text-[13px] italic">
+                                                No cases found. Cases are auto-generated when High or Critical alerts are raised.
+                                        </td>
+                                </tr>`;
+                                cachedRows = [];
+                                recountSummaryCards();
+                                return;
+                        }
+
+                        // Sort by score descending
+                        cases.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+                        tbody.innerHTML = cases.map(c => {
+                                const sLabel = statusLabel(c.status);
+                                const sBadge = statusBadgeClass(c.status);
+                                const pBadge = priorityBadgeClass(c.priority);
+                                const scoreBadge = scoreBadgeClass(c.score || 0);
+                                const caseType = c.caseType || c.type || 'Investigation';
+                                const lastUpdated = c.lastUpdated || c.updatedAt || 'Just now';
+
+                                return `
+                                <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" 
+                                        data-case-id="${c.id}" 
+                                        data-priority="${c.priority || 'Low'}" 
+                                        data-status="${c.status}" 
+                                        data-type="${caseType}"
+                                        onclick="rowClickAction(event, '${c.id}')">
+                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">${c.id}</td>
+                                        <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">${c.title || '—'}</td>
+                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">${c.entity || '—'}</td>
+                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${pBadge}">${c.priority || 'Low'}</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                <span class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded border ${scoreBadge}">${c.score || 0} / 100</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${c.assignee || 'Unassigned'}</td>
+                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${lastUpdated}</td>
+                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${sBadge}">${sLabel}</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${c.id}')">
+                                                        Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                </button>
+                                        </td>
+                                </tr>`;
+                        }).join('');
+
+                        // Rebuild cachedRows from fresh DOM
+                        const rows = tbody.querySelectorAll('tr[data-case-id]');
+                        cachedRows = Array.from(rows).map(row => {
+                                const caseId = row.getAttribute('data-case-id');
+                                const data = casesDb[caseId] || {};
+                                return {
+                                        element: row,
+                                        id: caseId.toLowerCase(),
+                                        title: (data.title || '').toLowerCase(),
+                                        entity: (data.entity || '').toLowerCase(),
+                                        assignee: (data.assignee || '').toLowerCase(),
+                                        type: (row.getAttribute('data-type') || '').toLowerCase(),
+                                        status: data.status || ''
+                                };
+                        });
+
+                        recountSummaryCards();
+                }
+
+                // Row clicking delegates inspect drawer open (ignores button clicks)
+                function rowClickAction(event, caseId) {
+                        if (event.target.tagName.toLowerCase() === 'button' || event.target.tagName.toLowerCase() === 'a' || event.target.closest('button')) {
+                                return;
+                        }
+                        openDetailDrawer(caseId);
+                }
+
+                // Initialize on DOM ready
+                window.addEventListener('DOMContentLoaded', () => {
+                        // Trigger alert + case evaluation from store if available
+                        if (window.MuleGuardStore && window.MuleGuardStore.generateAlertsFromAllAccounts) {
+                                window.MuleGuardStore.generateAlertsFromAllAccounts();
+                        }
+                        renderCases();
+                });
+
+                window.addEventListener('muleguard:transaction-ingested', () => {
+                        if (typeof renderCases === 'function') renderCases();
+                });
+        </script>
+</body>
+
+</html>

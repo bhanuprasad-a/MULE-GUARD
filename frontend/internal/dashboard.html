@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../scripts/auth-guard.js"></script>
+        <script src="../scripts/data-store.js"></script>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Internal Control Center</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="../style.css" />
+
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                <!-- Dynamically Populated by auth-guard.js -->
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight" id="header-title">Internal Control Center</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none" id="header-desc">AI operations, system parameters, and database controls.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <div class="hidden lg:flex items-center gap-2 bg-[#fdf2f8] border border-[#fbcfe8] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-pink-700 font-bold tracking-wider uppercase">Ops Portal</span>
+                                </div>
+
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold" id="header-avatar">
+                                                        TM
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold" id="header-username">T. Miller</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading settings...')">My Profile</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors" onclick="logoutUser()">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+
+                        <!-- SECTION 1: SYSTEM HEALTH & HEARTBEAT -->
+                        <div id="section-health" class="space-y-6 hidden">
+                                <div class="flex flex-col text-left">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">System & Platform Health</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant mt-1">Platform service uptimes, operational servers, and physical status indices.</p>
+                                </div>
+
+                                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">API Gateway</span>
+                                                <h3 class="font-headline-lg text-[22px] text-green-700 font-extrabold mt-1">Healthy</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Response time: 18ms</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Model Services</span>
+                                                <h3 class="font-headline-lg text-[22px] text-green-700 font-extrabold mt-1">Healthy</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Active nodes: 4 / 4</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Neo4j Database</span>
+                                                <h3 class="font-headline-lg text-[22px] text-green-700 font-extrabold mt-1">Healthy</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Graph processing active</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Uptime Index</span>
+                                                <h3 class="font-headline-lg text-[22px] text-on-surface font-extrabold mt-1">99.98%</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Continuous operation 48d</span>
+                                        </div>
+                                </section>
+
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm text-left">
+                                        <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold border-b border-[#f1f5f9] pb-2 mb-3">Live Service Heartbeat logs</h3>
+                                        <pre class="bg-slate-950 text-slate-350 p-4 rounded-lg font-mono text-[11px] leading-relaxed overflow-x-auto select-text text-left text-green-400">
+[2026-08-29 10:24:02] INFO: API Gateway latency baseline verified at 18.2ms
+[2026-08-29 10:24:15] INFO: Scheduler triggered circular loop checks on virtual datasets
+[2026-08-29 10:24:30] INFO: Neo4j component component-analysis matches active (0.012s run)
+[2026-08-29 10:24:45] INFO: Model reasoning endpoints reported green heartbeat signal
+                                        </pre>
+                                </div>
+                        </div>
+
+                        <!-- SECTION 2: ML MODELS & PERFORMANCE -->
+                        <div id="section-ml" class="space-y-6 hidden">
+                                <div class="flex flex-col text-left">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">AI & Machine Learning Engine</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant mt-1">Validation accuracy indexes, feature importance arrays, and reasoner configurations.</p>
+                                </div>
+
+                                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Active Reasoner</span>
+                                                <h3 id="ml-active-reasoner" class="font-headline-lg text-[18px] text-on-surface font-extrabold mt-1">gemini-2.0-flash</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">API-connected reasoning layer</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Engine Accuracy</span>
+                                                <h3 id="ml-accuracy" class="font-headline-lg text-[22px] text-green-700 font-extrabold mt-1">98.42%</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Cross-validation F1 score</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Precision baseline</span>
+                                                <h3 id="ml-f1-score" class="font-headline-lg text-[22px] text-green-700 font-extrabold mt-1">97.8%</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">False positives: &lt;1.2%</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Active Version</span>
+                                                <h3 id="ml-version" class="font-headline-lg text-[22px] text-green-700 font-extrabold mt-1">1.2.0</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Production release</span>
+                                        </div>
+                                </section>
+
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm space-y-3">
+                                                <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold border-b border-[#f1f5f9] pb-2">Key Feature Contributions</h3>
+                                                <div id="ml-features-container" class="space-y-3 text-[12px] font-body-md text-on-surface-variant">
+                                                        <!-- Dynamic features injected here -->
+                                                </div>
+                                        </div>
+
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm space-y-3">
+                                                <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold border-b border-[#f1f5f9] pb-2">Model Version Control</h3>
+                                                <div class="space-y-2 text-[12px] font-body-md text-on-surface-variant">
+                                                        <div class="flex justify-between"><span class="font-bold text-on-surface">Active Version:</span><span id="ml-detail-version">v1.2.0</span></div>
+                                                        <div class="flex justify-between"><span class="font-bold text-on-surface">Release date:</span><span>2026-08-10</span></div>
+                                                        <div class="flex justify-between"><span class="font-bold text-on-surface">Training size:</span><span>142.8M vectors</span></div>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- SECTION 3: DETECTION RULES CONFIG -->
+                        <div id="section-rules" class="space-y-6 hidden">
+                                <div class="flex flex-col text-left">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Detection Rules & Policies</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant mt-1">Manage thresholds and toggle active rules within the transaction routing matching engine.</p>
+                                </div>
+
+                                <section class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm text-left">
+                                        <div class="space-y-4" id="rules-config-list">
+                                                <!-- Dynamic Rule Cards injected -->
+                                        </div>
+                                </section>
+                        </div>
+
+                        <!-- SECTION 4: GRAPH ENGINE STATUS -->
+                        <div id="section-graph" class="space-y-6 hidden">
+                                <div class="flex flex-col text-left">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Network & Graph Processing Engine</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant mt-1">Graph processing benchmarks, cluster mapping sizes, and indexing speeds.</p>
+                                </div>
+
+                                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-[#0284c7]"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Graph Nodes Loaded</span>
+                                                <h3 class="font-headline-lg text-[22px] text-sky-750 font-extrabold mt-1">1,420,108</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Active virtual accounts</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-[#0284c7]"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Directed Edges</span>
+                                                <h3 class="font-headline-lg text-[22px] text-sky-750 font-extrabold mt-1">4,819,003</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">UPI transaction links</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Engine latency</span>
+                                                <h3 class="font-headline-lg text-[22px] text-green-700 font-extrabold mt-1">1.4ms</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Sub-graph component extract</span>
+                                        </div>
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-purple-500"></div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider block">Active Clusters</span>
+                                                <h3 class="font-headline-lg text-[22px] text-purple-700 font-extrabold mt-1">14</h3>
+                                                <span class="text-[11px] text-on-surface-variant block mt-1">Flagged shell networks</span>
+                                        </div>
+                                </section>
+
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm text-left space-y-3">
+                                        <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold border-b border-[#f1f5f9] pb-2">Active Graph Matcher Runs</h3>
+                                        <div class="text-[12px] font-body-md text-on-surface-variant space-y-2">
+                                                <div class="flex justify-between py-1.5 border-b border-[#f8fafc]"><span>WCC (Weakly Connected Components) search</span><span class="text-green-600 font-bold">Finished (0.008s)</span></div>
+                                                <div class="flex justify-between py-1.5 border-b border-[#f8fafc]"><span>PageRank centralization indices recalculation</span><span class="text-green-600 font-bold">Finished (0.015s)</span></div>
+                                                <div class="flex justify-between py-1.5"><span>Triadic closure / circular transfer paths scan</span><span class="text-green-600 font-bold">Finished (0.005s)</span></div>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- SECTION 5: DATA / SYNTHETIC ENVIRONMENT -->
+                        <div id="section-data" class="space-y-6 hidden">
+                                <div class="flex flex-col text-left">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Synthetic Data Environment</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant mt-1">Manage the controlled simulation sandbox containing normal and structured transaction topologies.</p>
+                                </div>
+
+                                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
+                                        <!-- Control Card -->
+                                        <div class="lg:col-span-1 bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm space-y-5 flex flex-col justify-between">
+                                                <div class="space-y-3">
+                                                        <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold border-b border-[#f1f5f9] pb-2">Generator Operations</h3>
+                                                        <p class="font-body-md text-[12px] text-on-surface-variant">The simulation database seeds known UPI fraud archetypes (Velocity Spikes, Layering loops, Shell channels) together with normal baselines.</p>
+                                                </div>
+
+                                                <button onclick="triggerResetDatabase()" class="bg-secondary hover:bg-secondary-container text-white py-3 rounded-lg font-label-md text-[13px] font-bold active:scale-95 transition-all focus:outline-none shadow-sm flex items-center justify-center gap-2">
+                                                        <span class="material-symbols-outlined text-[18px]">cached</span>
+                                                        Reset & Seed Database
+                                                </button>
+                                        </div>
+
+                                        <!-- Environment Stats -->
+                                        <div class="lg:col-span-2 bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm space-y-4">
+                                                <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold border-b border-[#f1f5f9] pb-2">Active Simulator Stats</h3>
+                                                <div class="grid grid-cols-2 gap-4 text-[12px] font-body-md text-on-surface-variant">
+                                                        <div><span class="font-bold text-on-surface">Accounts seeded:</span> <span id="sim-accounts-count">10</span></div>
+                                                        <div><span class="font-bold text-on-surface">Transactions logged:</span> <span id="sim-transactions-count">5</span></div>
+                                                        <div><span class="font-bold text-on-surface">Active cases:</span> <span id="sim-cases-count">2</span></div>
+                                                        <div><span class="font-bold text-on-surface">Alerts active:</span> <span id="sim-alerts-count">4</span></div>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- SECTION 6: SYSTEM AUDIT LOGS -->
+                        <div id="section-logs" class="space-y-6 hidden">
+                                <div class="flex flex-col text-left">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Platform Audit Logs</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant mt-1">Audit log of system processes, operator configuration changes, and compliance resolutions.</p>
+                                </div>
+
+                                <section class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm text-left">
+                                        <div class="w-full overflow-x-auto">
+                                                <table class="w-full border-collapse text-left text-[12px] font-body-md text-on-surface-variant">
+                                                        <thead>
+                                                                <tr class="border-b border-outline-variant/20 font-mono-technical uppercase tracking-wider text-[10px]">
+                                                                        <th class="py-2.5 px-3">Log ID</th>
+                                                                        <th class="py-2.5 px-3">Timestamp</th>
+                                                                        <th class="py-2.5 px-3">Actor</th>
+                                                                        <th class="py-2.5 px-3">Action</th>
+                                                                        <th class="py-2.5 px-3">Details</th>
+                                                                </tr>
+                                                        </thead>
+                                                        <tbody id="audit-logs-tbody" class="divide-y divide-outline-variant/10 font-sans">
+                                                                <!-- Dynamic injection -->
+                                                        </tbody>
+                                                </table>
+                                        </div>
+                                </section>
+                        </div>
+                </main>
+
+                <!-- Footer Status -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Internal Core Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Platform Logs: Synchronized</span>
+                                </div>
+                        </div>
+                        <div>
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2026 MuleGuard System Control</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <script>
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                // In-page hash router for unified internal dashboard modules
+                window.addEventListener('hashchange', handleHashRouting);
+                window.addEventListener('DOMContentLoaded', handleHashRouting);
+
+                function handleHashRouting() {
+                        const hash = window.location.hash || '#health';
+                        const sections = ['health', 'ml', 'rules', 'graph', 'data', 'logs'];
+
+                        // Load data dynamically for specific views
+                        if (hash === '#rules') {
+                                renderRulesTab();
+                        } else if (hash === '#ml') {
+                                renderMLTab();
+                        } else if (hash === '#logs') {
+                                renderLogsTab();
+                        } else if (hash === '#data') {
+                                updateSimStats();
+                        }
+
+                        sections.forEach(sec => {
+                                const sectionEl = document.getElementById(`section-${sec}`);
+                                if (sectionEl) {
+                                        sectionEl.classList.toggle('hidden', `#${sec}` !== hash);
+                                }
+
+                                // Update highlights in sidebar
+                                const link = document.getElementById(`nav-link-${sec}`);
+                                if (link) {
+                                        if (`#${sec}` === hash) {
+                                                link.className = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150';
+                                                const icon = link.querySelector('.material-symbols-outlined');
+                                                if (icon) icon.className = 'material-symbols-outlined text-[20px] text-secondary-container';
+                                                const txt = link.querySelector('span:not(.material-symbols-outlined)');
+                                                if (txt) txt.classList.add('font-medium');
+                                        } else {
+                                                link.className = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150';
+                                                const icon = link.querySelector('.material-symbols-outlined');
+                                                if (icon) icon.className = 'material-symbols-outlined text-[20px]';
+                                                const txt = link.querySelector('span:not(.material-symbols-outlined)');
+                                                if (txt) txt.classList.remove('font-medium');
+                                        }
+                                }
+                        });
+
+                        // Set header titles
+                        const headerTitle = document.getElementById('header-title');
+                        const headerDesc = document.getElementById('header-desc');
+
+                        if (hash === '#health') {
+                                headerTitle.textContent = "Platform System Health";
+                                headerDesc.textContent = "Hardware statistics, resource baselines, and service status monitors.";
+                        } else if (hash === '#ml') {
+                                headerTitle.textContent = "AI & ML Reasoner Engine";
+                                headerDesc.textContent = "Evaluation metrics, token validation logs, and reasoning weights.";
+                        } else if (hash === '#rules') {
+                                headerTitle.textContent = "Transaction Rule Engine";
+                                headerDesc.textContent = "View and modify policies and decision boundaries for real-time alerts.";
+                        } else if (hash === '#graph') {
+                                headerTitle.textContent = "Graph Database Operations";
+                                headerDesc.textContent = "Directed graph index properties, Weakly Connected Components, and cluster sizes.";
+                        } else if (hash === '#data') {
+                                headerTitle.textContent = "Simulation Environment";
+                                headerDesc.textContent = "Manage mock ledger sizes and trigger dataset resets.";
+                        } else if (hash === '#logs') {
+                                headerTitle.textContent = "Security Audit Ledger";
+                                headerDesc.textContent = "Administrative logs, operator audit trails, and platform event logs.";
+                        }
+                }
+
+                // Render Rules configurations
+                function renderRulesTab() {
+                        if (!window.MuleGuardStore) return;
+                        const rules = window.MuleGuardStore.getRules();
+                        const container = document.getElementById('rules-config-list');
+                        if (!container) return;
+
+                        container.innerHTML = '';
+                        rules.forEach(r => {
+                                container.innerHTML += `
+                                        <div class="p-4 border border-outline-variant/30 rounded-xl space-y-4 hover:shadow bg-slate-50/50">
+                                                <div class="flex items-start justify-between">
+                                                        <div>
+                                                                <h4 class="font-headline-md font-bold text-[14px] text-on-surface">${r.id}: ${r.name}</h4>
+                                                                <p class="text-[12px] text-on-surface-variant mt-0.5 leading-relaxed">${r.description}</p>
+                                                        </div>
+                                                        <!-- Active Checkbox -->
+                                                        <label class="flex items-center gap-2 cursor-pointer">
+                                                                <input id="active-${r.id}" class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary bg-interface-base cursor-pointer" type="checkbox" ${r.active ? 'checked' : ''} />
+                                                                <span class="text-[11px] font-mono-technical font-semibold text-on-surface-variant">Active</span>
+                                                        </label>
+                                                </div>
+
+                                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-outline-variant/10">
+                                                        <div class="flex items-center gap-3">
+                                                                <span class="text-[12px] font-semibold text-on-surface-variant">Trigger threshold:</span>
+                                                                <input id="threshold-${r.id}" type="number" value="${r.threshold}" class="w-24 bg-surface-container-low border border-outline-variant/60 rounded-md px-2 py-1 text-[12px] focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary font-mono" />
+                                                                <span class="text-[11px] font-mono-technical text-on-surface-variant opacity-70">${r.unit}</span>
+                                                        </div>
+                                                        <button onclick="saveRuleChanges('${r.id}')" class="bg-secondary hover:bg-secondary-container text-white px-4 py-1.5 rounded-lg font-label-md text-[11px] font-bold active:scale-95 transition-all focus:outline-none">
+                                                                Apply Threshold
+                                                        </button>
+                                                </div>
+                                        </div>
+                                `;
+                        });
+                }
+
+                function renderMLTab() {
+                        if (!window.MuleGuardStore) return;
+                        const metrics = window.MuleGuardStore.getMLMetrics();
+                        
+                        const activeReasonerEl = document.getElementById('ml-active-reasoner');
+                        const accuracyEl = document.getElementById('ml-accuracy');
+                        const f1El = document.getElementById('ml-f1-score');
+                        const versionEl = document.getElementById('ml-version');
+                        const detailVersionEl = document.getElementById('ml-detail-version');
+                        const featuresContainer = document.getElementById('ml-features-container');
+
+                        if (activeReasonerEl) activeReasonerEl.textContent = metrics.modelName;
+                        if (accuracyEl) accuracyEl.textContent = metrics.accuracy;
+                        if (f1El) f1El.textContent = metrics.f1Score;
+                        if (versionEl) versionEl.textContent = metrics.version;
+                        if (detailVersionEl) detailVersionEl.textContent = `v${metrics.version} (Z-Score Baseline)`;
+
+                        if (featuresContainer) {
+                                featuresContainer.innerHTML = '';
+                                metrics.features.forEach((feat, idx) => {
+                                        const pct = (feat.importance * 100).toFixed(1);
+                                        featuresContainer.innerHTML += `
+                                                <div class="space-y-1">
+                                                        <div class="flex justify-between font-semibold text-on-surface">
+                                                                <span>${idx + 1}. ${feat.name}</span>
+                                                                <span>${pct}%</span>
+                                                        </div>
+                                                        <div class="w-full bg-slate-100 h-2 rounded-full">
+                                                                <div class="bg-secondary-container h-2 rounded-full" style="width: ${pct}%;"></div>
+                                                        </div>
+                                                </div>
+                                        `;
+                                });
+                        }
+                }
+
+                function saveRuleChanges(ruleId) {
+                        const threshold = document.getElementById(`threshold-${ruleId}`).value;
+                        const active = document.getElementById(`active-${ruleId}`).checked;
+
+                        if (window.MuleGuardStore) {
+                                window.MuleGuardStore.updateRule(ruleId, threshold, active);
+                                showToast(`Success: Policy ${ruleId} updated successfully.`);
+                        }
+                }
+
+                // Render Logs
+                function renderLogsTab() {
+                        if (!window.MuleGuardStore) return;
+                        const logs = window.MuleGuardStore.getLogs();
+                        const tbody = document.getElementById('audit-logs-tbody');
+                        if (!tbody) return;
+
+                        tbody.innerHTML = '';
+                        logs.forEach(l => {
+                                tbody.innerHTML += `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                                <td class="py-3 px-3 font-mono-technical font-bold text-secondary">${l.id}</td>
+                                                <td class="py-3 px-3 font-mono-technical">${l.time}</td>
+                                                <td class="py-3 px-3 font-semibold text-on-surface">${l.actor}</td>
+                                                <td class="py-3 px-3 font-semibold text-on-surface-variant">${l.action}</td>
+                                                <td class="py-3 px-3 text-on-surface-variant">${l.details}</td>
+                                        </tr>
+                                `;
+                        });
+                }
+
+                // Update Sim stats
+                function updateSimStats() {
+                        if (!window.MuleGuardStore) return;
+                        const accounts = window.MuleGuardStore.getAccounts();
+                        const txs = window.MuleGuardStore.getTransactions();
+                        const cases = window.MuleGuardStore.getCases();
+                        const alerts = window.MuleGuardStore.getAlerts();
+
+                        document.getElementById('sim-accounts-count').textContent = Object.keys(accounts).length;
+                        document.getElementById('sim-transactions-count').textContent = txs.length;
+                        document.getElementById('sim-cases-count').textContent = cases.length;
+                        document.getElementById('sim-alerts-count').textContent = alerts.length;
+                }
+
+                // Database reset
+                function triggerResetDatabase() {
+                        if (window.MuleGuardStore) {
+                                window.MuleGuardStore.reset();
+                                updateSimStats();
+                                showToast("Success: Simulation data reset & reseeded successfully.");
+                        }
+                }
+        </script>
+</body>
+
+</html>

@@ -1,0 +1,1307 @@
+﻿<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>`n        <script src="../../scripts/data-store.js"></script>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Fraud Networks Investigation</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+                rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <script>
+                // Suppress Chrome extension errors
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || 
+                                        msg.includes('widget') || 
+                                        msg.includes('publicKey') || 
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+
+                        console.warn = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalWarn.apply(console, args);
+                        };
+
+                        console.error = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalError.apply(console, args);
+                        };
+
+                        console.log = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalLog.apply(console, args);
+                        };
+                })();
+        </script>
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                /* Custom scrollbar styles */
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+
+                /* Staggered entrance page animations */
+                @keyframes headingFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(6px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .heading-animate {
+                        animation: headingFadeIn 0.2s ease-out forwards;
+                }
+
+                @keyframes cardFadeIn {
+                        from {
+                                opacity: 0;
+                                transform: translateY(8px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .kpi-card-animate {
+                        opacity: 0;
+                        animation: cardFadeIn 0.2s ease-out forwards;
+                }
+
+                @keyframes simpleFadeIn {
+                        from {
+                                opacity: 0;
+                        }
+                        to {
+                                opacity: 1;
+                        }
+                }
+                .fade-in-animate {
+                        opacity: 0;
+                        animation: simpleFadeIn 0.2s ease-out forwards;
+                }
+
+                /* Staggered loading card delays */
+                .stagger-1 { animation-delay: 0.04s; }
+                .stagger-2 { animation-delay: 0.08s; }
+                .stagger-3 { animation-delay: 0.12s; }
+                .stagger-4 { animation-delay: 0.16s; }
+
+                /* Table hover animations */
+                tr:hover .inspect-arrow {
+                        transform: translateX(3px);
+                }
+                tr:hover .case-id-cell {
+                        color: #1d4ed8 !important;
+                        text-decoration: underline;
+                }
+
+                /* Drawer sections staggered fade/slide transitions */
+                .drawer-section {
+                        opacity: 0;
+                        transform: translateY(6px);
+                        transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+                }
+                .show-content .drawer-section {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+                .drawer-stagger-1 { transition-delay: 0.03s; }
+                .drawer-stagger-2 { transition-delay: 0.07s; }
+                .drawer-stagger-3 { transition-delay: 0.11s; }
+                .drawer-stagger-4 { transition-delay: 0.15s; }
+                .drawer-stagger-5 { transition-delay: 0.19s; }
+                .drawer-stagger-6 { transition-delay: 0.23s; }
+
+                /* Connected Entities Graph Animations */
+                @keyframes dashFlow {
+                        to {
+                                stroke-dashoffset: -20;
+                        }
+                }
+                .flow-line {
+                        stroke-dasharray: 6, 4;
+                        animation: dashFlow 1.5s linear infinite;
+                }
+
+                @keyframes centerPulse {
+                        0%, 100% {
+                                r: 16px;
+                                fill: #0051d5;
+                                stroke-opacity: 1;
+                        }
+                        50% {
+                                r: 17.5px;
+                                fill: #316bf3;
+                                stroke-opacity: 0.7;
+                        }
+                }
+                .node-pulse-center {
+                        animation: centerPulse 2.5s infinite ease-in-out;
+                }
+
+                /* Node hover and select transitions */
+                .group\/node:hover circle {
+                        filter: brightness(1.15);
+                        stroke-width: 2.2px;
+                }
+                
+                /* Risk badges hover */
+                .risk-tag {
+                        transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+                }
+                .risk-tag:hover {
+                        transform: translateY(-1px);
+                        filter: brightness(0.96);
+                }
+
+                /* Respect prefers-reduced-motion settings */
+                @media (prefers-reduced-motion: reduce) {
+                        .heading-animate, 
+                        .kpi-card-animate, 
+                        .fade-in-animate, 
+                        .drawer-section, 
+                        .flow-line, 
+                        .node-pulse-center {
+                                animation: none !important;
+                                transition: none !important;
+                        }
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Details Drawer Backdrop Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-primary/45 backdrop-blur-sm z-40 transition-opacity duration-200 opacity-0 pointer-events-none" onclick="closeDetailDrawer()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                
+                <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- Sidebar Header & Logo -->
+                        <div class="h-[70px] flex items-center px-6 border-b border-[#1e293b] gap-3">
+                                <img alt="MuleGuard Logo" class="w-[110px] h-auto object-contain" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+                        </div>
+
+                        <!-- Sidebar Menu Groups -->
+                        <nav class="flex-1 px-4 py-6 space-y-7">
+                                <!-- Command Center Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Command Center</span>
+                                        </div>
+                                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                                                <span>Dashboard</span>
+                                        </a>
+                                        <a href="investigations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">search_insights</span>
+                                                <span>Investigations</span>
+                                        </a>
+                                        <a href="transactions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                                                <span>Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">group</span>
+                                                <span>Entities</span>
+                                        </a>
+                                        <!-- Active Navigation State for Fraud Networks Page -->
+                                        <a href="fraud_networks.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px] text-secondary-container">share</span>
+                                                <span class="font-medium">Fraud Networks</span>
+                                        </a>
+                                        <a href="alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+                                                <span>Alerts</span>
+                                        </a>
+                                        <a href="cases.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">work</span>
+                                                <span>Cases</span>
+                                        </a>
+                                </div>
+
+                                <!-- Intelligence Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
+                                        </div>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                                                <span>Risk Analytics</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">hub</span>
+                                                <span>Network Intelligence</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">rule_folder</span>
+                                                <span>Watchlists</span>
+                                        </a>
+                                </div>
+                        </nav>
+                </div>
+
+                <!-- Sidebar Footer Status -->
+                <div class="p-4 border-t border-[#1e293b] space-y-4">
+                        <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Systems OK</span>
+                                </div>
+                                <span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]">
+                                <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[13px] text-on-primary font-bold">
+                                                AK
+                                        </div>
+                                        <div class="flex flex-col">
+                                                <span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight">A. Kumar</span>
+                                                <span class="font-body-md text-[11px] text-on-primary-container/50">Senior Analyst</span>
+                                        </div>
+                                </div>
+                                <button class="text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none" onclick="showToast('Analyst configuration opened.')">
+                                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                                </button>
+                        </div>
+                </div>
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <!-- Mobile Menu Toggle Trigger -->
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Fraud Networks</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Discovery, connection monitoring, and suspicious relational network mapping.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <!-- Global Search Container -->
+                                <div class="relative hidden sm:block">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-outline">search</span>
+                                        <input id="global-header-search" class="w-[240px] bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-4 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200" placeholder="Search networks, members, entities..." type="text" oninput="triggerGlobalSearch()" />
+                                </div>
+
+                                <!-- Notification Bell -->
+                                <button class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors focus:outline-none" onclick="showToast('No new urgent cases in queue.')">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+                                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-risk-high rounded-full ring-2 ring-white"></span>
+                                </button>
+
+                                <!-- System Badge Online -->
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Secure Systems Online</span>
+                                </div>
+
+                                <!-- Separator -->
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- Small User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <!-- Profile Dropdown Menu -->
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading profile panel...')">My Profile</a>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading system configurations...')">System Configuration</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" onclick="logoutUser()" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- Queue Header Controls -->
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left heading-animate">
+                                <div class="flex flex-col">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Fraud Networks</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant leading-none mt-1">Discovery, connection monitoring, and suspicious relational network mapping.</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                        <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="showToast('Exporting Fraud Networks catalog...')">
+                                                Export Networks
+                                        </button>
+                                        <button class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm" onclick="showToast('Add Network panel opened.')">
+                                                + Add Network
+                                        </button>
+                                </div>
+                        </div>
+
+                        <!-- KPI Summary Cards Panel -->
+                        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                <!-- Card 1 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-1">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container opacity-40"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Total Networks</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#316bf3]">hub</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-total" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">42</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-low leading-none">trending_up</span>
+                                                <span class="font-semibold text-risk-low">+2 new</span>
+                                                <span>this week</span>
+                                        </div>
+                                </div>
+                                <!-- Card 2 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-2">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-orange-600">High-Risk Networks</span>
+                                                <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500">gpp_maybe</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-high-risk" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">8</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-orange-600 font-semibold leading-none">Active threat assessment active</span>
+                                        </div>
+                                </div>
+                                <!-- Card 3 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-3">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-yellow-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-yellow-600">Networks Under Review</span>
+                                                <div class="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-yellow-500">hourglass_empty</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-review" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">12</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-yellow-600 font-semibold leading-none">Pending analyst decisions</span>
+                                        </div>
+                                </div>
+                                <!-- Card 4 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden kpi-card-animate stagger-4">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-blue-600"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-blue-600">Newly Detected</span>
+                                                <div class="w-8 h-8 rounded-lg bg-blue-600/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-blue-600">new_releases</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="count-newly-detected" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">5</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="font-body-md text-[12px] text-blue-600 font-semibold leading-none">Discovered last 48h</span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Filter & Search Toolbar Card -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-4 rounded-xl shadow-sm select-none fade-in-animate">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                                        <!-- Text Search input -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Search Networks</label>
+                                                <input id="filter-search" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all duration-150" placeholder="Net ID, name, node..." type="text" oninput="onSearchInput()" />
+                                        </div>
+
+                                        <!-- Risk levels dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Risk Level</label>
+                                                <select id="filter-risk" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Risk Levels</option>
+                                                        <option value="Critical">Critical (90+)</option>
+                                                        <option value="High">High (70-89)</option>
+                                                        <option value="Medium">Medium (50-69)</option>
+                                                        <option value="Low">Low (0-49)</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Network type dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Network Type</label>
+                                                <select id="filter-type" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Types</option>
+                                                        <option value="Shell Conduit">Shell Conduit</option>
+                                                        <option value="Layering Loop">Layering Loop</option>
+                                                        <option value="High-Risk Integration">High-Risk Integration</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Status dropdown select -->
+                                        <div class="flex flex-col text-left">
+                                                <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-bold mb-1">Status</label>
+                                                <select id="filter-status" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer transition-all duration-150" onchange="applyWorkspaceFilters()">
+                                                        <option value="All">All Statuses</option>
+                                                        <option value="Active">Active</option>
+                                                        <option value="Flagged">Flagged</option>
+                                                        <option value="Under Review">Under Review</option>
+                                                        <option value="Blocked">Blocked</option>
+                                                </select>
+                                        </div>
+
+                                        <!-- Clear Filters button -->
+                                        <div class="flex flex-col text-left justify-end">
+                                                <button class="w-full border border-outline-variant hover:border-secondary hover:text-secondary rounded-lg px-4 py-2 font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none" onclick="clearAllWorkspaceFilters()">
+                                                        Clear Filters
+                                                </button>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Main Table Cases Queue -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm fade-in-animate">
+                                <div class="w-full overflow-x-auto">
+                                        <table class="w-full border-collapse text-left" id="networks-table">
+                                                <thead>
+                                                        <tr class="border-b border-[#e2e8f0]">
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider whitespace-nowrap min-w-[110px]">Network ID</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[180px]">Network Name</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[135px]">Type</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[110px]">Risk Score</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[110px]">Total Value</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[90px]">Members</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[155px]">Connected Entities</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Last Activity</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[130px]">Status</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[100px]">Action</th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="networks-tbody">
+                                                        <!-- Row 1 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082714" data-risk="Critical" data-status="Flagged" data-type="Shell Conduit" onclick="rowClickAction(event, 'NET-082714')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082714</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Apex-Northstar Link</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Shell Conduit</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">95 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹9.69M</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">5</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">12</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">8 min ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">Flagged</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082714')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 2 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082703" data-risk="High" data-status="Under Review" data-type="Layering Loop" onclick="rowClickAction(event, 'NET-082703')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082703</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Orion Clearing Loop</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Layering Loop</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">82 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹4.20M</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">4</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">8</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">18 min ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082703')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 3 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082691" data-risk="Medium" data-status="Active" data-type="Shell Conduit" onclick="rowClickAction(event, 'NET-082691')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082691</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Vanguard Supplier Net</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Shell Conduit</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">55 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹11.00 Lakh</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">3</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">5</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">35 min ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Active</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082691')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 4 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082680" data-risk="Critical" data-status="Blocked" data-type="High-Risk Integration" onclick="rowClickAction(event, 'NET-082680')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082680</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Blackwood Shell Array</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">High-Risk Integration</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">98 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹1.45 Crore</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">6</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">18</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">1 hr ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Blocked</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082680')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 5 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082672" data-risk="High" data-status="Under Review" data-type="Layering Loop" onclick="rowClickAction(event, 'NET-082672')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082672</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Phoenix Circular Route</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Layering Loop</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">76 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹28.00 Lakh</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">4</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">6</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">2 hrs ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082672')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                        <!-- Row 6 -->
+                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082655" data-risk="Low" data-status="Active" data-type="High-Risk Integration" onclick="rowClickAction(event, 'NET-082655')">
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082655</td>
+                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Meridian Treasury Conduits</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">High-Risk Integration</td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">38 / 100</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹2.48 Crore</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">8</td>
+                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">15</td>
+                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">3 hrs ago</td>
+                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Active</span>
+                                                                </td>
+                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082655')">
+                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                        </button>
+                                                                </td>
+                                                        </tr>
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Footer System status bar -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Network: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Transaction Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Risk Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Intelligence Graph: Online</span>
+                                </div>
+                        </div>
+                        <div class="hidden sm:block">
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Fraud Intelligence</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Slider Drawer Workspace for Fraud Networks -->
+        <div id="detail-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[500px] bg-interface-base border-l border-outline-variant/60 shadow-2xl z-50 transform translate-x-full transition-transform duration-200 ease-out flex flex-col justify-between select-none overflow-hidden text-left">
+                <!-- Sticky Drawer Header -->
+                <div class="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low sticky top-0 z-10 flex-shrink-0">
+                        <div class="flex flex-col text-left">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Network Workspace</span>
+                                <h3 id="drawer-title-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">NET-082714</h3>
+                        </div>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-outline-variant/30 transition-colors focus:outline-none" onclick="closeDetailDrawer()">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface">close</span>
+</button>
+                </div>
+
+                <!-- Scrollable Drawer Body -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <!-- Network Quick Overview -->
+                        <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Network Name:</span>
+                                        <span id="drawer-network-name" class="font-headline-md text-[13px] text-on-surface font-bold">Apex-Northstar Link</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Network Type:</span>
+                                        <span id="drawer-network-type" class="font-body-md text-[13px] text-on-surface">Shell Conduit</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Risk Score:</span>
+                                        <span id="drawer-risk-score" class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded">95 / 100</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Total Network Value:</span>
+                                        <span id="drawer-total-value" class="font-mono-technical text-[13px] text-on-surface font-bold">₹96,90,000</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Members Count:</span>
+                                        <span id="drawer-members-count" class="font-mono-technical text-[13px] text-on-surface">5</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                        <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Last Activity:</span>
+                                        <span id="drawer-last-activity" class="font-body-md text-[13px] text-on-surface">8 min ago</span>
+                                </div>
+                        </div>
+
+                        <!-- 1. Network Summary -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-2">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">1. Network Summary</span>
+                                <p id="drawer-summary" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed bg-[#f8fafc] border border-[#e2e8f0] p-3 rounded-lg mt-1 text-left font-normal">
+                                        Summary explanation of network node structure.
+                                </p>
+                        </div>
+
+                        <!-- 2. Risk Indicators -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-3">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">2. Risk Indicators</span>
+                                <div id="drawer-risk-tags" class="flex flex-wrap gap-2 pt-1">
+                                        <!-- Dynamic tags -->
+                                </div>
+                        </div>
+
+                        <!-- 3. Connected Nodes Graph -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-4">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">3. Network Topology Graph</span>
+                                <div class="bg-[#0b1f3a] border border-[#1e293b] rounded-xl p-4 flex flex-col items-center justify-center mt-1 space-y-3">
+                                        <svg id="network-graph-svg" class="w-full h-[160px] overflow-visible" viewBox="0 0 400 160">
+                                                <!-- Nodes are drawn dynamically in JavaScript -->
+                                        </svg>
+                                        <div id="graph-node-info" class="w-full bg-[#071324] border border-[#122543] rounded-lg p-2.5 text-left min-h-[52px]">
+                                                <span class="font-body-md text-[11px] text-[#94a3b8] italic">Click any graph node to inspect node details.</span>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- 4. Threat Metrics -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-5">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">4. Risk Explanation</span>
+                                <p id="drawer-risk-explanation" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed">
+                                        Risk score parameter explanation metrics details.
+                                </p>
+                        </div>
+
+                        <!-- 5. Compliance Notes -->
+                        <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-6">
+                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">5. Analyst Notes</span>
+                                <p id="drawer-notes" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed border-l-2 border-secondary/50 pl-3 italic bg-[#f8fafc] py-2 rounded-r-lg">
+                                        Compliance notes verified.
+                                </p>
+                        </div>
+                </div>
+
+                <!-- Sticky Drawer Actions Footer -->
+                <div class="p-6 border-t border-outline-variant/30 bg-surface-container-low flex flex-wrap gap-3 sticky bottom-0 z-10 flex-shrink-0">
+                        <button class="flex-1 bg-secondary hover:bg-secondary-container text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all focus:outline-none shadow-sm" onclick="triggerDrawerAction('Review')">
+                                Review Network
+                        </button>
+                        <button class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all focus:outline-none shadow-sm" onclick="triggerDrawerAction('Flag')">
+                                Flag Network
+                        </button>
+                        <button class="flex-1 bg-risk-high hover:bg-red-700 text-white py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all focus:outline-none shadow-sm" onclick="triggerDrawerAction('Block')">
+                                Block Network
+                        </button>
+                </div>
+        </div>
+
+        <!-- Professional Confirmation Dialog Modal -->
+        <div id="confirm-modal" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity duration-200">
+                <div class="bg-interface-base border border-outline-variant/60 rounded-xl shadow-2xl w-full max-w-md p-6 transform scale-95 transition-all duration-200 select-none text-left">
+                        <h4 id="confirm-modal-title" class="font-headline-md text-[16px] text-on-surface font-extrabold">Confirm Action</h4>
+                        <p id="confirm-modal-body" class="font-body-md text-[13px] text-on-surface-variant mt-2 leading-relaxed">
+                                Are you sure you want to perform this action on this fraud network?
+                        </p>
+                        <div class="flex justify-end gap-3 mt-6">
+                                <button class="border border-outline-variant hover:border-on-surface-variant hover:text-on-surface text-on-surface-variant px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all focus:outline-none" onclick="closeConfirmModal()">
+                                        Cancel
+                                </button>
+                                <button id="confirm-submit-btn" class="bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all focus:outline-none shadow-sm" onclick="submitConfirmModal()">
+                                        Confirm
+                                </button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <!-- Javascript Dynamic Page Interactions -->
+        <script>
+                // Fraud Networks mock database
+                const networksDb = window.MuleGuardStore.getNetworks();
+
+                // Global variables for cached workspace operations
+                let cachedRows = [];
+                let searchDebounceTimeout;
+                const detailDrawerEl = document.getElementById('detail-drawer');
+                const drawerOverlayEl = document.getElementById('drawer-overlay');
+                let drawerTimeouts = [];
+                let currentlyRenderedNetworkId = null;
+
+                // Toggle mobile navigation sidebar
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                // Show alert toast alerts
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 3000);
+                }
+
+                function clearDrawerTimeouts() {
+                        drawerTimeouts.forEach(t => clearTimeout(t));
+                        drawerTimeouts = [];
+                }
+
+                // Dynamically render network graph layout inside SVG canvas
+                function renderNetworkGraph(networkId) {
+                        const data = networksDb[networkId];
+                        if (!data) return;
+
+                        const svg = document.getElementById('network-graph-svg');
+                        if (!svg) return;
+
+                        // Clear existing elements
+                        svg.innerHTML = '';
+
+                        // 1. Draw connecting lines
+                        data.graphLinks.forEach((link, idx) => {
+                                const sourceNode = data.graphNodes[link.source];
+                                const targetNode = data.graphNodes[link.target];
+                                if (!sourceNode || !targetNode) return;
+
+                                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                line.setAttribute('id', `link-${idx}`);
+                                line.setAttribute('x1', sourceNode.cx);
+                                line.setAttribute('y1', sourceNode.cy);
+                                line.setAttribute('x2', targetNode.cx);
+                                line.setAttribute('y2', targetNode.cy);
+                                line.setAttribute('stroke', '#316BF3');
+                                line.setAttribute('stroke-width', '1.5');
+                                line.setAttribute('opacity', '0.75');
+                                if (link.flow) {
+                                        line.setAttribute('class', 'flow-line');
+                                }
+                                svg.appendChild(line);
+                        });
+
+                        // 2. Draw nodes
+                        data.graphNodes.forEach((node, idx) => {
+                                // Group container
+                                const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                                group.setAttribute('class', 'cursor-pointer group/node');
+                                group.setAttribute('onclick', `showNodeDetails('${node.id}', '${node.label}', '${node.role}', '${node.risk}')`);
+
+                                // Circle node
+                                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                                circle.setAttribute('cx', node.cx);
+                                circle.setAttribute('cy', node.cy);
+                                circle.setAttribute('r', node.r);
+                                
+                                let fillColor = '#1e293b';
+                                let strokeColor = '#38BDF8';
+                                
+                                if (node.status === 'Blocked') {
+                                        fillColor = '#0f172a';
+                                        strokeColor = '#64748b';
+                                } else if (node.status === 'Flagged') {
+                                        fillColor = '#7f1d1d';
+                                        strokeColor = '#ef4444';
+                                } else if (node.status === 'Under Review') {
+                                        fillColor = '#7c2d12';
+                                        strokeColor = '#f97316';
+                                } else {
+                                        if (idx === 0) {
+                                                circle.setAttribute('class', 'node-pulse-center');
+                                                fillColor = '#1d4ed8';
+                                                strokeColor = '#60a5fa';
+                                        } else {
+                                                fillColor = '#1e293b';
+                                                strokeColor = '#38bdf8';
+                                        }
+                                }
+                                
+                                circle.setAttribute('fill', fillColor);
+                                circle.setAttribute('stroke', strokeColor);
+                                circle.setAttribute('stroke-width', '1.5');
+                                group.appendChild(circle);
+
+                                // Identifier text inside node
+                                const textId = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                textId.setAttribute('x', node.cx);
+                                textId.setAttribute('y', node.cy + 3);
+                                textId.setAttribute('fill', idx === 0 ? '#ffffff' : '#94a3b8');
+                                textId.setAttribute('font-size', idx === 0 ? '8' : '7');
+                                textId.setAttribute('text-anchor', 'middle');
+                                textId.setAttribute('font-family', 'monospace');
+                                textId.setAttribute('font-weight', 'bold');
+                                textId.textContent = idx === 0 ? 'HUB' : `N${idx}`;
+                                group.appendChild(textId);
+
+                                // Label text
+                                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                                label.setAttribute('x', node.cx);
+                                label.setAttribute('y', idx === 0 ? node.cy + 30 : (node.cy > 80 ? node.cy + 22 : node.cy - 18));
+                                label.setAttribute('fill', idx === 0 ? '#ffffff' : '#94a3b8');
+                                label.setAttribute('font-size', idx === 0 ? '9' : '8');
+                                label.setAttribute('text-anchor', 'middle');
+                                label.setAttribute('font-weight', idx === 0 ? '600' : 'normal');
+                                label.textContent = node.label;
+                                group.appendChild(label);
+
+                                svg.appendChild(group);
+                        });
+
+                        // Automatically initialize details display with center/hub node details
+                        const hubNode = data.graphNodes[0];
+                        if (hubNode) {
+                                showNodeDetails(hubNode.id, hubNode.label, hubNode.role, hubNode.risk);
+                        }
+                }
+
+                // Show graph node details inside drawer details box
+                function showNodeDetails(nodeId, label, role, risk) {
+                        const infoBox = document.getElementById('graph-node-info');
+                        if (!infoBox) return;
+
+                        const db = window.MuleGuardStore ? window.MuleGuardStore.getAccounts() : null;
+                        const acc = db ? db[nodeId] : null;
+                        const statusText = acc ? acc.status : 'Normal';
+                        const score = acc ? acc.riskScore : (risk === 'Critical' ? 95 : (risk === 'High' ? 82 : (risk === 'Medium' ? 62 : 20)));
+
+                        let badgeColor = "bg-blue-50 text-blue-800 border-blue-200";
+                        if (statusText === 'Blocked') badgeColor = "bg-slate-900 text-slate-300 border-slate-700";
+                        else if (statusText === 'Flagged') badgeColor = "bg-red-50 text-red-700 border-red-200";
+                        else if (statusText === 'Under Review') badgeColor = "bg-orange-50 text-orange-700 border-orange-200";
+
+                        let triggersHtml = '';
+                        if (acc && acc.triggers && acc.triggers.length > 0) {
+                                triggersHtml = `
+                                        <div class="mt-2 pt-2 border-t border-slate-800 text-[10px] space-y-1">
+                                                <div class="font-bold text-slate-300 uppercase tracking-wider">Triggers:</div>
+                                                ${acc.triggers.map(t => `<div class="text-red-400">• ${t}</div>`).join('')}
+                                        </div>
+                                `;
+                        }
+
+                        infoBox.innerHTML = `
+                                <div class="flex items-center justify-between">
+                                        <span class="font-headline-md text-[12px] text-white font-bold">${label} (${nodeId})</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${badgeColor}">${statusText} (${score})</span>
+                                </div>
+                                <div class="font-body-md text-[11px] text-slate-400 mt-1 leading-tight">Role: ${role}</div>
+                                ${triggersHtml}
+                        `;
+                }
+
+                // Open workspace drawer details and render dynamic content
+                function openDetailDrawer(networkId) {
+                        const data = networksDb[networkId];
+                        if (!data) return;
+
+                        // Prevent body scrolling when drawer is active
+                        document.body.classList.add('overflow-hidden');
+
+                        // Clear pending stagger loads
+                        clearDrawerTimeouts();
+
+                        // Populate dynamic text fields
+                        document.getElementById('drawer-title-id').textContent = data.id;
+                        document.getElementById('drawer-network-name').textContent = data.name;
+                        document.getElementById('drawer-network-type').textContent = data.type;
+                        document.getElementById('drawer-risk-score').textContent = `${data.score} / 100`;
+                        document.getElementById('drawer-total-value').textContent = data.totalValue;
+                        document.getElementById('drawer-members-count').textContent = data.members;
+                        document.getElementById('drawer-last-activity').textContent = data.lastActivity;
+                        document.getElementById('drawer-summary').textContent = data.summary;
+                        document.getElementById('drawer-risk-explanation').textContent = data.riskExplanation;
+                        document.getElementById('drawer-notes').textContent = data.notes;
+
+                        // Only render network topological graph elements dynamically if the target changes
+                        if (currentlyRenderedNetworkId !== networkId) {
+                                renderNetworkGraph(networkId);
+                                currentlyRenderedNetworkId = networkId;
+                        }
+
+                        // Style Risk Badge on Score criteria
+                        const scoreBadge = document.getElementById('drawer-risk-score');
+                        if (data.score >= 90) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200";
+                        } else if (data.score >= 70) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200";
+                        } else if (data.score >= 50) {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200";
+                        } else {
+                                scoreBadge.className = "font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200";
+                        }
+
+                        // Generate risk tags lists dynamically
+                        const tagsContainer = document.getElementById('drawer-risk-tags');
+                        if (tagsContainer) {
+                                tagsContainer.innerHTML = '';
+                                data.indicators.forEach(ind => {
+                                        let bgClass = "bg-blue-50 text-blue-800 border-blue-200";
+                                        if (data.score >= 90) bgClass = "bg-red-50 text-red-700 border-red-200";
+                                        else if (data.score >= 70) bgClass = "bg-orange-50 text-orange-700 border-orange-200";
+                                        
+                                        tagsContainer.innerHTML += `<span class="px-2.5 py-1 rounded border text-[11px] font-semibold font-sans cursor-pointer ${bgClass}">${ind}</span>`;
+                                });
+                        }
+
+                        // Trigger staggered slide load transitions
+                        const items = document.querySelectorAll('.drawer-section');
+                        items.forEach((item, index) => {
+                                item.classList.remove('show-content');
+                                const t = setTimeout(() => {
+                                        item.classList.add('show-content');
+                                }, 40 + index * 30);
+                                drawerTimeouts.push(t);
+                        });
+
+                        detailDrawerEl.classList.remove('translate-x-full');
+                        detailDrawerEl.classList.add('show-content');
+                        drawerOverlayEl.classList.remove('opacity-0', 'pointer-events-none');
+                        drawerOverlayEl.classList.add('opacity-100', 'pointer-events-auto');
+                }
+
+                // Close slide drawer
+                function closeDetailDrawer() {
+                        // Restore body scroll
+                        document.body.classList.remove('overflow-hidden');
+
+                        clearDrawerTimeouts();
+                        const items = document.querySelectorAll('.drawer-section');
+                        items.forEach(item => item.classList.remove('show-content'));
+
+                        // Reset network rendered state
+                        currentlyRenderedNetworkId = null;
+
+                        detailDrawerEl.classList.add('translate-x-full');
+                        detailDrawerEl.classList.remove('show-content');
+                        drawerOverlayEl.classList.remove('opacity-100', 'pointer-events-auto');
+                        drawerOverlayEl.classList.add('opacity-0', 'pointer-events-none');
+                }
+
+                // Confirm actions logic flow
+                let pendingAction = null;
+                let pendingNetId = null;
+
+                function triggerDrawerAction(actionName) {
+                        const netId = document.getElementById('drawer-title-id').textContent;
+                        const data = networksDb[netId];
+                        if (!data) return;
+
+                        pendingAction = actionName;
+                        pendingNetId = netId;
+
+                        const modal = document.getElementById('confirm-modal');
+                        const modalTitle = document.getElementById('confirm-modal-title');
+                        const modalBody = document.getElementById('confirm-modal-body');
+                        const submitBtn = document.getElementById('confirm-submit-btn');
+
+                        if (actionName === 'Block') {
+                                modalTitle.textContent = "Confirm Network Block";
+                                modalBody.textContent = `Are you sure you want to block fraud network ${netId} (${data.name})? This will freeze transaction clearances for all ${data.members} core member accounts.`;
+                                submitBtn.className = "bg-risk-high hover:bg-red-700 text-white px-4 py-2 rounded-lg font-label-md text-[12px] active:scale-95 transition-all duration-150 focus:outline-none shadow-sm";
+                                
+                                modal.classList.remove('hidden');
+                                setTimeout(() => {
+                                        modal.firstElementChild.classList.remove('scale-95');
+                                        modal.firstElementChild.classList.add('scale-100');
+                                }, 10);
+                        } else {
+                                // Review or Flag updates states directly
+                                submitConfirmModal();
+                        }
+                }
+
+                function closeConfirmModal() {
+                        const modal = document.getElementById('confirm-modal');
+                        modal.firstElementChild.classList.remove('scale-100');
+                        modal.firstElementChild.classList.add('scale-95');
+                        setTimeout(() => {
+                                modal.classList.add('hidden');
+                        }, 150);
+                        pendingAction = null;
+                        pendingNetId = null;
+                }
+
+                function submitConfirmModal() {
+                        const netId = pendingNetId;
+                        const action = pendingAction;
+                        const data = networksDb[netId];
+
+                        closeConfirmModal();
+
+                        if (action === 'Block') {
+                                data.status = 'Blocked';
+                                const row = document.querySelector("#networks-tbody tr[data-net-id='" + netId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Blocked');
+                                        const badge = row.querySelector('.status-badge-cell');
+                                        if (badge) {
+                                                badge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
+                                                badge.textContent = "Blocked";
+                                        }
+                                }
+                                showToast(`Success: Fraud Network ${netId} blocked successfully.`);
+                        } else if (action === 'Flag') {
+                                data.status = 'Flagged';
+                                const row = document.querySelector("#networks-tbody tr[data-net-id='" + netId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Flagged');
+                                        const badge = row.querySelector('.status-badge-cell');
+                                        if (badge) {
+                                                badge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200";
+                                                badge.textContent = "Flagged";
+                                        }
+                                }
+                                showToast(`Success: Fraud Network ${netId} flagged for active ledger monitoring.`);
+                        } else if (action === 'Review') {
+                                data.status = 'Under Review';
+                                const row = document.querySelector("#networks-tbody tr[data-net-id='" + netId + "']");
+                                if (row) {
+                                        row.setAttribute('data-status', 'Under Review');
+                                        const badge = row.querySelector('.status-badge-cell');
+                                        if (badge) {
+                                                badge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200";
+                                                badge.textContent = "Under Review";
+                                        }
+                                }
+                                showToast(`Success: Fraud Network ${netId} status updated to Under Review.`);
+                        }
+
+                        applyWorkspaceFilters();
+                        closeDetailDrawer();
+                }
+
+                // Row clicking delegates inspect drawer open
+                function rowClickAction(event, networkId) {
+                        if (event.target.tagName.toLowerCase() === 'button' || event.target.tagName.toLowerCase() === 'a' || event.target.closest('button')) {
+                                return;
+                        }
+                        openDetailDrawer(networkId);
+                }
+
+                // Debounce search box input keyups
+                function onSearchInput() {
+                        clearTimeout(searchDebounceTimeout);
+                        searchDebounceTimeout = setTimeout(() => {
+                                applyWorkspaceFilters();
+                        }, 120);
+                }
+
+                // Filter logic using cached DOM elements to prevent reflow bottlenecks
+                function applyWorkspaceFilters() {
+                        const searchQuery = document.getElementById('filter-search').value.toLowerCase().trim();
+                        const riskVal = document.getElementById('filter-risk').value;
+                        const typeVal = document.getElementById('filter-type').value;
+                        const statusVal = document.getElementById('filter-status').value;
+
+                        cachedRows.forEach(row => {
+                                // Sync dynamic database properties
+                                const currentStatus = networksDb[row.id.toUpperCase()].status;
+
+                                const matchesSearch = !searchQuery ||
+                                        row.id.includes(searchQuery) ||
+                                        row.name.includes(searchQuery) ||
+                                        row.type.includes(searchQuery);
+
+                                const matchesRisk = (riskVal === 'All' || row.risk === riskVal);
+                                const matchesType = (typeVal === 'All' || row.type === typeVal.toLowerCase());
+                                const matchesStatus = (statusVal === 'All' || currentStatus === statusVal);
+
+                                if (matchesSearch && matchesRisk && matchesType && matchesStatus) {
+                                        row.element.classList.remove('hidden');
+                                } else {
+                                        row.element.classList.add('hidden');
+                                }
+                        });
+
+                        recountSummaryCards();
+                }
+
+                // Recount summary cards from cached elements
+                function recountSummaryCards() {
+                        let totalCount = 0;
+                        let highRiskCount = 0;
+                        let reviewCount = 0;
+                        let newDetectedCount = 0;
+
+                        cachedRows.forEach(row => {
+                                if (row.element.classList.contains('hidden')) {
+                                        return;
+                                }
+                                totalCount++;
+                                
+                                const status = networksDb[row.id.toUpperCase()].status;
+                                const risk = row.risk;
+
+                                if (risk === 'Critical' || risk === 'High') {
+                                        highRiskCount++;
+                                }
+                                if (status === 'Under Review') {
+                                        reviewCount++;
+                                }
+                                if (status === 'Flagged') {
+                                        newDetectedCount++;
+                                }
+                        });
+
+                        document.getElementById('count-total').textContent = totalCount;
+                        document.getElementById('count-high-risk').textContent = highRiskCount;
+                        document.getElementById('count-review').textContent = reviewCount;
+                        document.getElementById('count-newly-detected').textContent = newDetectedCount;
+                }
+
+                // Clear all filters
+                function clearAllWorkspaceFilters() {
+                        document.getElementById('filter-search').value = '';
+                        document.getElementById('filter-risk').value = 'All';
+                        document.getElementById('filter-type').value = 'All';
+                        document.getElementById('filter-status').value = 'All';
+                        applyWorkspaceFilters();
+                        showToast("Fraud Network filters reset successfully.");
+                }
+
+                // Global header search using caches
+                function triggerGlobalSearch() {
+                        const headerQuery = document.getElementById('global-header-search').value.toLowerCase().trim();
+                        cachedRows.forEach(row => {
+                                const matches = !headerQuery || row.id.includes(headerQuery) || row.name.includes(headerQuery);
+                                row.element.classList.toggle('hidden', !matches);
+                        });
+                        recountSummaryCards();
+                }
+
+                // Listen for Escape keyboard presses to close popups
+                document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                                closeDetailDrawer();
+                                closeConfirmModal();
+                        }
+                });
+
+                // Caches rows on loaded DOM structure
+                window.addEventListener('DOMContentLoaded', () => {
+                        const rows = document.querySelectorAll('#networks-tbody tr');
+                        cachedRows = Array.from(rows).map(row => {
+                                const netId = row.getAttribute('data-net-id');
+                                const data = networksDb[netId];
+                                return {
+                                        element: row,
+                                        id: netId.toLowerCase(),
+                                        name: data.name.toLowerCase(),
+                                        type: data.type.toLowerCase(),
+                                        risk: row.getAttribute('data-risk'),
+                                        status: data.status
+                                };
+                        });
+                        recountSummaryCards();
+                });
+        </script>
+</body>
+
+</html>
+

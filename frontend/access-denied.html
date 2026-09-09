@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MuleGuard - Access Denied</title>
+        <!-- Google Fonts Inter & Outfit -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <!-- Google Material Symbols Icons -->
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,400,0,0" rel="stylesheet" />
+        <!-- Compiled Stylesheet assets -->
+        <link rel="stylesheet" href="style.css">
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex items-center justify-center font-sans select-none p-6">
+        
+        <div class="bg-interface-base border border-outline-variant/60 rounded-xl shadow-2xl w-full max-w-md p-8 text-center space-y-6">
+                <!-- Lock Icon -->
+                <div class="mx-auto w-16 h-16 rounded-full bg-red-50 flex items-center justify-center border border-red-200">
+                        <span class="material-symbols-outlined text-[32px] text-risk-high">shield_lock</span>
+                </div>
+
+                <!-- Text Headings -->
+                <div class="space-y-2">
+                        <h1 class="font-headline-lg text-[22px] text-on-surface font-extrabold tracking-tight">Access Denied</h1>
+                        <p class="font-body-md text-[13px] text-on-surface-variant leading-relaxed">
+                                Your account is not authorized to access this department or resource. All unauthorized access attempts are logged for security auditing.
+                        </p>
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-2">
+                        <button class="w-full bg-secondary hover:bg-secondary-container text-white py-3 rounded-lg font-label-md text-[13px] font-bold active:scale-95 transition-all focus:outline-none shadow-sm" onclick="returnToDashboard()">
+                                Return to Authorized Dashboard
+                        </button>
+                </div>
+        </div>
+
+        <script>
+                function returnToDashboard() {
+                        const sessionStr = sessionStorage.getItem('muleguard_session');
+                        if (sessionStr) {
+                                const session = JSON.parse(sessionStr);
+                                if (session && session.authenticated) {
+                                        const role = session.role;
+                                        if (role === 'bank_investigator') {
+                                                window.location.href = 'bank/investigator/dashboard.html';
+                                                return;
+                                        } else if (role === 'bank_compliance') {
+                                                window.location.href = 'bank/compliance/dashboard.html';
+                                                return;
+                                        } else if (role === 'internal_team') {
+                                                window.location.href = 'internal/dashboard.html';
+                                                return;
+                                        }
+                                }
+                        }
+                        // Default fallback
+                        window.location.href = 'login.html';
+                }
+        </script>
+</body>
+
+</html>

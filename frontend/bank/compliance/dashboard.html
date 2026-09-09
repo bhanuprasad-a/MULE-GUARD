@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+        <script src="../../scripts/transaction-simulator.js"></script>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Compliance Control Center</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        
+        <script>
+                // Suppress Chrome extension errors
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || 
+                                        msg.includes('widget') || 
+                                        msg.includes('publicKey') || 
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+
+                        console.warn = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalWarn.apply(console, args);
+                        };
+
+                        console.error = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalError.apply(console, args);
+                        };
+
+                        console.log = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalLog.apply(console, args);
+                        };
+                })();
+        </script>
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                <!-- Dynamically Populated by auth-guard.js -->
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Compliance Control Center</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Senior oversight, high-risk escalations, and regulatory audit review.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <div class="hidden lg:flex items-center gap-2 bg-[#fdf2f8] border border-[#fbcfe8] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-pink-700 font-bold tracking-wider uppercase">Compliance Session</span>
+                                </div>
+
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold" id="header-avatar">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold" id="header-username">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading settings...')">My Profile</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors" onclick="logoutUser()">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- Page Title -->
+                        <div class="flex flex-col text-left">
+                                <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Compliance Control Dashboard</h2>
+                                <p class="font-body-md text-[13px] text-on-surface-variant leading-none mt-1">Operational view of escalated AML alerts, pending SAR filings, and final administrative resolutions.</p>
+                        </div>
+
+                        <!-- KPI Summary Cards Panel -->
+                        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                <!-- Card 1: Escalated Cases -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-red-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Escalated Cases</span>
+                                                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-red-600">warning</span>
+                                                </div>
+                                        </div>
+                                        <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight" id="kpi-escalated-cases">0</h3>
+                                        <span class="text-[11px] text-on-surface-variant block mt-1">Pending compliance review</span>
+                                </div>
+
+                                <!-- Card 2: High-Risk Alerts -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">High-Risk Alerts</span>
+                                                <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500">report_problem</span>
+                                                </div>
+                                        </div>
+                                        <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight" id="kpi-high-risk-alerts">0</h3>
+                                        <span class="text-[11px] text-on-surface-variant block mt-1">Awaiting compliance review</span>
+                                </div>
+
+                                <!-- Card 3: Decisions Logged -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Decisions Logged</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary-container/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-secondary-container">gavel</span>
+                                                </div>
+                                        </div>
+                                        <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight" id="kpi-decisions-logged">0</h3>
+                                        <span class="text-[11px] text-on-surface-variant block mt-1">Decisions audit ledger size</span>
+                                </div>
+
+                                <!-- Card 4: SAR Reports Filed -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Regulatory SARs</span>
+                                                <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-green-600">assessment</span>
+                                                </div>
+                                        </div>
+                                        <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight" id="kpi-reports">3</h3>
+                                        <span class="text-[11px] text-on-surface-variant block mt-1">Submitted/Pending SAR filings</span>
+                                </div>
+                        </section>
+
+                        <!-- Dashboard Grid Layout -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
+                                <!-- Escalated Cases Column (2/3 width) -->
+                                <div class="lg:col-span-2 bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm space-y-4">
+                                        <div class="flex items-center justify-between border-b border-[#f1f5f9] pb-2">
+                                                <div class="flex items-center gap-2">
+                                                        <span class="material-symbols-outlined text-[#316bf3] text-[20px]">warning</span>
+                                                        <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold">Pending Escalations Review Queue</h3>
+                                                </div>
+                                                <a href="escalated-cases.html" class="text-secondary font-label-md text-[12px] hover:underline font-bold">View Full Queue</a>
+                                        </div>
+                                        
+                                        <div class="overflow-x-auto">
+                                                <table class="w-full text-left">
+                                                        <thead>
+                                                                <tr class="border-b border-outline-variant/20 text-[11px] font-mono-technical text-on-surface-variant uppercase tracking-wider">
+                                                                        <th class="py-2.5 px-3">Case ID</th>
+                                                                        <th class="py-2.5 px-3">Entity</th>
+                                                                        <th class="py-2.5 px-3 text-right">Risk</th>
+                                                                        <th class="py-2.5 px-3">Escalated By</th>
+                                                                        <th class="py-2.5 px-3 text-right">Action</th>
+                                                                </tr>
+                                                        </thead>
+                                                        <tbody id="escalated-cases-tbody" class="divide-y divide-outline-variant/10 text-[13px]">
+                                                                <!-- Dynamically injected -->
+                                                        </tbody>
+                                                </table>
+                                        </div>
+                                </div>
+
+                                <!-- Decisions History & Review Log -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm space-y-4">
+                                        <div class="flex items-center justify-between border-b border-[#f1f5f9] pb-2">
+                                                <div class="flex items-center gap-2">
+                                                        <span class="material-symbols-outlined text-green-600 text-[20px]">history</span>
+                                                        <h3 class="font-headline-md text-[14px] text-on-surface font-extrabold">Recent Compliance Log</h3>
+                                                </div>
+                                                <a href="decisions.html" class="text-secondary font-label-md text-[12px] hover:underline font-bold">Audit History</a>
+                                        </div>
+                                        <div class="space-y-3" id="decisions-history-list">
+                                                <!-- Dynamically injected -->
+                                        </div>
+                                </div>
+                        </div>
+                </main>
+
+                <!-- Footer Status -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Compliance Oversight: Active</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Ledger Sync: Secured</span>
+                                </div>
+                        </div>
+                        <div>
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2026 MuleGuard Compliance Panel</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <script>
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                // Render Dashboard Stats and Queues
+                function renderComplianceDashboard() {
+                        if (!window.MuleGuardStore) return;
+
+                        const cases = window.MuleGuardStore.getCases();
+                        const alerts = window.MuleGuardStore.getAlerts();
+                        const decisions = window.MuleGuardStore.getDecisions();
+
+                        const escalatedCases = cases.filter(c => c.status === 'Escalated');
+                        const highRiskAlerts = alerts.filter(a => a.severity === 'Critical' || a.severity === 'High');
+
+                        // Set KPIs
+                        document.getElementById('kpi-escalated-cases').textContent = escalatedCases.length;
+                        document.getElementById('kpi-high-risk-alerts').textContent = alerts.filter(a => a.status !== 'Resolved' && (a.severity === 'Critical' || a.severity === 'High')).length;
+                        document.getElementById('kpi-decisions-logged').textContent = decisions.length;
+
+                        // Render pending escalations table rows
+                        const tbody = document.getElementById('escalated-cases-tbody');
+                        if (tbody) {
+                                tbody.innerHTML = '';
+                                if (escalatedCases.length === 0) {
+                                        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-on-surface-variant opacity-60">No pending case escalations.</td></tr>`;
+                                } else {
+                                        escalatedCases.forEach(c => {
+                                                tbody.innerHTML += `
+                                                        <tr class="hover:bg-slate-50 transition-colors">
+                                                                <td class="py-3 px-3 font-mono-technical font-bold text-secondary">${c.id}</td>
+                                                                <td class="py-3 px-3 font-headline-md font-semibold">${c.title}</td>
+                                                                <td class="py-3 px-3 text-right">
+                                                                        <span class="font-mono-technical text-[11px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">${c.score}</span>
+                                                                </td>
+                                                                <td class="py-3 px-3 text-on-surface-variant font-medium">${c.escalatedBy || 'Investigator'}</td>
+                                                                <td class="py-3 px-3 text-right">
+                                                                        <a href="escalated-cases.html" class="bg-secondary text-white font-label-md text-[11px] px-3 py-1 rounded hover:bg-secondary-container transition-all">Review</a>
+                                                                </td>
+                                                        </tr>
+                                                `;
+                                        });
+                                }
+                        }
+
+                        // Render Recent Decisions log
+                        const list = document.getElementById('decisions-history-list');
+                        if (list) {
+                                list.innerHTML = '';
+                                const latestDecisions = decisions.slice(0, 4);
+                                if (latestDecisions.length === 0) {
+                                        list.innerHTML = `<p class="text-[12px] text-on-surface-variant text-center opacity-60 py-2">No historical decisions logged.</p>`;
+                                } else {
+                                        latestDecisions.forEach(d => {
+                                                let badgeClass = "bg-green-50 text-green-700 border-green-200";
+                                                if (d.decision.includes('Reject') || d.decision.includes('Block')) {
+                                                        badgeClass = "bg-red-50 text-red-700 border-red-200";
+                                                } else if (d.decision.includes('Hold')) {
+                                                        badgeClass = "bg-yellow-50 text-yellow-700 border-yellow-200";
+                                                }
+
+                                                list.innerHTML += `
+                                                        <div class="p-3 border border-outline-variant/20 rounded-lg space-y-1.5 text-[12px] bg-slate-50/50">
+                                                                <div class="flex items-center justify-between">
+                                                                        <span class="font-bold text-on-surface">${d.caseId}</span>
+                                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${d.decision}</span>
+                                                                </div>
+                                                                <p class="text-on-surface-variant truncate">${d.rationale}</p>
+                                                                <div class="flex justify-between items-center text-[10px] text-on-surface-variant opacity-60 font-mono-technical">
+                                                                        <span>By: ${d.reviewer}</span>
+                                                                        <span>${d.timestamp}</span>
+                                                                </div>
+                                                        </div>
+                                                `;
+                                        });
+                                }
+                        }
+                }
+
+                window.addEventListener('DOMContentLoaded', () => {
+                        if (window.MuleGuardStore && window.MuleGuardStore.generateAlertsFromAllAccounts) {
+                                window.MuleGuardStore.generateAlertsFromAllAccounts();
+                        }
+                        renderComplianceDashboard();
+                });
+
+                window.addEventListener('muleguard:transaction-ingested', () => {
+                        renderComplianceDashboard();
+                });
+        </script>
+</body>
+
+</html>

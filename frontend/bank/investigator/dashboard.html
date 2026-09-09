@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+        <script src="../../scripts/transaction-simulator.js"></script>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Investigation Command Center</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
+                rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <script>
+                // Intercept and suppress external Chrome extension errors/warnings
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || 
+                                        msg.includes('widget') || 
+                                        msg.includes('publicKey') || 
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+
+                        console.warn = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalWarn.apply(console, args);
+                        };
+
+                        console.error = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalError.apply(console, args);
+                        };
+
+                        console.log = function(...args) {
+                                if (isExtensionMessage(...args)) return;
+                                originalLog.apply(console, args);
+                        };
+                })();
+        </script>
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+                
+                /* Custom scrollbar styles */
+                ::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                ::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                }
+                ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                }
+                ::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                }
+
+                /* SVG Path Transition animations */
+                #volume-path, #volume-area, #risk-path, #risk-area {
+                        transition: d 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                /* Keyframe pulse animation for network nodes */
+                @keyframes nodePulse {
+                        0% {
+                                r: 6px;
+                                stroke-opacity: 1;
+                                stroke-width: 1px;
+                        }
+                        100% {
+                                r: 16px;
+                                stroke-opacity: 0;
+                                stroke-width: 3px;
+                        }
+                }
+                .network-pulse {
+                        animation: nodePulse 2s infinite ease-out;
+                }
+
+                /* Keyframe line flow animation for active transactions */
+                @keyframes dashFlow {
+                        to {
+                                stroke-dashoffset: -20;
+                        }
+                }
+                .flow-line {
+                        stroke-dasharray: 6, 4;
+                        animation: dashFlow 1.2s linear infinite;
+                }
+
+                /* Custom tooltips mapping coordinates absolute */
+                .custom-tooltip {
+                        position: absolute;
+                        background: #0b1f3a;
+                        border: 1px solid #1e293b;
+                        color: #ffffff;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        font-size: 11px;
+                        font-family: 'Poppins', sans-serif;
+                        pointer-events: none;
+                        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+                        z-index: 100;
+                        opacity: 0;
+                        transition: opacity 0.15s ease-in-out;
+                }
+
+                /* Alerts entrance slides */
+                @keyframes slideInUp {
+                        from {
+                                opacity: 0;
+                                transform: translateY(12px);
+                        }
+                        to {
+                                opacity: 1;
+                                transform: translateY(0);
+                        }
+                }
+                .alert-card-animate {
+                        animation: slideInUp 0.35s ease-out forwards;
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Case Slider Drawer Backdrop Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-primary/30 backdrop-blur-sm z-40 hidden transition-opacity duration-200" onclick="closeCaseDrawer()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                
+                <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- Sidebar Header & Logo -->
+                        <div class="h-[70px] flex items-center px-6 border-b border-[#1e293b] gap-3">
+                                <a href="dashboard.html">
+                                        <img alt="MuleGuard Logo" class="w-[110px] h-auto object-contain" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+                                </a>
+                        </div>
+
+                        <!-- Sidebar Menu Groups -->
+                        <nav class="flex-1 px-4 py-6 space-y-7">
+                                <!-- Command Center Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Command Center</span>
+                                        </div>
+                                        <!-- Active State Indicators -->
+                                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px] text-secondary-container">dashboard</span>
+                                                <span class="font-medium">Dashboard</span>
+                                        </a>
+                                        <a href="investigations.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">search_insights</span>
+                                                <span>Investigations</span>
+                                        </a>
+                                        <a href="transactions.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                                                <span>Transactions</span>
+                                        </a>
+                                        <a href="entities.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">group</span>
+                                                <span>Entities</span>
+                                        </a>
+                                        <a href="fraud_networks.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">share</span>
+                                                <span>Fraud Networks</span>
+                                        </a>
+                                        <a href="alerts.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+                                                <span>Alerts</span>
+                                        </a>
+                                        <a href="cases.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">work</span>
+                                                <span>Cases</span>
+                                        </a>
+                                </div>
+
+                                <!-- Intelligence Group -->
+                                <div class="space-y-1">
+                                        <div class="px-3 mb-2">
+                                                <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
+                                        </div>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">monitoring</span>
+                                                <span>Risk Analytics</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">hub</span>
+                                                <span>Network Intelligence</span>
+                                        </a>
+                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                                <span class="material-symbols-outlined text-[20px]">rule_folder</span>
+                                                <span>Watchlists</span>
+                                        </a>
+                                </div>
+                        </nav>
+                </div>
+
+                <!-- Sidebar Footer Status -->
+                <div class="p-4 border-t border-[#1e293b] space-y-4">
+                        <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                        <span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Systems OK</span>
+                                </div>
+                                <span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]">
+                                <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[13px] text-on-primary font-bold">
+                                                AK
+                                        </div>
+                                        <div class="flex flex-col">
+                                                <span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight">A. Kumar</span>
+                                                <span class="font-body-md text-[11px] text-on-primary-container/50">Senior Analyst</span>
+                                        </div>
+                                </div>
+                                <button class="text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none" onclick="showToast('Analyst configuration opened.')">
+                                        <span class="material-symbols-outlined text-[20px]">settings</span>
+                                </button>
+                        </div>
+                </div>
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <!-- Mobile Menu Toggle Trigger -->
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Investigation Command Center</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Real-time financial threat intelligence and investigation overview</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <!-- Global Search Container -->
+                                <div class="relative hidden sm:block">
+                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-outline">search</span>
+                                        <input class="w-[240px] bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-4 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200" placeholder="Search accounts, entities, IPs..." type="text" oninput="showToast('Filtering workspace search...')" />
+                                </div>
+
+                                <!-- Notification Bell -->
+                                <button class="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-surface-container-high transition-colors focus:outline-none" onclick="showToast('No new urgent network violations.')">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">notifications</span>
+                                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-risk-high rounded-full ring-2 ring-white"></span>
+                                </button>
+
+                                <!-- System Badge Online -->
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Secure Systems Online</span>
+                                </div>
+
+                                <!-- Separator -->
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+
+                                <!-- Small User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        
+                                        <!-- Profile Dropdown Menu -->
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading profile panel...')">My Profile</a>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading system configurations...')">System Configuration</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" onclick="logoutUser()" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Dashboard Grid Workspace -->
+                <main class="flex-1 overflow-y-auto p-6">
+                        
+                        <!-- Investigator Dashboard View -->
+                        <div id="investigator-dashboard-view" class="space-y-6">
+                                <!-- Row 1: KPI Summary Cards -->
+                                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                
+                                <!-- Card 1 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container opacity-40"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Transactions Monitored</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary-container/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-secondary-container">analytics</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="kpi-monitored-value" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">2.48M</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-low leading-none">trending_up</span>
+                                                <span class="font-body-md text-[12px] text-risk-low font-semibold leading-none">+8.4%</span>
+                                                <span class="font-body-md text-[11px] text-on-surface-variant opacity-70 leading-none">vs prev. period</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 2 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-risk-high"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">High-Risk Transactions</span>
+                                                <div class="w-8 h-8 rounded-lg bg-risk-high/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-risk-high">report_problem</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="kpi-highrisk-value" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">1,284</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="inline-block w-2 h-2 rounded-full bg-risk-high animate-ping"></span>
+                                                <span class="font-body-md text-[12px] text-risk-high font-semibold leading-none">Requires immediate audit</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 3 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Active Investigations</span>
+                                                <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-[#316bf3]">troubleshoot</span>
+                                                </div>
+                                        </div>
+                                        <h3 id="kpi-activecases-value" class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">47</h3>
+                                        <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                <span id="kpi-activecases-sub" class="font-semibold text-secondary">12</span>
+                                                <span>high priority open cases</span>
+                                        </div>
+                                </div>
+
+                                <!-- Card 4 -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-risk-low"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Fraud Loss Prevented</span>
+                                                <div class="w-8 h-8 rounded-lg bg-risk-low/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-risk-low">verified_user</span>
+                                                </div>
+                                        </div>
+                                        <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight select-all tracking-tight">₹84.20 Lakh</h3>
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                                <span class="material-symbols-outlined text-[16px] text-risk-low leading-none">trending_up</span>
+                                                <span class="font-body-md text-[12px] text-risk-low font-semibold leading-none">+14.2%</span>
+                                                <span class="font-body-md text-[11px] text-on-surface-variant opacity-70 leading-none">prevented this month</span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Real-time Ingestion & Simulator Control Panel -->
+                        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm">
+                            <!-- Left Column: Controls (1/3) -->
+                            <div class="flex flex-col justify-between border-r border-outline-variant/30 pr-6 gap-4">
+                                <div class="text-left">
+                                    <h2 class="font-headline-md text-[16px] text-on-surface font-bold">Threat Simulation Command</h2>
+                                    <p class="font-body-md text-[12px] text-on-surface-variant">Trigger and monitor synthetic financial crime scenarios in real-time</p>
+                                </div>
+                                
+                                <div class="flex flex-col gap-3">
+                                    <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Scenario Profile</label>
+                                    <select id="sim-scenario" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary">
+                                        <option value="Legitimate">Scenario A — Legitimate Activity</option>
+                                        <option value="Suspicious Rapid Forwarding">Scenario B — Suspicious Rapid Forwarding</option>
+                                        <option value="Network Expansion">Scenario C — Network Expansion</option>
+                                        <option value="Circular Transaction">Scenario D — Circular Transaction</option>
+                                    </select>
+                                </div>
+
+                                <div class="flex items-center gap-3">
+                                    <button id="sim-btn-start" onclick="toggleSimPlay()" class="flex-1 bg-secondary text-white hover:bg-secondary-container rounded-lg px-4 py-2 font-label-md text-[12px] font-bold flex items-center justify-center gap-1.5 focus:outline-none">
+                                        <span class="material-symbols-outlined text-[16px]">play_arrow</span> Start
+                                    </button>
+                                    <button id="sim-btn-pause" onclick="toggleSimPause()" class="flex-1 bg-surface-container-high border border-outline-variant text-on-surface hover:bg-surface-container-highest rounded-lg px-4 py-2 font-label-md text-[12px] font-bold flex items-center justify-center gap-1.5 focus:outline-none" disabled>
+                                        <span class="material-symbols-outlined text-[16px]">pause</span> Pause
+                                    </button>
+                                    <button id="sim-btn-reset" onclick="triggerSimReset()" class="bg-risk-high/10 border border-risk-high/30 text-risk-high hover:bg-risk-high/20 rounded-lg p-2 font-label-md text-[12px] font-bold flex items-center justify-center gap-1.5 focus:outline-none">
+                                        <span class="material-symbols-outlined text-[16px]">refresh</span> Reset Demo
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <span id="sim-status-dot" class="w-2.5 h-2.5 rounded-full bg-outline"></span>
+                                    <span id="sim-status-text" class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-semibold">Simulator: Stopped</span>
+                                </div>
+                            </div>
+
+                            <!-- Right Column: Real-Time Ingested Feed (2/3) -->
+                            <div class="lg:col-span-2 flex flex-col justify-between pl-0 lg:pl-4 mt-6 lg:mt-0 select-none">
+                                <div class="flex justify-between items-center mb-3">
+                                    <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Real-Time Ingestion Logs</span>
+                                    <span id="sim-tx-counter" class="font-mono-technical text-[10px] text-secondary font-bold">0 Ingested</span>
+                                </div>
+                                
+                                <div id="sim-feed-logs" class="flex-1 bg-surface-container-low border border-outline-variant/30 rounded-lg p-4 font-mono-technical text-[11px] text-on-surface space-y-2 overflow-y-auto max-h-[160px] min-h-[130px] text-left">
+                                    <div class="text-on-surface-variant opacity-60 italic">Live feed empty. Select a scenario profile and click Start to stream transactions...</div>
+                                </div>
+                            </div>
+                        </section>
+
+
+                        <!-- Row 2: Analytics & Risk Distribution Split -->
+                        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                
+                                <!-- Risk Line Chart Panel (2/3 width) -->
+                                <div class="lg:col-span-2 bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm flex flex-col justify-between min-h-[380px] relative select-none">
+                                        
+                                        <!-- Chart Tooltip Div -->
+                                        <div id="chart-tooltip" class="custom-tooltip"></div>
+
+                                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                                                <div class="flex flex-col text-left">
+                                                        <h2 class="font-headline-md text-[16px] text-on-surface font-bold">Transaction Risk Activity</h2>
+                                                        <p class="font-body-md text-[12px] text-on-surface-variant">Monitored transactions vs verified anomalies (Mock Data)</p>
+                                                </div>
+                                                
+                                                <!-- Time selector buttons -->
+                                                <div class="flex items-center bg-surface-container-low border border-outline-variant/50 rounded-lg p-1">
+                                                        <button id="btn-24h" class="px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none" onclick="updateTimeframe('24H')">24H</button>
+                                                        <button id="btn-7d" class="px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none" onclick="updateTimeframe('7D')">7D</button>
+                                                        <button id="btn-30d" class="px-3 py-1 rounded font-body-md text-[11px] bg-interface-base shadow-sm text-secondary font-bold focus:outline-none" onclick="updateTimeframe('30D')">30D</button>
+                                                        <button id="btn-90d" class="px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none" onclick="updateTimeframe('90D')">90D</button>
+                                                </div>
+                                        </div>
+
+                                        <!-- SVG Transaction Line Chart -->
+                                        <div class="flex-1 w-full h-[220px] relative mt-2" id="chart-container">
+                                                <svg id="chart-svg" class="w-full h-full overflow-visible" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" preserveAspectRatio="none">
+                                                        <defs>
+                                                                <linearGradient id="gradient-volume" x1="0" y1="0" x2="0" y2="1">
+                                                                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2"/>
+                                                                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.0"/>
+                                                                </linearGradient>
+                                                                <linearGradient id="gradient-risk" x1="0" y1="0" x2="0" y2="1">
+                                                                        <stop offset="0%" stop-color="#EF4444" stop-opacity="0.15"/>
+                                                                        <stop offset="100%" stop-color="#EF4444" stop-opacity="0.0"/>
+                                                                </linearGradient>
+                                                        </defs>
+
+                                                        <!-- Background grid lines -->
+                                                        <line x1="0" y1="40" x2="600" y2="40" stroke="#f1f5f9" stroke-width="1.2" />
+                                                        <line x1="0" y1="80" x2="600" y2="80" stroke="#f1f5f9" stroke-width="1.2" />
+                                                        <line x1="0" y1="120" x2="600" y2="120" stroke="#f1f5f9" stroke-width="1.2" />
+                                                        <line x1="0" y1="160" x2="600" y2="160" stroke="#f1f5f9" stroke-width="1.2" />
+
+                                                        <!-- Volume Area (Blue) -->
+                                                        <path id="volume-area" d="M 0 160 C 100 130, 200 90, 300 120 C 400 150, 500 80, 600 100 L 600 180 L 0 180 Z" fill="url(#gradient-volume)" />
+                                                        <!-- Volume Line -->
+                                                        <path id="volume-path" d="M 0 160 C 100 130, 200 90, 300 120 C 400 150, 500 80, 600 100" fill="none" stroke="#3b82f6" stroke-width="2.5" />
+
+                                                        <!-- Risk Area (Red) -->
+                                                        <path id="risk-area" d="M 0 178 C 100 160, 200 150, 300 168 C 400 172, 500 148, 600 162 L 600 180 L 0 180 Z" fill="url(#gradient-risk)" />
+                                                        <!-- Risk Line -->
+                                                        <path id="risk-path" d="M 0 178 C 100 160, 200 150, 300 168 C 400 172, 500 148, 600 162" fill="none" stroke="#EF4444" stroke-dasharray="4,3" stroke-width="2" />
+                                                        
+                                                        <!-- Vertical hover tracking line -->
+                                                        <line id="hover-line" x1="0" y1="0" x2="0" y2="180" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2,2" class="opacity-0" />
+                                                        
+                                                        <!-- X-axis baseline -->
+                                                        <line x1="0" y1="180" x2="600" y2="180" stroke="#cbd5e1" stroke-width="1" />
+                                                </svg>
+                                        </div>
+
+                                        <!-- Realistic X-axis Date Labels -->
+                                        <div class="flex justify-between mt-2 px-1 font-mono-technical text-[10px] text-on-surface-variant font-medium select-none" id="chart-x-labels">
+                                                <span>Oct 26</span>
+                                                <span>Nov 02</span>
+                                                <span>Nov 09</span>
+                                                <span>Nov 16</span>
+                                                <span>Nov 23</span>
+                                                <span>Nov 30</span>
+                                        </div>
+
+                                        <!-- Chart Legend -->
+                                        <div class="flex gap-6 mt-4 px-1 border-t border-[#f1f5f9] pt-3">
+                                                <div class="flex items-center gap-2">
+                                                        <span class="w-3.5 h-1.5 bg-[#3b82f6] rounded-full"></span>
+                                                        <span class="font-body-md text-[11px] text-on-surface-variant font-medium">Monitored Volume Indicator</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                        <span class="w-3.5 h-1.5 border-t border-dashed border-[#EF4444] rounded-full"></span>
+                                                        <span class="font-body-md text-[11px] text-on-surface-variant font-medium">Correlated High-Risk Activity</span>
+                                                </div>
+                                        </div>
+                                </div>
+
+                                <!-- Risk Distribution Card -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm flex flex-col justify-between min-h-[380px] select-none">
+                                        <div class="text-left mb-4">
+                                                <h2 class="font-headline-md text-[16px] text-on-surface font-bold">Risk Distribution</h2>
+                                                <p class="font-body-md text-[12px] text-on-surface-variant">Click category to filter active cases below</p>
+                                        </div>
+
+                                        <!-- Risk metrics values stacked -->
+                                        <div class="space-y-3.5 flex-1 flex flex-col justify-center">
+                                                
+                                                <!-- Low -->
+                                                <div id="filter-low" class="p-2.5 rounded-lg border border-transparent hover:bg-surface-container-low transition-all duration-150 cursor-pointer group" onclick="toggleRiskFilter('Low')">
+                                                        <div class="flex justify-between font-body-md text-[12px] font-bold mb-1.5">
+                                                                <span class="text-on-surface-variant group-hover:text-secondary transition-colors">LOW RISK</span>
+                                                                <span class="text-[#0284c7]">68%</span>
+                                                        </div>
+                                                        <div class="w-full bg-[#f1f5f9] h-2 rounded-full overflow-hidden">
+                                                                <div class="bg-[#38BDF8] h-full rounded-full" style="width: 68%;"></div>
+                                                        </div>
+                                                </div>
+
+                                                <!-- Medium -->
+                                                <div id="filter-medium" class="p-2.5 rounded-lg border border-transparent hover:bg-surface-container-low transition-all duration-150 cursor-pointer group" onclick="toggleRiskFilter('Medium')">
+                                                        <div class="flex justify-between font-body-md text-[12px] font-bold mb-1.5">
+                                                                <span class="text-on-surface-variant group-hover:text-secondary transition-colors">MEDIUM RISK</span>
+                                                                <span class="text-[#3b82f6]">21%</span>
+                                                        </div>
+                                                        <div class="w-full bg-[#f1f5f9] h-2 rounded-full overflow-hidden">
+                                                                <div class="bg-[#3b82f6] h-full rounded-full" style="width: 21%;"></div>
+                                                        </div>
+                                                </div>
+
+                                                <!-- High -->
+                                                <div id="filter-high" class="p-2.5 rounded-lg border border-transparent hover:bg-surface-container-low transition-all duration-150 cursor-pointer group" onclick="toggleRiskFilter('High')">
+                                                        <div class="flex justify-between font-body-md text-[12px] font-bold mb-1.5">
+                                                                <span class="text-on-surface-variant group-hover:text-secondary transition-colors">HIGH RISK</span>
+                                                                <span class="text-[#f59e0b]">8%</span>
+                                                        </div>
+                                                        <div class="w-full bg-[#f1f5f9] h-2 rounded-full overflow-hidden">
+                                                                <div class="bg-[#f59e0b] h-full rounded-full" style="width: 8%;"></div>
+                                                        </div>
+                                                </div>
+
+                                                <!-- Critical -->
+                                                <div id="filter-critical" class="p-2.5 rounded-lg border border-transparent hover:bg-surface-container-low transition-all duration-150 cursor-pointer group" onclick="toggleRiskFilter('Critical')">
+                                                        <div class="flex justify-between font-body-md text-[12px] font-bold mb-1.5">
+                                                                <span class="text-on-surface-variant group-hover:text-secondary transition-colors">CRITICAL THREAT</span>
+                                                                <span class="text-risk-high">3%</span>
+                                                        </div>
+                                                        <div class="w-full bg-[#f1f5f9] h-2 rounded-full overflow-hidden">
+                                                                <div class="bg-[#EF4444] h-full rounded-full animate-pulse" style="width: 3%;"></div>
+                                                        </div>
+                                                </div>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <!-- Row 3: Active Investigations Table -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm">
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                                        <div class="flex flex-col text-left">
+                                                <div class="flex items-center gap-3">
+                                                        <h2 class="font-headline-md text-[16px] text-on-surface font-bold">Active Investigations</h2>
+                                                        <!-- Filter status label -->
+                                                        <span id="active-filter-badge" class="px-2 py-0.5 rounded bg-secondary-container/10 border border-secondary-container text-secondary text-[10px] font-bold tracking-wider uppercase hidden">
+                                                                Filtering
+                                                        </span>
+                                                </div>
+                                                <p class="font-body-md text-[12px] text-on-surface-variant">Urgent cases allocated to fraud analysts for review</p>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                                <!-- Reset filter trigger -->
+                                                <button id="reset-filter-btn" class="text-on-surface-variant hover:text-secondary font-label-md text-[11px] hidden focus:outline-none" onclick="clearRiskFilter()">
+                                                        Clear Filter
+                                                </button>
+                                                <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-4 py-2 font-label-md text-[12px] transition-colors focus:outline-none" onclick="showToast('Exporting active cases ledger...')">
+                                                        Export Cases
+                                                </button>
+                                        </div>
+                                </div>
+
+                                <!-- Cases Responsive Scrollable Table -->
+                                <div class="w-full overflow-x-auto">
+                                        <table class="w-full border-collapse text-left" id="cases-table">
+                                                <thead>
+                                                        <tr class="border-b border-[#e2e8f0]">
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Case ID</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Risk Level</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Target Entity</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Transaction Value</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Last Activity</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Assigned Analyst</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider">Status</th>
+                                                                <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="cases-tbody">
+                                                        <!-- Dynamically populated -->
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+
+
+                        <!-- Row 4: Fraud Network Activity & Alerts Queue -->
+                        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                
+                                <!-- Fraud Network Activity Panel (2/3 width) -->
+                                <div id="network-panel" class="lg:col-span-2 bg-[#0B1F3A] border border-[#1e293b] p-6 rounded-xl shadow-sm text-on-primary flex flex-col justify-between relative overflow-hidden min-h-[350px]">
+                                        
+                                        <!-- Network Tooltip Div -->
+                                        <div id="network-tooltip" class="custom-tooltip"></div>
+
+                                        <!-- Tech Map background layer lines -->
+                                        <div class="absolute inset-0 pointer-events-none select-none opacity-[0.12]">
+                                                <svg class="w-full h-full animate-pulse" xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="50%" cy="50%" r="180" stroke="#38BDF8" stroke-width="1.2" fill="none" stroke-dasharray="4,4"/>
+                                                        <circle cx="50%" cy="50%" r="280" stroke="#38BDF8" stroke-width="1.2" fill="none" stroke-dasharray="4,4"/>
+                                                </svg>
+                                        </div>
+
+                                        <div class="flex justify-between items-start z-10">
+                                                <div class="flex flex-col text-left">
+                                                        <h2 class="font-headline-md text-[16px] text-on-primary font-bold">Fraud Network Activity</h2>
+                                                        <p class="font-body-md text-[12px] text-on-primary-container opacity-60">Visual tracing model mapping correlated entities</p>
+                                                </div>
+                                                <div class="flex items-center gap-2 bg-[#052e16]/60 border border-[#15803d]/40 rounded px-2.5 py-1 select-none">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                                        <span class="font-mono-technical text-[9px] text-risk-low font-bold tracking-wider uppercase">Live / Visual Model</span>
+                                                </div>
+                                        </div>
+
+                                        <!-- Network Visual Container (SVG Nodes Map) -->
+                                        <div class="w-full h-[180px] my-4 relative flex items-center justify-center z-10 select-none">
+                                                <svg class="w-full h-full overflow-visible" viewBox="0 0 500 200" id="network-svg">
+                                                        <!-- Connections lines with dash offsets flow -->
+                                                        <line x1="250" y1="100" x2="150" y2="50" stroke="#38BDF8" stroke-width="1" opacity="0.3" />
+                                                        <line x1="250" y1="100" x2="350" y2="50" stroke="#38BDF8" stroke-width="1.2" opacity="0.3" />
+                                                        <line x1="250" y1="100" x2="200" y2="150" stroke="#38BDF8" stroke-width="1" opacity="0.3" />
+                                                        <line x1="250" y1="100" x2="300" y2="150" stroke="#EF4444" stroke-width="1.5" class="flow-line" opacity="0.8" />
+                                                        <line x1="300" y1="150" x2="380" y2="140" stroke="#EF4444" stroke-width="1.5" class="flow-line" opacity="0.8" />
+                                                        <line x1="300" y1="150" x2="290" y2="90" stroke="#EF4444" stroke-width="1" opacity="0.6" />
+
+                                                        <!-- Center Node -->
+                                                        <!-- Pulse base layer -->
+                                                        <circle cx="250" cy="100" r="10" fill="none" stroke="#38BDF8" class="network-pulse" />
+                                                        <circle cx="250" cy="100" r="8" fill="#316bf3" stroke="#ffffff" stroke-width="1.5" class="cursor-pointer hover:scale-125 transition-transform duration-150" 
+                                                                data-name="Central Host Gateway" data-ip="10.230.12.80" data-risk="Low" data-volume="2.48M monitored" data-status="Systems Trusted" />
+                                                        <text x="250" y="85" fill="#e2e8f0" font-size="9" text-anchor="middle" font-family="monospace" class="font-semibold">Central Host</text>
+
+                                                        <!-- Safe Nodes -->
+                                                        <circle cx="150" cy="50" r="5" fill="#38BDF8" class="cursor-pointer hover:scale-125 transition-transform duration-150"
+                                                                data-name="London Settlement Node" data-ip="192.168.1.10" data-risk="Low" data-volume="₹12,000" data-status="Safe" />
+                                                        <circle cx="350" cy="50" r="6" fill="#38BDF8" class="cursor-pointer hover:scale-125 transition-transform duration-150"
+                                                                data-name="Tokyo Node B" data-ip="192.168.1.45" data-risk="Low" data-volume="₹8,500" data-status="Safe" />
+                                                        <circle cx="200" cy="150" r="5" fill="#38BDF8" class="cursor-pointer hover:scale-125 transition-transform duration-150"
+                                                                data-name="Local Clearinghouse" data-ip="10.45.1.12" data-risk="Low" data-volume="₹25,400" data-status="Safe" />
+
+                                                        <!-- Suspicious Nodes (Red) -->
+                                                        <circle cx="300" cy="150" r="10" fill="none" stroke="#EF4444" class="network-pulse" />
+                                                        <circle cx="300" cy="150" r="7.5" fill="#EF4444" stroke="#ffffff" stroke-width="1.5" class="cursor-pointer hover:scale-125 transition-transform duration-150"
+                                                                data-name="Proxy Shell Agent (Northstar)" data-ip="194.26.135.8" data-risk="Critical" data-volume="₹482,000" data-status="High Risk Flagged" />
+                                                        <text x="312" y="163" fill="#EF4444" font-size="9" font-family="monospace" class="font-bold">Flagged Node</text>
+
+                                                        <circle cx="380" cy="140" r="5.5" fill="#EF4444" class="cursor-pointer hover:scale-125 transition-transform duration-150"
+                                                                data-name="Anomalous Offshore Account" data-ip="194.26.135.24" data-risk="High" data-volume="₹110,000" data-status="Under Review" />
+                                                        <circle cx="290" cy="90" r="4.5" fill="#EF4444" class="cursor-pointer hover:scale-125 transition-transform duration-150"
+                                                                data-name="Suspicious IP Proxy" data-ip="185.220.101.4" data-risk="High" data-volume="₹64,000" data-status="Under Review" />
+                                                </svg>
+                                        </div>
+
+                                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-[#1e293b] pt-4 z-10">
+                                                <div class="flex gap-4 select-none">
+                                                        <div class="flex flex-col">
+                                                                <span class="font-headline-md text-[13px] text-on-primary font-bold">12</span>
+                                                                <span class="font-body-md text-[10px] text-on-primary-container opacity-60">suspicious clusters</span>
+                                                        </div>
+                                                        <div class="flex flex-col">
+                                                                <span class="font-headline-md text-[13px] text-on-primary font-bold">38</span>
+                                                                <span class="font-body-md text-[10px] text-on-primary-container opacity-60">connected entities</span>
+                                                        </div>
+                                                        <div class="flex flex-col">
+                                                                <span class="font-headline-md text-[13px] text-on-primary font-bold">7</span>
+                                                                <span class="font-body-md text-[10px] text-on-primary-container opacity-60">priority networks</span>
+                                                        </div>
+                                                </div>
+                                                <button class="bg-secondary-container/30 hover:bg-secondary-container text-on-primary border border-secondary/30 rounded-lg px-4 py-2 font-label-md text-[12px] transition-colors focus:outline-none" onclick="showToast('Loading visual network mapper window...')">
+                                                        Open Network Intelligence →
+                                                </button>
+                                        </div>
+                                </div>
+
+                                <!-- Priority Alerts Panel (1/3 width) -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm flex flex-col justify-between min-h-[350px]">
+                                        <div class="text-left mb-4 select-none">
+                                                <h2 class="font-headline-md text-[16px] text-on-surface font-bold">Priority Alerts</h2>
+                                                <p class="font-body-md text-[12px] text-on-surface-variant">Real-time threat detection queues</p>
+                                        </div>
+
+                                        <!-- Alerts Stack -->
+                                        <div class="space-y-3 flex-1 flex flex-col justify-center">
+                                                
+                                                <!-- Alert 1 -->
+                                                <div class="p-3 bg-red-50/50 hover:bg-red-50 border border-red-100 border-l-4 border-l-risk-high rounded-r-lg transition-all duration-150 cursor-pointer flex gap-3 alert-card-animate" onclick="showToast('Loading transaction logs for Cross-border cluster...')">
+                                                        <span class="material-symbols-outlined text-[18px] text-risk-high mt-0.5">warning</span>
+                                                        <div class="flex flex-col text-left">
+                                                                <span class="font-mono-technical text-[9px] text-risk-high tracking-wider uppercase font-bold">Critical</span>
+                                                                <span class="font-headline-md text-[12px] text-on-surface font-bold leading-tight mt-0.5">Unusual cross-border transaction cluster detected</span>
+                                                                <span class="font-body-md text-[10px] text-on-surface-variant opacity-75 mt-1">2 min ago</span>
+                                                        </div>
+                                                </div>
+
+                                                <!-- Alert 2 -->
+                                                <div class="p-3 bg-orange-50/30 hover:bg-orange-50/80 border border-orange-100 border-l-4 border-l-orange-500 rounded-r-lg transition-all duration-150 cursor-pointer flex gap-3 alert-card-animate" style="animation-delay: 0.1s;" onclick="showToast('Tracing beneficiary transactions list...')">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500 mt-0.5">report</span>
+                                                        <div class="flex flex-col text-left">
+                                                                <span class="font-mono-technical text-[9px] text-orange-500 tracking-wider uppercase font-bold">High</span>
+                                                                <span class="font-headline-md text-[12px] text-on-surface font-bold leading-tight mt-0.5">Multiple accounts connected to flagged beneficiary</span>
+                                                                <span class="font-body-md text-[10px] text-on-surface-variant opacity-75 mt-1">8 min ago</span>
+                                                        </div>
+                                                </div>
+
+                                                <!-- Alert 3 -->
+                                                <div class="p-3 bg-orange-50/30 hover:bg-orange-50/80 border border-orange-100 border-l-4 border-l-orange-500 rounded-r-lg transition-all duration-150 cursor-pointer flex gap-3 alert-card-animate" style="animation-delay: 0.2s;" onclick="showToast('Analysing velocity threshold benchmarks...')">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500 mt-0.5">bolt</span>
+                                                        <div class="flex flex-col text-left">
+                                                                <span class="font-mono-technical text-[9px] text-orange-500 tracking-wider uppercase font-bold">High</span>
+                                                                <span class="font-headline-md text-[12px] text-on-surface font-bold leading-tight mt-0.5">Transaction velocity anomaly detected</span>
+                                                                <span class="font-body-md text-[10px] text-on-surface-variant opacity-75 mt-1">17 min ago</span>
+                                                        </div>
+                                                </div>
+                                        </div>
+
+                                        <button class="w-full text-center py-2.5 font-label-md text-[12px] text-secondary hover:text-secondary-container transition-colors focus:outline-none" onclick="showToast('Loading unified threat alerts list...')">
+                                                View all alerts →
+                                        </button>
+                                </div>
+                        </section>
+                        </div>
+
+                        <!-- Compliance Dashboard View -->
+                        <div id="compliance-dashboard-view" class="hidden space-y-6">
+                                <div class="flex flex-col text-left">
+                                        <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Compliance Control Dashboard</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant leading-none mt-1">High-priority case reviews, pending compliance decisions, and filing status metrics.</p>
+                                </div>
+
+                                <!-- KPI Summary Cards Panel -->
+                                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 select-none">
+                                        <!-- Card 1 -->
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-red-500"></div>
+                                                <div class="flex justify-between items-start mb-3">
+                                                         <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Escalated Cases</span>
+                                                         <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                                                                 <span class="material-symbols-outlined text-[18px] text-red-500">warning</span>
+                                                         </div>
+                                                </div>
+                                                <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight">3</h3>
+                                                <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-red-600 font-semibold leading-none">
+                                                         <span>Awaiting compliance review</span>
+                                                </div>
+                                        </div>
+                                        <!-- Card 2 -->
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                                <div class="flex justify-between items-start mb-3">
+                                                         <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">High-Risk Alerts</span>
+                                                         <div class="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                                                                 <span class="material-symbols-outlined text-[18px] text-orange-500">notifications</span>
+                                                         </div>
+                                                </div>
+                                                <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight">14</h3>
+                                                <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                         <span>Unresolved severity alerts</span>
+                                                </div>
+                                        </div>
+                                        <!-- Card 3 -->
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-secondary-container"></div>
+                                                <div class="flex justify-between items-start mb-3">
+                                                         <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Decisions Logged</span>
+                                                         <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                                                                 <span class="material-symbols-outlined text-[18px] text-[#316bf3]">history</span>
+                                                         </div>
+                                                </div>
+                                                <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight">84</h3>
+                                                <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-on-surface-variant leading-none">
+                                                         <span>Decisions archived this month</span>
+                                                </div>
+                                        </div>
+                                        <!-- Card 4 -->
+                                        <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative overflow-hidden">
+                                                <div class="absolute top-0 left-0 w-full h-[3px] bg-green-500"></div>
+                                                <div class="flex justify-between items-start mb-3">
+                                                         <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold text-green-600">Reports Filed</span>
+                                                         <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                                                                 <span class="material-symbols-outlined text-[18px] text-green-500">gavel</span>
+                                                         </div>
+                                                </div>
+                                                <h3 class="font-headline-lg text-[26px] text-green-700 font-extrabold leading-tight tracking-tight">21</h3>
+                                                <div class="flex items-center gap-1.5 mt-2 font-body-md text-[12px] text-green-600 font-semibold leading-none">
+                                                         <span>SAR filings cleared</span>
+                                                </div>
+                                        </div>
+                                </section>
+
+                                <!-- Overview card listing escalated reviews -->
+                                <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4">
+                                        <div class="flex justify-between items-center">
+                                                <h3 class="font-headline-md text-[16px] text-on-surface font-extrabold">Pending Escalations Review</h3>
+                                                <button class="bg-[#eff6ff] text-secondary hover:bg-[#dbeafe] rounded-lg px-3 py-1.5 font-label-md text-[11px] font-bold active:scale-95 transition-all duration-150 focus:outline-none" onclick="window.location.href='escalated-cases.html'">
+                                                         Go to Escalations
+                                                </button>
+                                        </div>
+                                        <div class="w-full overflow-x-auto">
+                                                <table class="w-full border-collapse text-left">
+                                                        <thead>
+                                                                 <tr class="border-b border-[#e2e8f0]">
+                                                                         <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Case ID</th>
+                                                                         <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[200px]">Case Title</th>
+                                                                         <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[140px]">Primary Entity</th>
+                                                                         <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px] text-right">Risk Score</th>
+                                                                         <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">Escalated By</th>
+                                                                         <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[80px]">Action</th>
+                                                                 </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-[#f1f5f9]">
+                                                                 <tr class="hover:bg-slate-50 transition-colors">
+                                                                         <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">CS-982736</td>
+                                                                         <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">Orion Structuring Review</td>
+                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">Orion Financial</td>
+                                                                         <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-right text-risk-high">78</td>
+                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">A. Kumar</td>
+                                                                         <td class="py-3.5 px-4 text-right">
+                                                                                 <button class="text-secondary hover:text-secondary-container font-label-md text-[11px] font-bold" onclick="window.location.href='escalated-cases.html'">Review</button>
+                                                                         </td>
+                                                                 </tr>
+                                                                 <tr class="hover:bg-slate-50 transition-colors">
+                                                                         <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">CS-982705</td>
+                                                                         <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">Phoenix Velocity Review</td>
+                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">Phoenix Logistics</td>
+                                                                         <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-right text-risk-high">72</td>
+                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">S. Rao</td>
+                                                                         <td class="py-3.5 px-4 text-right">
+                                                                                 <button class="text-secondary hover:text-secondary-container font-label-md text-[11px] font-bold" onclick="window.location.href='escalated-cases.html'">Review</button>
+                                                                         </td>
+                                                                 </tr>
+                                                        </tbody>
+                                                </table>
+                                        </div>
+                                </section>
+                        </div>
+                </main>
+
+                <!-- Footer System status bar -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Network: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Transaction Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Risk Engine: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Intelligence Graph: Online</span>
+                                </div>
+                        </div>
+                        <div class="hidden sm:block">
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Fraud Intelligence</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- slide-over details modal drawer for investigations -->
+        <div id="case-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[460px] bg-interface-base border-l border-outline-variant/60 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between select-none">
+                
+                <div class="flex flex-col flex-1 overflow-y-auto">
+                        <!-- Drawer Header -->
+                        <div class="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low">
+                                <div class="flex flex-col text-left">
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Investigation Audit</span>
+                                        <h3 id="drawer-case-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">MG-20481</h3>
+                                </div>
+                                <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-outline-variant/30 transition-colors focus:outline-none" onclick="closeCaseDrawer()">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface">close</span>
+                                </button>
+                        </div>
+
+                        <!-- Drawer Body details -->
+                        <div class="p-6 space-y-6 text-left">
+                                <!-- Status Overview card -->
+                                <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3">
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-body-md text-[13px] text-on-surface-variant">Risk Level:</span>
+                                                <span id="drawer-case-risk" class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-risk-high border border-red-200">Critical</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-body-md text-[13px] text-on-surface-variant">Target Entity:</span>
+                                                <span id="drawer-case-entity" class="font-headline-md text-[13px] text-on-surface font-bold">Northstar Holdings</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-body-md text-[13px] text-on-surface-variant">Transaction Value:</span>
+                                                <span id="drawer-case-value" class="font-mono-technical text-[13px] text-on-surface font-bold">₹482,000</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                                <span class="font-body-md text-[13px] text-on-surface-variant">Time Elapsed:</span>
+                                                <span id="drawer-case-time" class="font-body-md text-[13px] text-on-surface">4 min ago</span>
+                                        </div>
+                                </div>
+
+                                <!-- Incident description -->
+                                <div class="space-y-2">
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Incident Summary</span>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant leading-relaxed">
+                                                Multiple high-velocity cross-border wire transfers detected originating from secondary nodes and channeling through unverified offshore proxy gateways. Immediate transaction freeze is recommended pending entity verification.
+                                        </p>
+                                </div>
+
+                                <!-- Transaction list logs inside drawer -->
+                                <div class="space-y-3">
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Correlated Transfers Ledger</span>
+                                        <div class="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                                                <div class="p-2.5 rounded bg-surface border border-outline-variant/20 flex justify-between items-center">
+                                                        <div class="flex flex-col">
+                                                                <span class="font-mono-technical text-[11px] text-on-surface font-bold">TXN-9023412</span>
+                                                                <span class="font-body-md text-[10px] text-on-surface-variant">Wire Transfer</span>
+                                                        </div>
+                                                        <span class="font-mono-technical text-[11px] text-risk-high font-bold">₹240,000</span>
+                                                </div>
+                                                <div class="p-2.5 rounded bg-surface border border-outline-variant/20 flex justify-between items-center">
+                                                        <div class="flex flex-col">
+                                                                <span class="font-mono-technical text-[11px] text-on-surface font-bold">TXN-9023409</span>
+                                                                <span class="font-body-md text-[10px] text-on-surface-variant">Wire Transfer</span>
+                                                        </div>
+                                                        <span class="font-mono-technical text-[11px] text-risk-high font-bold">₹242,000</span>
+                                                </div>
+                                        </div>
+                                </div>
+                        </div>
+                </div>
+
+                <!-- Drawer Actions Footer -->
+                <div class="p-6 border-t border-outline-variant/30 bg-surface-container-low flex gap-4">
+                        <button class="flex-1 bg-secondary hover:bg-secondary-container text-white py-2 rounded-lg font-label-md text-[13px] transition-colors focus:outline-none shadow-sm" onclick="triggerCaseAction('Approve Freeze')">
+                                Freeze Transaction
+                        </button>
+                        <button class="flex-1 bg-outline-variant/40 hover:bg-outline-variant text-on-surface py-2 rounded-lg font-label-md text-[13px] transition-colors focus:outline-none" onclick="triggerCaseAction('Dismiss Case')">
+                                Dismiss Threat
+                        </button>
+                </div>
+        </div>
+
+        <!-- Custom Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <!-- JavaScript Controls -->
+        <script>
+                // Render dynamic cases list from MuleGuardStore
+                function renderCases() {
+                        if (!window.MuleGuardStore) return;
+                        const cases = window.MuleGuardStore.getCases();
+                        const tbody = document.getElementById('cases-tbody');
+                        if (!tbody) return;
+
+                        tbody.innerHTML = '';
+                        cases.forEach(c => {
+                                let riskColor = "bg-yellow-50 text-yellow-700 border-yellow-200";
+                                let pulseColor = "bg-yellow-500";
+                                if (c.priority === 'Critical') {
+                                        riskColor = "bg-red-50 text-red-700 border-red-200";
+                                        pulseColor = "bg-red-500 animate-pulse";
+                                } else if (c.priority === 'High') {
+                                        riskColor = "bg-orange-50 text-orange-700 border-orange-200";
+                                        pulseColor = "bg-orange-500";
+                                }
+
+                                let amt = '₹1,27,500';
+                                if (window.MuleGuardStore) {
+                                        const acc = window.MuleGuardStore.getAccounts()[c.primaryEntityId];
+                                        if (acc) amt = `₹${acc.balance.toLocaleString('en-IN')}`;
+                                }
+
+                                tbody.innerHTML += `
+                                        <tr class="hover:bg-[#f8fafc] transition-colors group cursor-pointer" data-risk="${c.priority}" onclick="openCaseDrawer('${c.id}')">
+                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline">${c.id}</td>
+                                                <td class="py-3.5 px-4">
+                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${riskColor}">
+                                                                <span class="w-1.5 h-1.5 rounded-full ${pulseColor}"></span>${c.priority}
+                                                        </span>
+                                                </td>
+                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">${c.entity}</td>
+                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">${amt}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">${c.createdTime}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">${c.assignee}</td>
+                                                <td class="py-3.5 px-4">
+                                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">${c.status}</span>
+                                                </td>
+                                                <td class="py-3.5 px-4 text-right" onclick="event.stopPropagation()">
+                                                        <button class="text-[12px] font-semibold text-secondary hover:text-secondary-container focus:outline-none" onclick="openCaseDrawer('${c.id}')">Inspect</button>
+                                                </td>
+                                        </tr>
+                                `;
+                        });
+                }
+
+                // Toggle sidebar on mobile devices
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                // Show action feed toast
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        
+                        toastText.textContent = message;
+                        toast.classList.remove('translate-y-20', 'opacity-0');
+                        
+                        clearTimeout(toastTimeout);
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.add('translate-y-20', 'opacity-0');
+                        }, 2500);
+                }
+
+                // Open Case Slider Drawer
+                function openCaseDrawer(caseId) {
+                        const drawer = document.getElementById('case-drawer');
+                        const overlay = document.getElementById('drawer-overlay');
+                        const data = window.MuleGuardStore ? window.MuleGuardStore.getCaseById(caseId) : null;
+
+                        if (data) {
+                                document.getElementById('drawer-case-id').textContent = data.id;
+                                document.getElementById('drawer-case-entity').textContent = data.entity;
+                                document.getElementById('drawer-case-value').textContent = '₹1,27,500';
+                                document.getElementById('drawer-case-time').textContent = data.createdTime;
+
+                                // Update risk badge styles
+                                const riskBadge = document.getElementById('drawer-case-risk');
+                                riskBadge.textContent = data.priority;
+                                if (data.priority === 'Critical') {
+                                        riskBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-risk-high border border-red-200";
+                                } else if (data.priority === 'High') {
+                                        riskBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200";
+                                } else {
+                                        riskBadge.className = "px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-yellow-700 border border-yellow-200";
+                                }
+
+                                drawer.classList.remove('translate-x-full');
+                                overlay.classList.remove('hidden');
+                        }
+                }
+
+                // Close Case Slider Drawer
+                function closeCaseDrawer() {
+                        const drawer = document.getElementById('case-drawer');
+                        const overlay = document.getElementById('drawer-overlay');
+                        
+                        drawer.classList.add('translate-x-full');
+                        overlay.classList.add('hidden');
+                }
+
+                function triggerCaseAction(actionName) {
+                        const caseId = document.getElementById('drawer-case-id').textContent;
+                        if (actionName === 'Escalate' && window.MuleGuardStore) {
+                                window.MuleGuardStore.escalateCase(caseId, 'Escalated from dashboard active investigations queue.', 'J. Doe');
+                                showToast(`Case ${caseId} escalated successfully.`);
+                        } else {
+                                showToast(`Case command executed: ${actionName}`);
+                        }
+                        renderCases();
+                        closeCaseDrawer();
+                }
+
+                // Risk distribution table row filter logic
+                let activeRiskFilter = null;
+                function toggleRiskFilter(riskCategory) {
+                        const lowBox = document.getElementById('filter-low');
+                        const mediumBox = document.getElementById('filter-medium');
+                        const highBox = document.getElementById('filter-high');
+                        const criticalBox = document.getElementById('filter-critical');
+
+                        // Reset all active borders
+                        [lowBox, mediumBox, highBox, criticalBox].forEach(box => {
+                                box.classList.remove('border-secondary', 'bg-secondary/5');
+                        });
+
+                        const targetBox = document.getElementById(`filter-${riskCategory.toLowerCase()}`);
+
+                        if (activeRiskFilter === riskCategory) {
+                                // Deactivate filter if clicked again
+                                clearRiskFilter();
+                        } else {
+                                // Activate category filter
+                                activeRiskFilter = riskCategory;
+                                targetBox.classList.add('border-secondary', 'bg-secondary/5');
+
+                                // Show category filters tag
+                                const filterBadge = document.getElementById('active-filter-badge');
+                                const resetBtn = document.getElementById('reset-filter-btn');
+                                filterBadge.textContent = `${riskCategory} Risk`;
+                                filterBadge.classList.remove('hidden');
+                                resetBtn.classList.remove('hidden');
+
+                                // Filter investigations table rows
+                                const rows = document.querySelectorAll('#cases-tbody tr');
+                                rows.forEach(row => {
+                                        if (row.getAttribute('data-risk') === riskCategory) {
+                                                row.classList.remove('hidden');
+                                        } else {
+                                                row.classList.add('hidden');
+                                        }
+                                });
+
+                                showToast(`Workspace filtered: showing ${riskCategory} threats.`);
+                        }
+                }
+
+                function clearRiskFilter() {
+                        activeRiskFilter = null;
+
+                        const lowBox = document.getElementById('filter-low');
+                        const mediumBox = document.getElementById('filter-medium');
+                        const highBox = document.getElementById('filter-high');
+                        const criticalBox = document.getElementById('filter-critical');
+                        [lowBox, mediumBox, highBox, criticalBox].forEach(box => {
+                                box.classList.remove('border-secondary', 'bg-secondary/5');
+                        });
+
+                        document.getElementById('active-filter-badge').classList.add('hidden');
+                        document.getElementById('reset-filter-btn').classList.add('hidden');
+
+                        // Reveal all cases table rows
+                        const rows = document.querySelectorAll('#cases-tbody tr');
+                        rows.forEach(row => {
+                                row.classList.remove('hidden');
+                        });
+
+                        showToast("Risk filter reset. Displaying all investigations.");
+                }
+
+
+                // Mock Timeframe updates on line chart with Tooltip support
+                const timeframeMetrics = {
+                        '24H': {
+                                labels: ["22:00", "02:00", "06:00", "10:00", "14:00", "18:00"],
+                                volume: [14200, 18500, 11200, 24500, 19200, 29800],
+                                risk: [120, 280, 95, 340, 180, 420],
+                                volumePath: "M 0 160 C 100 120, 200 140, 300 80 C 400 130, 500 90, 600 60",
+                                volumeArea: "M 0 160 C 100 120, 200 140, 300 80 C 400 130, 500 90, 600 60 L 600 180 L 0 180 Z",
+                                riskPath: "M 0 195 C 100 185, 200 190, 300 170 C 400 180, 500 175, 600 155",
+                                riskArea: "M 0 195 C 100 185, 200 190, 300 170 C 400 180, 500 175, 600 155 L 600 180 L 0 180 Z"
+                        },
+                        '7D': {
+                                labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+                                volume: [125000, 142000, 98000, 156000, 118000, 134000, 168000],
+                                risk: [820, 1280, 640, 1420, 950, 1100, 1540],
+                                volumePath: "M 0 140 C 100 150, 200 100, 300 150 C 400 110, 500 130, 600 80",
+                                volumeArea: "M 0 140 C 100 150, 200 100, 300 150 C 400 110, 500 130, 600 80 L 600 180 L 0 180 Z",
+                                riskPath: "M 0 180 C 100 190, 200 160, 300 180 C 400 170, 500 180, 600 140",
+                                riskArea: "M 0 180 C 100 190, 200 160, 300 180 C 400 170, 500 180, 600 140 L 600 180 L 0 180 Z"
+                        },
+                        '30D': {
+                                labels: ["Oct 26", "Nov 02", "Nov 09", "Nov 16", "Nov 23", "Nov 30"],
+                                volume: [540000, 680000, 490000, 720000, 610000, 840000],
+                                risk: [3200, 4800, 2900, 5400, 4100, 6200],
+                                volumePath: "M 0 160 C 100 130, 200 90, 300 120 C 400 150, 500 80, 600 100",
+                                volumeArea: "M 0 160 C 100 130, 200 90, 300 120 C 400 150, 500 80, 600 100 L 600 180 L 0 180 Z",
+                                riskPath: "M 0 178 C 100 160, 200 150, 300 168 C 400 172, 500 148, 600 162",
+                                riskArea: "M 0 178 C 100 160, 200 150, 300 168 C 400 172, 500 148, 600 162 L 600 180 L 0 180 Z"
+                        },
+                        '90D': {
+                                labels: ["Aug", "Sep", "Oct", "Nov"],
+                                volume: [1850000, 2120000, 1950000, 2480000],
+                                risk: [11800, 14200, 12100, 16900],
+                                volumePath: "M 0 100 C 150 80, 300 120, 450 70 C 500 90, 550 110, 600 50",
+                                volumeArea: "M 0 100 C 150 80, 300 120, 450 70 C 500 90, 550 110, 600 50 L 600 180 L 0 180 Z",
+                                riskPath: "M 0 170 C 150 160, 300 175, 450 140 C 500 150, 550 160, 600 120",
+                                riskArea: "M 0 170 C 150 160, 300 175, 450 140 C 500 150, 550 160, 600 120 L 600 180 L 0 180 Z"
+                        }
+                };
+
+                let currentTimeframe = '30D';
+
+                function updateTimeframe(timeframe) {
+                        currentTimeframe = timeframe;
+
+                        // Reset buttons highlight states
+                        ['24H', '7D', '30D', '90D'].forEach(tf => {
+                                const btn = document.getElementById(`btn-${tf.toLowerCase()}`);
+                                btn.className = "px-3 py-1 rounded font-body-md text-[11px] hover:text-secondary transition-colors focus:outline-none";
+                        });
+
+                        // Highlight clicked button
+                        const activeBtn = document.getElementById(`btn-${timeframe.toLowerCase()}`);
+                        activeBtn.className = "px-3 py-1 rounded font-body-md text-[11px] bg-interface-base shadow-sm text-secondary font-bold focus:outline-none";
+
+                        // Update chart path endpoints
+                        const metrics = timeframeMetrics[timeframe];
+                        if (metrics) {
+                                document.getElementById('volume-path').setAttribute('d', metrics.volumePath);
+                                document.getElementById('volume-area').setAttribute('d', metrics.volumeArea);
+                                document.getElementById('risk-path').setAttribute('d', metrics.riskPath);
+                                document.getElementById('risk-area').setAttribute('d', metrics.riskArea);
+
+                                // Update X-axis labels
+                                const labelsContainer = document.getElementById('chart-x-labels');
+                                labelsContainer.innerHTML = '';
+                                metrics.labels.forEach(lbl => {
+                                        const labelSpan = document.createElement('span');
+                                        labelSpan.textContent = lbl;
+                                        labelsContainer.appendChild(labelSpan);
+                                });
+                        }
+
+                        showToast(`Timeframe updated to ${timeframe}`);
+                }
+
+                // Interactive Chart absolute coordinates mousemove tracker tooltip
+                const chartSvg = document.getElementById('chart-svg');
+                const chartTooltip = document.getElementById('chart-tooltip');
+                const hoverLine = document.getElementById('hover-line');
+
+                chartSvg.addEventListener('mousemove', (e) => {
+                        const rect = chartSvg.getBoundingClientRect();
+                        const x = e.clientX - rect.left; // x position within the element.
+                        const ratio = x / rect.width;
+                        const svgX = ratio * 600;
+
+                        const metrics = timeframeMetrics[currentTimeframe];
+                        if (!metrics) return;
+
+                        const dataPointsCount = metrics.volume.length;
+                        const index = Math.min(Math.max(Math.round(ratio * (dataPointsCount - 1)), 0), dataPointsCount - 1);
+
+                        // Position tracking hover line
+                        const stepX = 600 / (dataPointsCount - 1);
+                        const matchSvgX = index * stepX;
+                        hoverLine.setAttribute('x1', matchSvgX);
+                        hoverLine.setAttribute('x2', matchSvgX);
+                        hoverLine.classList.remove('opacity-0');
+
+                        // Populate tooltip overlay coordinates
+                        const volVal = metrics.volume[index];
+                        const riskVal = metrics.risk[index];
+                        const labelVal = metrics.labels[index];
+
+                        chartTooltip.style.left = `${e.clientX - rect.left + 24}px`;
+                        chartTooltip.style.top = `${e.clientY - rect.top - 32}px`;
+                        chartTooltip.style.opacity = '1';
+                        chartTooltip.innerHTML = `
+                                <div class="font-bold text-[#38BDF8] mb-0.5">${labelVal}</div>
+                                <div class="flex justify-between gap-4">
+                                        <span>Monitored Vol:</span>
+                                        <span class="font-bold text-white">${volVal.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="flex justify-between gap-4 mt-0.5">
+                                        <span>Anomalies:</span>
+                                        <span class="font-bold text-risk-high">${riskVal.toLocaleString('en-IN')}</span>
+                                </div>
+                        `;
+                });
+
+                chartSvg.addEventListener('mouseleave', () => {
+                        chartTooltip.style.opacity = '0';
+                        hoverLine.classList.add('opacity-0');
+                });
+
+
+                // Interactive Fraud Network Nodes Metadata tooltips
+                const networkSvg = document.getElementById('network-svg');
+                const networkTooltip = document.getElementById('network-tooltip');
+
+                networkSvg.addEventListener('mouseover', (e) => {
+                        const node = e.target;
+                        if (node.tagName === 'circle' && node.hasAttribute('data-name')) {
+                                const rect = networkSvg.getBoundingClientRect();
+                                const nodeName = node.getAttribute('data-name');
+                                const nodeIp = node.getAttribute('data-ip');
+                                const nodeRisk = node.getAttribute('data-risk');
+                                const nodeVol = node.getAttribute('data-volume');
+                                const nodeStatus = node.getAttribute('data-status');
+
+                                let riskColorClass = 'text-risk-low';
+                                if (nodeRisk === 'Critical') riskColorClass = 'text-risk-high';
+                                else if (nodeRisk === 'High') riskColorClass = 'text-orange-500';
+
+                                networkTooltip.style.left = `${e.clientX - rect.left + 20}px`;
+                                networkTooltip.style.top = `${e.clientY - rect.top - 40}px`;
+                                networkTooltip.style.opacity = '1';
+                                networkTooltip.innerHTML = `
+                                        <div class="font-bold text-white mb-1">${nodeName}</div>
+                                        <div class="flex justify-between gap-4">
+                                                <span>Address IP:</span>
+                                                <span class="font-mono text-[#38BDF8]">${nodeIp}</span>
+                                        </div>
+                                        <div class="flex justify-between gap-4 mt-0.5">
+                                                <span>Risk Rating:</span>
+                                                <span class="font-bold ${riskColorClass}">${nodeRisk}</span>
+                                        </div>
+                                        <div class="flex justify-between gap-4 mt-0.5">
+                                                <span>Payload Vol:</span>
+                                                <span class="font-bold text-white">${nodeVol}</span>
+                                        </div>
+                                        <div class="flex justify-between gap-4 mt-0.5">
+                                                <span>Status:</span>
+                                                <span class="font-bold text-white">${nodeStatus}</span>
+                                        </div>
+                                `;
+                        }
+                });
+
+                networkSvg.addEventListener('mousemove', (e) => {
+                        const node = e.target;
+                        if (node.tagName === 'circle' && node.hasAttribute('data-name')) {
+                                const rect = networkSvg.getBoundingClientRect();
+                                networkTooltip.style.left = `${e.clientX - rect.left + 20}px`;
+                                networkTooltip.style.top = `${e.clientY - rect.top - 40}px`;
+                        }
+                });
+
+                networkSvg.addEventListener('mouseout', (e) => {
+                        if (e.target.tagName === 'circle') {
+                                networkTooltip.style.opacity = '0';
+                        }
+                });
+
+                // Toggling view based on role
+                window.addEventListener('DOMContentLoaded', () => {
+                        const sessionStr = sessionStorage.getItem('muleguard_session');
+                        if (sessionStr) {
+                                const session = JSON.parse(sessionStr);
+                                const role = session.role || 'investigator';
+                                const investigatorView = document.getElementById('investigator-dashboard-view');
+                                const complianceView = document.getElementById('compliance-dashboard-view');
+                                
+                                if (role === 'bank_compliance' || role === 'admin') {
+                                        if (investigatorView) investigatorView.classList.add('hidden');
+                                        if (complianceView) complianceView.classList.remove('hidden');
+                                        
+                                        // Update header info dynamically
+                                        const headerTitle = document.querySelector('header h1');
+                                        const headerSubtitle = document.querySelector('header p');
+                                        if (headerTitle) headerTitle.textContent = 'Compliance Portal';
+                                        if (headerSubtitle) headerSubtitle.textContent = 'Senior review, case escalations, regulatory filings and audit reporting.';
+                                        
+                                        const systemOnlineBadge = document.querySelector('header .lg\\:flex span:not(.animate-pulse)');
+                                        if (systemOnlineBadge) systemOnlineBadge.textContent = 'Senior Officer Session';
+                                } else {
+                                        if (investigatorView) investigatorView.classList.remove('hidden');
+                                        if (complianceView) complianceView.classList.add('hidden');
+                                }
+
+                                if (window.MuleGuardStore && window.MuleGuardStore.generateAlertsFromAllAccounts) {
+                                        window.MuleGuardStore.generateAlertsFromAllAccounts();
+                                }
+                                updateKPICards();
+                                renderCases();
+                                if (window.MuleGuardSimulator) {
+                                        updateSimUI(window.MuleGuardSimulator.getState());
+                                }
+                        }
+                });
+
+                function updateKPICards() {
+                        if (!window.MuleGuardStore) return;
+                        const txs = window.MuleGuardStore.getTransactions();
+                        const cases = window.MuleGuardStore.getCases();
+                        const accounts = window.MuleGuardStore.getAccounts();
+
+                        const card1Value = document.getElementById('kpi-monitored-value');
+                        if (card1Value) {
+                                card1Value.textContent = (txs.length * 12345).toLocaleString('en-IN');
+                        }
+
+                        const card2Value = document.getElementById('kpi-highrisk-value');
+                        if (card2Value) {
+                                const highRiskCount = Object.values(accounts).filter(a => a.riskScore >= 70).length;
+                                card2Value.textContent = highRiskCount;
+                        }
+
+                        const card3Value = document.getElementById('kpi-activecases-value');
+                        if (card3Value) {
+                                card3Value.textContent = cases.length;
+                        }
+                        const card3Sub = document.getElementById('kpi-activecases-sub');
+                        if (card3Sub) {
+                                const highCases = cases.filter(c => c.priority === 'Critical' || c.priority === 'High').length;
+                                card3Sub.textContent = highCases;
+                        }
+                }
+
+                // Real-time Threat Simulator UI Integration
+                function toggleSimPlay() {
+                        const scenario = document.getElementById('sim-scenario').value;
+                        if (window.MuleGuardSimulator) {
+                                window.MuleGuardSimulator.start(scenario, 3000);
+                        }
+                }
+
+                function toggleSimPause() {
+                        if (window.MuleGuardSimulator) {
+                                const state = window.MuleGuardSimulator.getState();
+                                if (state.status === "Running") {
+                                        window.MuleGuardSimulator.pause();
+                                } else if (state.status === "Paused") {
+                                        window.MuleGuardSimulator.resume();
+                                }
+                        }
+                }
+
+                function triggerSimReset() {
+                        if (window.MuleGuardStore) {
+                                window.MuleGuardStore.resetTransactionSimulation();
+                                showToast('Ledger, alerts, cases, and balances restored to original default state.');
+                                // Clear feed logs and reset state
+                                const logs = document.getElementById('sim-feed-logs');
+                                if (logs) {
+                                        logs.innerHTML = '<div class="text-on-surface-variant opacity-60 italic">Live feed empty. Select a scenario profile and click Start to stream transactions...</div>';
+                                }
+                                const count = document.getElementById('sim-tx-counter');
+                                if (count) count.textContent = "0 Ingested";
+                                
+                                // Refresh dashboards
+                                updateKPICards();
+                                renderCases();
+                                updateSimUI(window.MuleGuardSimulator ? window.MuleGuardSimulator.getState() : null);
+                        }
+                }
+
+                function updateSimUI(state) {
+                        if (!state) return;
+                        
+                        const startBtn = document.getElementById('sim-btn-start');
+                        const pauseBtn = document.getElementById('sim-btn-pause');
+                        const statusDot = document.getElementById('sim-status-dot');
+                        const statusText = document.getElementById('sim-status-text');
+                        const txCounter = document.getElementById('sim-tx-counter');
+
+                        if (txCounter) txCounter.textContent = `${state.txCount || 0} Ingested`;
+
+                        if (state.status === "Running") {
+                                if (startBtn) {
+                                        startBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">stop</span> Stop';
+                                        startBtn.setAttribute('onclick', 'window.MuleGuardSimulator.stop()');
+                                        startBtn.className = "flex-1 bg-red-600 text-white hover:bg-red-700 rounded-lg px-4 py-2 font-label-md text-[12px] font-bold flex items-center justify-center gap-1.5 focus:outline-none";
+                                }
+                                if (pauseBtn) {
+                                        pauseBtn.removeAttribute('disabled');
+                                        pauseBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">pause</span> Pause';
+                                }
+                                if (statusDot) {
+                                        statusDot.className = "w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse";
+                                }
+                                if (statusText) {
+                                        statusText.textContent = `Simulator: Running (${state.scenario})`;
+                                }
+                        } else if (state.status === "Paused") {
+                                if (startBtn) {
+                                        startBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">stop</span> Stop';
+                                        startBtn.setAttribute('onclick', 'window.MuleGuardSimulator.stop()');
+                                        startBtn.className = "flex-1 bg-red-600 text-white hover:bg-red-700 rounded-lg px-4 py-2 font-label-md text-[12px] font-bold flex items-center justify-center gap-1.5 focus:outline-none";
+                                }
+                                if (pauseBtn) {
+                                        pauseBtn.removeAttribute('disabled');
+                                        pauseBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">play_arrow</span> Resume';
+                                }
+                                if (statusDot) {
+                                        statusDot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                                }
+                                if (statusText) {
+                                        statusText.textContent = `Simulator: Paused`;
+                                }
+                        } else {
+                                if (startBtn) {
+                                        startBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">play_arrow</span> Start';
+                                        startBtn.setAttribute('onclick', 'toggleSimPlay()');
+                                        startBtn.className = "flex-1 bg-secondary text-white hover:bg-secondary-container rounded-lg px-4 py-2 font-label-md text-[12px] font-bold flex items-center justify-center gap-1.5 focus:outline-none";
+                                }
+                                if (pauseBtn) {
+                                        pauseBtn.setAttribute('disabled', 'true');
+                                        pauseBtn.innerHTML = '<span class="material-symbols-outlined text-[16px]">pause</span> Pause';
+                                }
+                                if (statusDot) {
+                                        statusDot.className = "w-2.5 h-2.5 rounded-full bg-outline";
+                                }
+                                if (statusText) {
+                                        statusText.textContent = "Simulator: Stopped";
+                                }
+                        }
+                }
+
+                // Listen to simulator ticks & transaction events
+                window.addEventListener('muleguard:simulator-tick', (e) => {
+                        const state = e.detail;
+                        updateSimUI(state);
+                });
+
+                window.addEventListener('muleguard:transaction-ingested', (e) => {
+                        const { transaction } = e.detail;
+                        const logs = document.getElementById('sim-feed-logs');
+                        if (logs) {
+                                if (logs.innerText.includes("empty")) logs.innerHTML = "";
+                                
+                                let probText = "";
+                                if (window.MuleGuardStore) {
+                                        const risk = window.MuleGuardStore.predictAccountRisk(transaction.receiverId);
+                                        if (risk) probText = `, Recipient ML Risk: ${(risk.probability * 100).toFixed(1)}%`;
+                                }
+
+                                const entry = document.createElement('div');
+                                entry.className = "border-l-2 border-secondary pl-2 py-0.5 space-y-0.5";
+                                entry.innerHTML = `
+                                        <div class="flex justify-between font-bold text-on-surface">
+                                                <span>[${transaction.id}] ${transaction.type}</span>
+                                                <span class="text-secondary">${transaction.value}</span>
+                                        </div>
+                                        <div class="text-[10px] text-on-surface-variant opacity-75">
+                                                ${transaction.senderId} &rarr; ${transaction.receiverId}${probText}
+                                        </div>
+                                `;
+                                logs.appendChild(entry);
+                                logs.scrollTop = logs.scrollHeight;
+                        }
+
+                        // Update dashboard state dynamically
+                        updateKPICards();
+                        renderCases();
+                });
+        </script>
+</body>
+
+</html>

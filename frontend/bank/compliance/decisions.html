@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Compliance Decisions Log</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        
+        <!-- Authentication Guard -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+
+        <style>
+                .material-symbols-outlined {
+                        font-variation-settings:
+                                'FILL' 0,
+                                'wght' 400,
+                                'GRAD' 0,
+                                'opsz' 20
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+                <!-- Will be dynamically populated by auth-guard.js -->
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Decisions & Review Log</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Historical records of corporate compliance sign-offs and regulatory declarations.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Senior Officer Session</span>
+                                </div>
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+                                <!-- User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading profile details...')">My Profile</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors" onclick="logoutUser()">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4">
+                                <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">Decisions Audit History</h2>
+                                <p class="font-body-md text-[13px] text-on-surface-variant">Archive of regulatory filings (SAR), clearances, block operations and restrictions.</p>
+                                
+                                <div class="w-full overflow-x-auto">
+                                        <table class="w-full border-collapse text-left">
+                                                <thead>
+                                                         <tr class="border-b border-[#e2e8f0]">
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Decision Date</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Target ID</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[160px]">Compliance Decision</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">Decided By</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">Filing Reference</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[80px]">Status</th>
+                                                         </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-[#f1f5f9]">
+                                                         <!-- Dynamically populated -->
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Footer Status -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Compliance Vault: Connected</span>
+                                </div>
+                        </div>
+                        <div>
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Bank Compliance</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <script>
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                function renderDecisions() {
+                        if (!window.MuleGuardStore) return;
+                        const decisions = window.MuleGuardStore.getDecisions();
+                        const tbody = document.querySelector('tbody');
+                        if (!tbody) return;
+
+                        tbody.innerHTML = '';
+                        if (decisions.length === 0) {
+                                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-on-surface-variant opacity-60">No compliance decisions logged.</td></tr>`;
+                                return;
+                        }
+
+                        decisions.forEach(d => {
+                                let badgeClass = "bg-green-50 text-green-700 border-green-200";
+                                let statusText = "Cleared";
+                                if (d.decision.includes('Reject') || d.decision.includes('Block')) {
+                                        badgeClass = "bg-red-50 text-red-700 border-red-200";
+                                        statusText = "Blocked";
+                                } else if (d.decision.includes('Hold') || d.decision.includes('Escalate')) {
+                                        badgeClass = "bg-yellow-50 text-yellow-700 border-yellow-200";
+                                        statusText = "Hold";
+                                }
+
+                                tbody.innerHTML += `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${d.timestamp}</td>
+                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${d.caseId}</td>
+                                                <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">${d.rationale}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${d.reviewer}</td>
+                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] text-on-surface-variant">${d.id}</td>
+                                                <td class="py-3.5 px-4 text-right">
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${statusText}</span>
+                                                </td>
+                                        </tr>
+                                `;
+                        });
+                }
+
+                window.addEventListener('DOMContentLoaded', renderDecisions);
+        </script>
+</body>
+
+</html>

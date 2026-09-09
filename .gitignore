@@ -11,3 +11,4 @@ data/raw/
 data/private/
 models/*.pkl
 models/*.joblib
+node_modules/
