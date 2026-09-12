@@ -10,18 +10,19 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="../../style.css" />
+        <link rel="stylesheet" href="../../shared.css" />
         
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
         <script src="../../scripts/data-store.js"></script>
 
         <style>
-                .material-symbols-outlined {
-                        font-variation-settings:
-                                'FILL' 0,
-                                'wght' 400,
-                                'GRAD' 0,
-                                'opsz' 20
+                @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(6px); }
+                        to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                        animation: fadeIn 0.3s ease-out forwards;
                 }
         </style>
 </head>
@@ -42,12 +43,12 @@
                 <!-- Top Main Header -->
                 <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
                         <div class="flex items-center gap-3">
-                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                <button aria-label="Toggle Navigation Menu" class="md:hidden text-on-surface hover:text-secondary focus:outline-none focus:ring-2 focus:ring-secondary/50 rounded-lg p-1" onclick="toggleMobileSidebar()">
                                         <span class="material-symbols-outlined text-[24px]">menu</span>
                                 </button>
                                 <div class="flex flex-col text-left">
                                         <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">High-Risk Alerts Review</h1>
-                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Global priority alerts that require institutional oversight or compliance filings.</p>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Global priority alerts requiring immediate compliance oversight and restriction.</p>
                                 </div>
                         </div>
 
@@ -78,23 +79,63 @@
 
                 <!-- Scrollable Main View Workspace -->
                 <main class="flex-1 overflow-y-auto p-6 space-y-6">
-                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4">
-                                <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">High-Risk & Critical Alerts</h2>
-                                <p class="font-body-md text-[13px] text-on-surface-variant">Immediate review triggers for potential compliance sanctions or wire flags.</p>
+                        
+                        <!-- KPI Summary Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[22px]">warning</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Priority High/Critical Alerts</span>
+                                                <p id="kpi-alert-count" class="font-headline-md text-[20px] font-extrabold text-on-surface">0</p>
+                                        </div>
+                                </div>
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[22px]">payments</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">At-Risk Capital Exposure</span>
+                                                <p id="kpi-at-risk-amount" class="font-headline-md text-[20px] font-extrabold text-on-surface">₹0</p>
+                                        </div>
+                                </div>
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[22px]">verified_user</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Compliance Status</span>
+                                                <p class="font-headline-md text-[14px] font-bold text-emerald-600 mt-1">Active Oversight</p>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- Alerts Table Section -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4 animate-fade-in">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                                <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">High-Risk & Critical Alerts</h2>
+                                                <p class="font-body-md text-[13px] text-on-surface-variant">Immediate review triggers for potential compliance sanctions or account restrictions.</p>
+                                        </div>
+                                        <span class="font-mono-technical text-[11px] bg-red-50 text-red-700 border border-red-200 rounded-md px-2.5 py-1 font-bold self-start sm:self-auto">
+                                                Filtering: Severity &ge; High
+                                        </span>
+                                </div>
                                 
-                                <div class="w-full overflow-x-auto">
+                                <div class="w-full overflow-x-auto rounded-lg border border-outline-variant/30">
                                         <table class="w-full border-collapse text-left">
                                                 <thead>
-                                                         <tr class="border-b border-[#e2e8f0]">
+                                                         <tr class="bg-surface-container-low border-b border-[#e2e8f0]">
                                                                  <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Alert ID</th>
                                                                  <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[200px]">Trigger Rule</th>
                                                                  <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[140px]">Account Name</th>
                                                                  <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Severity</th>
                                                                  <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px] text-right">Amount</th>
-                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[100px]">Actions</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[120px]">Actions</th>
                                                          </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-[#f1f5f9]">
+                                                <tbody class="divide-y divide-[#f1f5f9]" aria-live="polite">
                                                          <!-- Dynamically populated -->
                                                 </tbody>
                                         </table>
@@ -155,28 +196,59 @@
                         if (!window.MuleGuardStore) return;
                         const alerts = window.MuleGuardStore.getAlerts().filter(a => a.severity === 'Critical' || a.severity === 'High');
                         const tbody = document.querySelector('tbody');
+                        const kpiCount = document.getElementById('kpi-alert-count');
+                        const kpiAmount = document.getElementById('kpi-at-risk-amount');
                         if (!tbody) return;
+
+                        if (kpiCount) kpiCount.textContent = alerts.length;
+
+                        // Calculate total at risk amount
+                        let totalVal = 0;
+                        alerts.forEach(a => {
+                                if (typeof a.amount === 'number') {
+                                        totalVal += a.amount;
+                                } else if (typeof a.amount === 'string') {
+                                        const clean = parseFloat(a.amount.replace(/[^0-9.]/g, ''));
+                                        if (!isNaN(clean)) totalVal += clean;
+                                }
+                        });
+                        if (kpiAmount) {
+                                kpiAmount.textContent = window.MuleGuardStore.formatINR ? window.MuleGuardStore.formatINR(totalVal) : `₹${totalVal.toLocaleString('en-IN')}`;
+                        }
 
                         tbody.innerHTML = '';
                         if (alerts.length === 0) {
-                                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-on-surface-variant opacity-60">No pending high-risk alerts.</td></tr>`;
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="6" class="py-12 text-center text-on-surface-variant opacity-70">
+                                                        <div class="flex flex-col items-center justify-center gap-2">
+                                                                <span class="material-symbols-outlined text-[36px] text-emerald-500">check_circle</span>
+                                                                <p class="font-headline-md text-[14px] font-bold">No Pending High-Risk Alerts</p>
+                                                                <p class="font-body-md text-[12px]">All incoming transactions are currently below critical compliance risk thresholds.</p>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
                                 return;
                         }
 
                         alerts.forEach(a => {
                                 let badgeColor = a.severity === 'Critical' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-orange-50 text-orange-700 border-orange-200';
-                                
+                                const formattedAmt = typeof a.amount === 'number' 
+                                        ? (window.MuleGuardStore.formatINR ? window.MuleGuardStore.formatINR(a.amount) : `₹${a.amount.toLocaleString('en-IN')}`)
+                                        : (a.amount.startsWith('₹') ? a.amount : `₹${a.amount}`);
+
                                 tbody.innerHTML += `
                                         <tr class="hover:bg-slate-50 transition-colors">
                                                 <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${a.id}</td>
-                                                <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">${a.category}</td>
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${a.target}</td>
+                                                <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">${a.category || a.rule || 'Suspicious Mule Activity'}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${a.target || a.accountName || 'Unknown'}</td>
                                                 <td class="py-3.5 px-4">
                                                         <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${a.severity}</span>
                                                 </td>
-                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-right">${a.amount}</td>
+                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-right text-on-surface">${formattedAmt}</td>
                                                 <td class="py-3.5 px-4 text-right">
-                                                        <button class="bg-red-600 hover:bg-red-700 text-white rounded px-2.5 py-1 font-label-md text-[10px] font-bold active:scale-95 transition-all" onclick="blockAccountForAlert('${a.id}', '${a.target}')">Block Account</button>
+                                                        <button class="bg-red-600 hover:bg-red-700 text-white rounded px-2.5 py-1 font-label-md text-[10px] font-bold active:scale-95 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/50" onclick="blockAccountForAlert('${a.id}', '${(a.target || a.accountName || 'Account').replace(/'/g, "\\'")}')">Block Account</button>
                                                 </td>
                                         </tr>
                                 `;

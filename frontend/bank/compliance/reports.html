@@ -10,18 +10,19 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="../../style.css" />
+        <link rel="stylesheet" href="../../shared.css" />
         
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
         <script src="../../scripts/data-store.js"></script>
 
         <style>
-                .material-symbols-outlined {
-                        font-variation-settings:
-                                'FILL' 0,
-                                'wght' 400,
-                                'GRAD' 0,
-                                'opsz' 20
+                @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(6px); }
+                        to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                        animation: fadeIn 0.3s ease-out forwards;
                 }
         </style>
 </head>
@@ -42,12 +43,12 @@
                 <!-- Top Main Header -->
                 <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
                         <div class="flex items-center gap-3">
-                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                <button aria-label="Toggle Navigation Menu" class="md:hidden text-on-surface hover:text-secondary focus:outline-none focus:ring-2 focus:ring-secondary/50 rounded-lg p-1" onclick="toggleMobileSidebar()">
                                         <span class="material-symbols-outlined text-[24px]">menu</span>
                                 </button>
                                 <div class="flex flex-col text-left">
-                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Compliance Reports</h1>
-                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Statistical summaries, audit trails, and regulatory compliance filing exports.</p>
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Compliance Reports & Audit Exports</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Statistical summaries, regulatory audit logs, and official filing exports.</p>
                                 </div>
                         </div>
 
@@ -78,38 +79,105 @@
 
                 <!-- Scrollable Main View Workspace -->
                 <main class="flex-1 overflow-y-auto p-6 space-y-6">
-                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4">
-                                <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">SAR & Compliance Report Archive</h2>
-                                <p class="font-body-md text-[13px] text-on-surface-variant">Compliance dashboard reporting matrices and regulatory audit export lists.</p>
+                        
+                        <!-- Live Audit System Stats -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[22px]">history</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Total Audit Log Entries</span>
+                                                <p id="kpi-audit-logs-count" class="font-headline-md text-[20px] font-extrabold text-on-surface">0</p>
+                                        </div>
+                                </div>
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-teal-500/10 text-teal-600 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[22px]">folder_shared</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Active Monitoring Scope</span>
+                                                <p class="font-headline-md text-[14px] font-bold text-on-surface mt-1">FIU-IND Standards</p>
+                                        </div>
+                                </div>
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[22px]">verified</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">System Integrity</span>
+                                                <p class="font-headline-md text-[14px] font-bold text-emerald-600 mt-1">Verified & Compliant</p>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- Report Download Archive Section -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4 animate-fade-in">
+                                <div>
+                                        <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">SAR & Compliance Report Archive</h2>
+                                        <p class="font-body-md text-[13px] text-on-surface-variant">Compliance dashboard reporting matrices and regulatory audit export files.</p>
+                                </div>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3">
-                                                 <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">Monthly Suspicious Activity (SAR) Reports</span>
-                                                 <div class="space-y-2">
-                                                         <div class="flex justify-between items-center text-[12px] font-body-md text-on-surface border-b border-outline-variant/20 pb-2">
-                                                                 <span>August 2026 SAR Log</span>
-                                                                 <button class="bg-[#eff6ff] text-secondary border border-blue-200/50 rounded px-2.5 py-1 font-label-md text-[10px] font-bold" onclick="showToast('Downloading August 2026 SAR PDF...')">Download PDF</button>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                         <div class="p-5 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-4">
+                                                 <div class="flex items-center gap-2">
+                                                         <span class="material-symbols-outlined text-secondary text-[20px]">picture_as_pdf</span>
+                                                         <span class="font-mono-technical text-[11px] text-on-surface uppercase tracking-wider font-extrabold">Monthly Suspicious Activity (SAR) Reports</span>
+                                                 </div>
+                                                 <div class="space-y-3">
+                                                         <div class="flex justify-between items-center text-[12px] font-body-md text-on-surface border-b border-outline-variant/20 pb-3">
+                                                                 <div>
+                                                                         <p class="font-bold">August 2026 SAR Log</p>
+                                                                         <p class="text-[11px] text-on-surface-variant">Monthly FIU regulatory filing export</p>
+                                                                 </div>
+                                                                 <button class="bg-[#eff6ff] text-secondary hover:bg-blue-100 border border-blue-200/60 rounded-md px-3 py-1.5 font-label-md text-[11px] font-bold active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-secondary/50" onclick="showToast('Downloading August 2026 SAR PDF...')">Download PDF</button>
                                                          </div>
                                                          <div class="flex justify-between items-center text-[12px] font-body-md text-on-surface">
-                                                                 <span>July 2026 SAR Log</span>
-                                                                 <button class="bg-[#eff6ff] text-secondary border border-blue-200/50 rounded px-2.5 py-1 font-label-md text-[10px] font-bold" onclick="showToast('Downloading July 2026 SAR PDF...')">Download PDF</button>
+                                                                 <div>
+                                                                         <p class="font-bold">July 2026 SAR Log</p>
+                                                                         <p class="text-[11px] text-on-surface-variant">Monthly FIU regulatory filing export</p>
+                                                                 </div>
+                                                                 <button class="bg-[#eff6ff] text-secondary hover:bg-blue-100 border border-blue-200/60 rounded-md px-3 py-1.5 font-label-md text-[11px] font-bold active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-secondary/50" onclick="showToast('Downloading July 2026 SAR PDF...')">Download PDF</button>
                                                          </div>
                                                  </div>
                                          </div>
 
-                                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3">
-                                                 <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">Operational Audits Log</span>
-                                                 <div class="space-y-2">
-                                                         <div class="flex justify-between items-center text-[12px] font-body-md text-on-surface border-b border-outline-variant/20 pb-2">
-                                                                 <span>Q2 2026 Compliance Audit</span>
-                                                                 <button class="bg-[#eff6ff] text-secondary border border-blue-200/50 rounded px-2.5 py-1 font-label-md text-[10px] font-bold" onclick="showToast('Downloading Q2 Audit CSV...')">Export CSV</button>
+                                         <div class="p-5 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-4">
+                                                 <div class="flex items-center gap-2">
+                                                         <span class="material-symbols-outlined text-secondary text-[20px]">table_chart</span>
+                                                         <span class="font-mono-technical text-[11px] text-on-surface uppercase tracking-wider font-extrabold">Operational & Audit Trail Logs</span>
+                                                 </div>
+                                                 <div class="space-y-3">
+                                                         <div class="flex justify-between items-center text-[12px] font-body-md text-on-surface border-b border-outline-variant/20 pb-3">
+                                                                 <div>
+                                                                         <p class="font-bold">Q2 2026 Compliance Audit</p>
+                                                                         <p class="text-[11px] text-on-surface-variant">Quarterly internal fraud audit dump</p>
+                                                                 </div>
+                                                                 <button class="bg-[#eff6ff] text-secondary hover:bg-blue-100 border border-blue-200/60 rounded-md px-3 py-1.5 font-label-md text-[11px] font-bold active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-secondary/50" onclick="showToast('Downloading Q2 Audit CSV...')">Export CSV</button>
                                                          </div>
                                                          <div class="flex justify-between items-center text-[12px] font-body-md text-on-surface">
-                                                                 <span>Q1 2026 Compliance Audit</span>
-                                                                 <button class="bg-[#eff6ff] text-secondary border border-blue-200/50 rounded px-2.5 py-1 font-label-md text-[10px] font-bold" onclick="showToast('Downloading Q1 Audit CSV...')">Export CSV</button>
+                                                                 <div>
+                                                                         <p class="font-bold">Q1 2026 Compliance Audit</p>
+                                                                         <p class="text-[11px] text-on-surface-variant">Quarterly internal fraud audit dump</p>
+                                                                 </div>
+                                                                 <button class="bg-[#eff6ff] text-secondary hover:bg-blue-100 border border-blue-200/60 rounded-md px-3 py-1.5 font-label-md text-[11px] font-bold active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-secondary/50" onclick="showToast('Downloading Q1 Audit CSV...')">Export CSV</button>
                                                          </div>
                                                  </div>
                                          </div>
+                                </div>
+                        </section>
+
+                        <!-- System Audit Log Recent Events preview -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4 animate-fade-in">
+                                <div class="flex items-center justify-between">
+                                        <div>
+                                                <h3 class="font-headline-md text-[16px] text-on-surface font-bold">Recent System Audit Log Stream</h3>
+                                                <p class="font-body-md text-[12px] text-on-surface-variant">Live audit events recorded by the MuleGuard state layer.</p>
+                                        </div>
+                                        <button class="text-secondary hover:underline font-label-md text-[12px] font-semibold" onclick="renderAuditStream()">Refresh Stream</button>
+                                </div>
+                                <div id="audit-log-stream" class="space-y-2 font-mono-technical text-[11px] bg-slate-900 text-slate-200 p-4 rounded-lg overflow-x-auto max-h-48 overflow-y-auto" aria-live="polite">
+                                        <!-- Dynamically populated -->
                                 </div>
                         </section>
                 </main>
@@ -162,6 +230,34 @@
                                 toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
                         }, 2800);
                 }
+
+                function renderAuditStream() {
+                        if (!window.MuleGuardStore) return;
+                        const logs = window.MuleGuardStore.getAuditLogs ? window.MuleGuardStore.getAuditLogs() : [];
+                        const container = document.getElementById('audit-log-stream');
+                        const kpiAuditCount = document.getElementById('kpi-audit-logs-count');
+                        
+                        if (kpiAuditCount) kpiAuditCount.textContent = logs.length;
+
+                        if (!container) return;
+                        container.innerHTML = '';
+
+                        if (logs.length === 0) {
+                                container.innerHTML = `<p class="text-slate-500 italic">No audit log entries recorded in state layer.</p>`;
+                                return;
+                        }
+
+                        // Show recent 10 logs
+                        const recent = logs.slice(0, 10);
+                        recent.forEach(log => {
+                                const timeStr = typeof log === 'object' ? (log.timestamp || 'SYSTEM') : 'EVENT';
+                                const msgStr = typeof log === 'object' ? (log.action || log.message || JSON.stringify(log)) : String(log);
+                                container.innerHTML += `<div class="flex gap-2"><span class="text-cyan-400 font-bold">[${timeStr}]</span> <span class="text-slate-300">${msgStr}</span></div>`;
+                        });
+                }
+
+                window.addEventListener('DOMContentLoaded', renderAuditStream);
+                window.addEventListener('muleguard:transaction-ingested', renderAuditStream);
         </script>
 </body>
 

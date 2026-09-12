@@ -2,47 +2,88 @@
 <html class="light" lang="en">
 
 <head>
+        <!-- Authentication Guard — must be first two scripts -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/data-store.js"></script>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-        <title>MuleGuard - Compliance Escalated Cases</title>
+        <title>MuleGuard - Escalated Cases Review</title>
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="../../style.css" />
-        
-        <!-- Authentication Guard -->
-        <script src="../../scripts/auth-guard.js"></script>
-        <script src="../../scripts/data-store.js"></script>
+        <link rel="stylesheet" href="../../shared.css" />
+
+        <script>
+                // Suppress Chrome extension noise — identical pattern used across all MuleGuard pages
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || msg.includes('widget') || msg.includes('publicKey') ||
+                                        msg.includes('merchantId') || msg.includes('chrome-extension') || msg.includes('couponCollection')
+                                );
+                        };
+                        console.warn  = function(...args) { if (isExtensionMessage(...args)) return; originalWarn.apply(console, args); };
+                        console.error = function(...args) { if (isExtensionMessage(...args)) return; originalError.apply(console, args); };
+                        console.log   = function(...args) { if (isExtensionMessage(...args)) return; originalLog.apply(console, args); };
+                })();
+        </script>
 
         <style>
-                .material-symbols-outlined {
-                        font-variation-settings:
-                                'FILL' 0,
-                                'wght' 400,
-                                'GRAD' 0,
-                                'opsz' 20
+                /* Page-specific entrance animations (timing intentionally distinct from other pages) */
+                @keyframes headingFadeIn {
+                        from { opacity: 0; transform: translateY(6px); }
+                        to   { opacity: 1; transform: translateY(0); }
+                }
+                .heading-animate { animation: headingFadeIn 0.3s ease-out forwards; }
+
+                @keyframes cardFadeIn {
+                        from { opacity: 0; transform: translateY(8px); }
+                        to   { opacity: 1; transform: translateY(0); }
+                }
+                .kpi-card-animate { opacity: 0; animation: cardFadeIn 0.3s ease-out forwards; }
+
+                @keyframes simpleFadeIn {
+                        from { opacity: 0; }
+                        to   { opacity: 1; }
+                }
+                .fade-in-animate { opacity: 0; animation: simpleFadeIn 0.3s ease-out forwards; }
+
+                .stagger-1 { animation-delay: 0.05s; }
+                .stagger-2 { animation-delay: 0.10s; }
+                .stagger-3 { animation-delay: 0.15s; }
+
+                @media (prefers-reduced-motion: reduce) {
+                        .heading-animate, .kpi-card-animate, .fade-in-animate {
+                                animation: none !important;
+                                opacity: 1 !important;
+                        }
                 }
         </style>
 </head>
 
 <body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
-        
+
         <!-- Mobile Sidebar Toggle Overlay -->
         <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
 
-        <!-- Left Navigation Sidebar -->
+        <!-- Left Navigation Sidebar — dynamically populated by auth-guard.js -->
         <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
                 <!-- Will be dynamically populated by auth-guard.js -->
         </aside>
 
         <!-- Main Content Workspace Container -->
         <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
-                
+
                 <!-- Top Main Header -->
                 <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
                         <div class="flex items-center gap-3">
-                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none" onclick="toggleMobileSidebar()">
+                                <button class="md:hidden text-on-surface hover:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary" aria-label="Open navigation menu" onclick="toggleMobileSidebar()">
                                         <span class="material-symbols-outlined text-[24px]">menu</span>
                                 </button>
                                 <div class="flex flex-col text-left">
@@ -61,13 +102,11 @@
                                 <!-- User Profile Access -->
                                 <div class="relative cursor-pointer group">
                                         <div class="flex items-center gap-2">
-                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
-                                                        AK
-                                                </div>
+                                                <div class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">AK</div>
                                                 <span class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
                                                 <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
                                         </div>
-                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 z-50">
                                                 <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="showToast('Loading profile details...')">My Profile</a>
                                                 <div class="h-px bg-outline-variant/30 my-1"></div>
                                                 <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors" onclick="logoutUser()">Secure Sign Out</a>
@@ -78,28 +117,84 @@
 
                 <!-- Scrollable Main View Workspace -->
                 <main class="flex-1 overflow-y-auto p-6 space-y-6">
-                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4">
-                                <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">Compliance Review Queue</h2>
-                                <p class="font-body-md text-[13px] text-on-surface-variant">Verify high-risk structuring operations and assign decisions.</p>
-                                
+
+                        <!-- Page Introduction -->
+                        <div class="flex flex-col text-left heading-animate">
+                                <h2 class="font-headline-md text-[20px] text-on-surface font-extrabold tracking-tight">Compliance Review Queue</h2>
+                                <p class="font-body-md text-[13px] text-on-surface-variant mt-1">High-risk cases escalated by the investigator team. Review and record a formal compliance decision on each case.</p>
+                        </div>
+
+                        <!-- KPI Summary Cards -->
+                        <section class="grid grid-cols-1 sm:grid-cols-3 gap-6 select-none" aria-label="Escalated cases summary metrics">
+                                <!-- Pending Escalations -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden kpi-card-animate stagger-1">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-red-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Pending Escalations</span>
+                                                <div class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-red-600">warning</span>
+                                                </div>
+                                        </div>
+                                        <p class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight" id="kpi-escalated-count">—</p>
+                                        <span class="text-[11px] text-on-surface-variant block mt-1">Awaiting senior officer review</span>
+                                </div>
+
+                                <!-- Average Risk Score -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden kpi-card-animate stagger-2">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-orange-500"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Avg Risk Score</span>
+                                                <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-orange-500">analytics</span>
+                                                </div>
+                                        </div>
+                                        <p class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight" id="kpi-avg-score">—</p>
+                                        <span class="text-[11px] text-on-surface-variant block mt-1">Across escalated cases</span>
+                                </div>
+
+                                <!-- Critical-Threshold Cases -->
+                                <div class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden kpi-card-animate stagger-3">
+                                        <div class="absolute top-0 left-0 w-full h-[3px] bg-purple-600"></div>
+                                        <div class="flex justify-between items-start mb-3">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Score ≥ 75</span>
+                                                <div class="w-8 h-8 rounded-lg bg-purple-600/10 flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-[18px] text-purple-600">crisis_alert</span>
+                                                </div>
+                                        </div>
+                                        <p class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight" id="kpi-high-score-count">—</p>
+                                        <span class="text-[11px] text-on-surface-variant block mt-1">Critical-threshold escalations</span>
+                                </div>
+                        </section>
+
+                        <!-- Escalated Cases Table -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-5 rounded-xl shadow-sm text-left space-y-4 fade-in-animate">
+                                <div class="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                                        <div class="flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-red-500 text-[20px]">warning</span>
+                                                <h2 class="font-headline-md text-[14px] text-on-surface font-extrabold">Pending Compliance Escalations</h2>
+                                        </div>
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider" id="escalation-count-label">Loading…</span>
+                                </div>
+
                                 <div class="w-full overflow-x-auto">
                                         <table class="w-full border-collapse text-left">
                                                 <thead>
-                                                         <tr class="border-b border-[#e2e8f0]">
-                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Case ID</th>
-                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[200px]">Case Title</th>
-                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[140px]">Primary Entity</th>
-                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px] text-right">Risk Score</th>
-                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">Escalated By</th>
-                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[150px]">Actions</th>
-                                                         </tr>
+                                                        <tr class="border-b border-outline-variant/20 text-[11px] font-mono-technical text-on-surface-variant uppercase tracking-wider">
+                                                                <th class="py-2.5 px-3 min-w-[100px]">Case ID</th>
+                                                                <th class="py-2.5 px-3 min-w-[200px]">Case Title</th>
+                                                                <th class="py-2.5 px-3 min-w-[140px]">Primary Entity</th>
+                                                                <th class="py-2.5 px-3 text-right min-w-[90px]">Risk Score</th>
+                                                                <th class="py-2.5 px-3 min-w-[120px]">Escalated By</th>
+                                                                <th class="py-2.5 px-3 text-right min-w-[170px]">Actions</th>
+                                                        </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-[#f1f5f9]">
-                                                         <!-- Dynamically populated -->
+                                                <tbody id="escalations-tbody" class="divide-y divide-outline-variant/10 text-[13px]" aria-live="polite">
+                                                        <!-- Dynamically populated by renderEscalations() -->
                                                 </tbody>
                                         </table>
                                 </div>
                         </section>
+
                 </main>
 
                 <!-- Footer Status -->
@@ -111,7 +206,7 @@
                                 </div>
                         </div>
                         <div>
-                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Bank Compliance</span>
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2026 MuleGuard Bank Compliance</span>
                         </div>
                 </footer>
         </div>
@@ -140,49 +235,104 @@
                         const toast = document.getElementById('toast');
                         const toastText = document.getElementById('toast-text');
                         toastText.textContent = message;
-                        
                         clearTimeout(toastTimeout);
                         toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
                         toast.classList.add('translate-y-0', 'opacity-100');
-                        
                         toastTimeout = setTimeout(() => {
                                 toast.classList.remove('translate-y-0', 'opacity-100');
                                 toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
                         }, 2800);
                 }
 
+                // Update KPI summary cards from the current escalated case set.
+                function renderKPIs(cases) {
+                        const count = cases.length;
+                        document.getElementById('kpi-escalated-count').textContent = count;
+                        document.getElementById('escalation-count-label').textContent =
+                                `${count} case${count !== 1 ? 's' : ''}`;
+
+                        if (count > 0) {
+                                const avg = Math.round(
+                                        cases.reduce((sum, c) => sum + (Number(c.score) || 0), 0) / count
+                                );
+                                document.getElementById('kpi-avg-score').textContent = avg;
+                        } else {
+                                document.getElementById('kpi-avg-score').textContent = '—';
+                        }
+
+                        const highScoreCount = cases.filter(c => (Number(c.score) || 0) >= 75).length;
+                        document.getElementById('kpi-high-score-count').textContent = highScoreCount;
+                }
+
+                // Render the escalated cases table.
+                // Business logic (filter, resolve, log) preserved exactly from the original skeleton.
                 function renderEscalations() {
                         if (!window.MuleGuardStore) return;
                         const cases = window.MuleGuardStore.getCases().filter(c => c.status === 'Escalated');
-                        const tbody = document.querySelector('tbody');
+                        const tbody = document.getElementById('escalations-tbody');
                         if (!tbody) return;
 
-                        tbody.innerHTML = '';
+                        renderKPIs(cases);
+
                         if (cases.length === 0) {
-                                tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-on-surface-variant opacity-60">No pending escalated cases.</td></tr>`;
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="6" class="py-14 text-center">
+                                                        <div class="flex flex-col items-center gap-3">
+                                                                <span class="material-symbols-outlined text-[44px] text-on-surface-variant/25">shield_with_heart</span>
+                                                                <p class="font-body-md text-[13px] text-on-surface-variant/60 font-medium">No pending escalated cases in the review queue.</p>
+                                                                <p class="font-mono-technical text-[10px] text-on-surface-variant/40 uppercase tracking-wider">Start the transaction simulator to generate activity</p>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
                                 return;
                         }
 
-                        cases.forEach(c => {
-                                tbody.innerHTML += `
+                        // Build rows with array + join (no innerHTML +=)
+                        const rows = cases.map(c => {
+                                const score = Number(c.score) || 0;
+                                let scoreBadge;
+                                if (score >= 75)      scoreBadge = 'bg-red-50 text-red-700 border-red-200';
+                                else if (score >= 50) scoreBadge = 'bg-orange-50 text-orange-700 border-orange-200';
+                                else                  scoreBadge = 'bg-green-50 text-green-700 border-green-200';
+
+                                return `
                                         <tr class="hover:bg-slate-50 transition-colors">
-                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${c.id}</td>
-                                                <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">${c.title}</td>
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${c.entity}</td>
-                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-right text-risk-high">${c.score}</td>
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${c.escalatedBy || 'Investigator'}</td>
-                                                <td class="py-3.5 px-4 text-right flex justify-end gap-2">
-                                                        <button class="bg-green-500 hover:bg-green-600 text-white rounded px-2.5 py-1 font-label-md text-[10px] font-bold active:scale-95 transition-all" onclick="resolveComplianceCase('${c.id}', 'File SAR')">File SAR</button>
-                                                        <button class="bg-transparent border border-outline-variant hover:border-slate-500 text-on-surface rounded px-2.5 py-1 font-label-md text-[10px] active:scale-95 transition-all" onclick="resolveComplianceCase('${c.id}', 'Approve / Clear')">Clear Case</button>
+                                                <td class="py-3.5 px-3 font-mono-technical text-[12px] font-bold text-secondary whitespace-nowrap">${c.id}</td>
+                                                <td class="py-3.5 px-3 font-headline-md text-[12px] text-on-surface font-semibold max-w-[220px] truncate">${c.title}</td>
+                                                <td class="py-3.5 px-3 font-body-md text-[12px] text-on-surface-variant whitespace-nowrap">${c.entity || c.primaryEntityId || '—'}</td>
+                                                <td class="py-3.5 px-3 text-right">
+                                                        <span class="font-mono-technical text-[11px] font-bold px-2 py-0.5 rounded border ${scoreBadge}">${score}</span>
+                                                </td>
+                                                <td class="py-3.5 px-3 font-body-md text-[12px] text-on-surface-variant whitespace-nowrap">${c.escalatedBy || 'Investigator'}</td>
+                                                <td class="py-3.5 px-3 text-right">
+                                                        <div class="flex justify-end gap-2">
+                                                                <button
+                                                                        class="bg-secondary hover:bg-secondary/90 text-white rounded px-3 py-1 font-mono-technical text-[10px] font-bold active:scale-95 transition-all"
+                                                                        onclick="resolveComplianceCase('${c.id}', 'File SAR')">
+                                                                        File SAR
+                                                                </button>
+                                                                <button
+                                                                        class="bg-transparent border border-outline-variant hover:border-secondary text-on-surface rounded px-3 py-1 font-mono-technical text-[10px] active:scale-95 transition-all"
+                                                                        onclick="resolveComplianceCase('${c.id}', 'Approve / Clear')">
+                                                                        Clear Case
+                                                                </button>
+                                                        </div>
                                                 </td>
                                         </tr>
                                 `;
                         });
+                        tbody.innerHTML = rows.join('');
                 }
 
+                // Log a compliance decision and re-render.
+                // Preserved exactly from the original skeleton — calls MuleGuardStore.logComplianceDecision().
                 function resolveComplianceCase(caseId, action) {
                         if (!window.MuleGuardStore) return;
-                        const rationale = action === 'File SAR' ? 'Suspicious activity report filed after comprehensive network audit.' : 'No structural anomaly verified. Account activity cleared.';
+                        const rationale = action === 'File SAR'
+                                ? 'Suspicious activity report filed after comprehensive network audit.'
+                                : 'No structural anomaly verified. Account activity cleared.';
                         window.MuleGuardStore.logComplianceDecision(caseId, action, rationale, 'A. Kumar');
                         showToast(`Success: Decision logged on Case ${caseId} (${action}).`);
                         renderEscalations();

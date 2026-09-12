@@ -15,6 +15,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
                 rel="stylesheet" />
         <link rel="stylesheet" href="../../style.css" />
+        <link rel="stylesheet" href="../../shared.css" />
         <script>
                 // Suppress Chrome extension errors
                 (function() {
@@ -158,7 +159,7 @@
                         padding: 8px 12px;
                         border-radius: 6px;
                         font-size: 11px;
-                        font-family: 'Poppins', sans-serif;
+                        font-family: 'Inter', sans-serif;
                         pointer-events: none;
                         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
                         z-index: 100;
@@ -635,7 +636,7 @@
                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Action</th>
                                                         </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-[#f1f5f9]" id="transactions-tbody">
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="transactions-tbody" aria-live="polite">
                                                         <!-- Row 1 -->
                                                         <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982741" data-risk="Critical" data-status="Flagged" data-type="Cross-border" onclick="rowClickAction(event, 'TX-982741')">
                                                                 <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982741</td>

@@ -48,13 +48,19 @@
     }
 
     // Inject synthetic_db_expanded.js dynamically if running in browser
-    if (typeof window !== 'undefined' && window.location && !window.MuleGuardExpandedDB) {
+    if (typeof window !== 'undefined' && window.location && !window.MuleGuardExpandedDB && typeof document !== 'undefined' && document.createElement) {
         const isSubDir = window.location.pathname.includes('/bank/');
         const isInternal = window.location.pathname.includes('/internal/');
         const prefix = isSubDir ? '../../' : (isInternal ? '../' : '');
-        document.write(`<script src="${prefix}scripts/synthetic_db_expanded.js"></script>`);
-        document.write(`<script src="${prefix}scripts/best_muleguard_model.js"></script>`);
-        document.write(`<script src="${prefix}scripts/xgboost-infer.js"></script>`);
+        
+        ['synthetic_db_expanded.js', 'best_muleguard_model.js', 'xgboost-infer.js'].forEach(scriptName => {
+            if (!document.querySelector(`script[src*="${scriptName}"]`)) {
+                const scriptEl = document.createElement('script');
+                scriptEl.src = prefix + 'scripts/' + scriptName;
+                scriptEl.async = false;
+                (document.head || document.documentElement).appendChild(scriptEl);
+            }
+        });
     }
 
     // Default Seed Data

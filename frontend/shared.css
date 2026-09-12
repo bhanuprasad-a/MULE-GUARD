@@ -1,0 +1,70 @@
+/*
+ * MuleGuard — Shared Stylesheet
+ * Consolidates genuinely identical styles from all portal pages.
+ *
+ * IMPORTANT: This file does NOT include page-specific animation timings,
+ * stagger delays, KPI entrance keyframes, SVG chart transitions, or
+ * dashboard-specific effects. Those remain in each page's <style> block.
+ */
+
+/* ─── Material Symbols Icon Configuration ───────────────────────────────── */
+.material-symbols-outlined {
+        font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 20;
+}
+
+/* ─── Custom Scrollbar ───────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+}
+::-webkit-scrollbar-track {
+        background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+}
+
+/* ─── Custom Tooltip ─────────────────────────────────────────────────────── */
+/* Note: Font corrected from 'Poppins' (not loaded) to 'Inter' (loaded). */
+.custom-tooltip {
+        position: absolute;
+        background: #0b1f3a;
+        border: 1px solid #1e293b;
+        color: #ffffff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-family: 'Inter', sans-serif;
+        pointer-events: none;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.15s ease-in-out;
+}
+
+/* ─── Risk Tag Hover ─────────────────────────────────────────────────────── */
+/* Used on alerts, cases, entities, and fraud_networks pages. */
+.risk-tag {
+        transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+}
+.risk-tag:hover {
+        transform: translateY(-1px);
+        filter: brightness(0.96);
+}
+
+/* ─── Table Row Inspect Arrow ────────────────────────────────────────────── */
+tr:hover .inspect-arrow {
+        transform: translateX(3px);
+}
+tr:hover .case-id-cell {
+        color: #1d4ed8;
+        text-decoration: underline;
+}
