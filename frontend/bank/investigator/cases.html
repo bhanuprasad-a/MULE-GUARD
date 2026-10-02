@@ -4,6 +4,7 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
         <script src="../../scripts/data-store.js"></script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -196,15 +197,15 @@
                                         <div class="px-3 mb-2">
                                                 <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
                                         </div>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="risk-analytics.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">monitoring</span>
                                                 <span>Risk Analytics</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="network-intelligence.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">hub</span>
                                                 <span>Network Intelligence</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="watchlists.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">rule_folder</span>
                                                 <span>Watchlists</span>
                                         </a>
@@ -506,11 +507,11 @@
                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Case Title:</span>
-                                        <span id="drawer-case-title" class="font-headline-md text-[13px] text-on-surface font-bold">Orion Structuring Review</span>
+                                        <span id="drawer-case-title" class="font-headline-md text-[13px] text-on-surface font-bold">Case Dossier</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Primary Entity:</span>
-                                        <span id="drawer-primary-entity" class="font-body-md text-[13px] text-on-surface font-semibold">Orion Financial</span>
+                                        <span id="drawer-primary-entity" class="font-body-md text-[13px] text-on-surface font-semibold">Selected Case Account</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Risk Score:</span>
@@ -648,164 +649,8 @@
 
         <!-- Javascript Dynamic Page Interactions -->
         <script>
-                // Cases database
-                const casesDb = {
-                        'CS-982741': {
-                                id: 'CS-982741',
-                                title: 'Apex Trading Investigation',
-                                entity: 'Apex Trading Ltd',
-                                priority: 'Critical',
-                                score: 91,
-                                assignee: 'A. Kumar',
-                                createdTime: '1 hr ago',
-                                lastUpdated: '12 min ago',
-                                status: 'Open',
-                                summary: 'Full case review initiated on Apex Trading Ltd for cross-border transaction velocity spikes and offshore entity routing.',
-                                riskExplanation: 'The case features a risk score of 91. This is driven by multiple structuring alerts, high-risk nesting profiles, and UBO correlations.',
-                                findings: [
-                                        'High velocity wire transfers totaling ₹2,40,000',
-                                        'Indirect routing via verified shell companies',
-                                        'Footprint correlation with blacklisted entities'
-                                ],
-                                notes: 'Active coordination with banking partners. UBO matches a known offshore trust.',
-                                activity: [
-                                        { time: '12 min ago', text: 'Case updated by Analyst A. Kumar' },
-                                        { time: '15 min ago', text: 'Analyst A. Kumar assigned to case' },
-                                        { time: '20 min ago', text: 'Entity Apex Trading Ltd reviewed' },
-                                        { time: '1 hr ago', text: 'Alert AL-982711 linked to case' },
-                                        { time: '1 hr ago', text: 'Case created automatically' }
-                                ]
-                        },
-                        'CS-982736': {
-                                id: '                 // Cases database loaded dynamically from MuleGuardStore
-                 const staticCasesFallback = {
-                         'CS-982701': {
-                                 id: 'CS-982701',
-                                 title: 'Orion Structuring Review',
-                                 entity: 'Orion Financial',
-                                 priority: 'High',
-                                 score: 78,
-                                 assignee: 'S. Rao',
-                                 createdTime: '2 hrs ago',
-                                 lastUpdated: '28 min ago',
-                                 status: 'Investigating',
-                                 summary: 'Brokerage deposits structuring audit. Multiple deposits made just under currency transaction reporting threshold.',
-                                 riskExplanation: 'Structuring activities (score 78) flagged across distinct regional terminals, indicating structured deposit patterns.',
-                                 findings: [
-                                         'Three structured cash deposits of ₹9,950 each',
-                                         'Multiple regional terminal usage in 3 hours',
-                                         'Account owner linked to politically exposed persons'
-                                 ],
-                                 notes: 'Awaiting sub-ledger details from deposit location terminals.',
-                                 activity: [
-                                         { time: '28 min ago', text: 'Investigation status updated' },
-                                         { time: '1 hr ago', text: 'Analyst S. Rao assigned to case' },
-                                         { time: '2 hrs ago', text: 'Alert AL-982705 linked to case' },
-                                         { time: '2 hrs ago', text: 'Case created automatically' }
-                                 ]
-                         },
-                         'CS-982728': {
-                                 id: 'CS-982728',
-                                 title: 'Vertex Behavioral Review',
-                                 entity: 'Vertex Imports',
-                                 priority: 'Medium',
-                                 score: 62,
-                                 assignee: 'A. Kumar',
-                                 createdTime: '2 hrs ago',
-                                 lastUpdated: '41 min ago',
-                                 status: 'Open',
-                                 summary: 'Sizing divergence monitoring. Vertex Imports experienced a significant deviation in clearance size compared to normal parameters.',
-                                 riskExplanation: 'Behavioral shift score of 62 triggered by a ₹1,50,000 credit routing from a foreign clearing counterparty.',
-                                 findings: [
-                                         'Clearing deviation of +2900% against avg',
-                                         'First-time transaction with foreign counterparty',
-                                         'Customs documentation matching domestic cargo bills'
-                                 ],
-                                 notes: 'Temporarily flagged for customs ledger invoice reconciliation.',
-                                 activity: [
-                                         { time: '41 min ago', text: 'Case created automatically' },
-                                         { time: '1 hr ago', text: 'Vertex Imports catalog profile updated' }
-                                 ]
-                         },
-                         'CS-982714': {
-                                 id: 'CS-982714',
-                                 title: 'Blackwood Identity Case',
-                                 entity: 'Blackwood Assets',
-                                 priority: 'Critical',
-                                 score: 97,
-                                 assignee: 'R. Singh',
-                                 createdTime: '3 hrs ago',
-                                 lastUpdated: '1 hr ago',
-                                 status: 'Escalated',
-                                 summary: 'Corporate filing fraud and device footprint overlap on Blackwood Clearing accounts.',
-                                 riskExplanation: 'Critical risk score of 97. Identical corporate registration documents were mapped to previously deactivated shell entities.',
-                                 findings: [
-                                         'Duplicate registry files uploaded',
-                                         'Footprint matches deactivated corporate accounts',
-                                         'High-risk location device login credentials'
-                                 ],
-                                 notes: 'Accounts locked. SAR dossier compiled and transmitted to financial crime unit.',
-                                 activity: [
-                                         { time: '1 hr ago', text: 'Case escalated to senior management' },
-                                         { time: '2 hrs ago', text: 'Analyst R. Singh assigned to case' },
-                                         { time: '3 hrs ago', text: 'Alert AL-982684 linked to case' },
-                                         { time: '3 hrs ago', text: 'Case created automatically' }
-                                 ]
-                         },
-                         'CS-982705': {
-                                 id: 'CS-982705',
-                                 title: 'Phoenix Velocity Review',
-                                 entity: 'Phoenix Logistics',
-                                 priority: 'High',
-                                 score: 72,
-                                 assignee: 'Unassigned',
-                                 createdTime: '2 hrs ago',
-                                 lastUpdated: '2 hrs ago',
-                                 status: 'Open',
-                                 summary: 'Rapid balance transfer pass-through investigation for circular fund movement.',
-                                 riskExplanation: 'Pass-through velocity score of 72. Funds transferred within seconds of credit clearance without domestic trade backing.',
-                                 findings: [
-                                         'Pass-through wire clearance of ₹35,000',
-                                         'Transit latency of less than 12 seconds',
-                                         'Circular domestic routing across shell nodes'
-                                 ],
-                                 notes: 'Requires UBO identity checks and cargo manifest documentation review.',
-                                 activity: [
-                                         { time: '2 hrs ago', text: 'Case created automatically' },
-                                         { time: '3 hrs ago', text: 'Phoenix Logistics alert triggered' }
-                                 ]
-                         },
-                         'CS-982650': {
-                                 id: 'CS-982650',
-                                 title: 'Meridian Treasury Review',
-                                 entity: 'Meridian Treasury',
-                                 priority: 'Low',
-                                 score: 38,
-                                 assignee: 'S. Rao',
-                                 createdTime: '6 hrs ago',
-                                 lastUpdated: '3 hrs ago',
-                                 status: 'Closed',
-                                 summary: 'Institutional treasury dispatch review. Automated alert triggered on size threshold parameters.',
-                                 riskExplanation: 'Risk score low (38). Verified corporate transaction matching daily liquidity operations.',
-                                 findings: [
-                                         'Standard dispatch sizing validation',
-                                         'Pre-approved institutional counterparties',
-                                         'No high risk attributes or UBO alerts'
-                                 ],
-                                 notes: 'Audited, cleared, and closed by senior compliance team.',
-                                 activity: [
-                                         { time: '3 hrs ago', text: 'Case closed by Analyst S. Rao' },
-                                         { time: '4 hrs ago', text: 'Case approved and cleared' },
-                                         { time: '5 hrs ago', text: 'Analyst S. Rao assigned to case' },
-                                         { time: '6 hrs ago', text: 'Case created automatically' }
-                                 ]
-                         }
-                 };
-
-                 const casesDb = window.MuleGuardStore ? window.MuleGuardStore.getCases().reduce((acc, c) => {
-                         acc[c.id] = c;
-                         return acc;
-                 }, {}) : staticCasesFallback;
+                // Dynamic cases database from store
+                const casesDb = {};
 
                 // Global variables for cached workspace operations
                 let cachedRows = [];
@@ -1459,14 +1304,19 @@
                         openDetailDrawer(caseId);
                 }
 
-                // Initialize on DOM ready
-                window.addEventListener('DOMContentLoaded', () => {
-                        // Trigger alert + case evaluation from store if available
+                function initCasesQueue() {
                         if (window.MuleGuardStore && window.MuleGuardStore.generateAlertsFromAllAccounts) {
                                 window.MuleGuardStore.generateAlertsFromAllAccounts();
                         }
                         renderCases();
-                });
+                }
+
+                if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initCasesQueue);
+                } else {
+                        initCasesQueue();
+                }
+                window.addEventListener('DOMContentLoaded', initCasesQueue);
 
                 window.addEventListener('muleguard:transaction-ingested', () => {
                         if (typeof renderCases === 'function') renderCases();

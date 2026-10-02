@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <!-- Authentication Guard — must be first script tags -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+        
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Watchlists</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <link rel="stylesheet" href="../../shared.css" />
+
+        <script>
+                // Suppress Chrome extension warnings in console
+                (function() {
+                        const originalWarn = console.warn;
+                        const originalError = console.error;
+                        const originalLog = console.log;
+                        const isExtensionMessage = (...args) => {
+                                const msg = args.join(' ');
+                                return (
+                                        msg.includes('BHK') || 
+                                        msg.includes('widget') || 
+                                        msg.includes('publicKey') || 
+                                        msg.includes('merchantId') ||
+                                        msg.includes('chrome-extension') ||
+                                        msg.includes('couponCollection')
+                                );
+                        };
+                        console.warn = function(...args) { if (isExtensionMessage(...args)) return; originalWarn.apply(console, args); };
+                        console.error = function(...args) { if (isExtensionMessage(...args)) return; originalError.apply(console, args); };
+                        console.log = function(...args) { if (isExtensionMessage(...args)) return; originalLog.apply(console, args); };
+                })();
+        </script>
+
+        <style>
+                @keyframes headingFadeIn {
+                        from { opacity: 0; transform: translateY(6px); }
+                        to { opacity: 1; transform: translateY(0); }
+                }
+                .heading-animate {
+                        animation: headingFadeIn 0.3s ease-out forwards;
+                }
+
+                @keyframes modalFadeIn {
+                        from { opacity: 0; transform: scale(0.96); }
+                        to { opacity: 1; transform: scale(1); }
+                }
+                .modal-animate {
+                        animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                        .heading-animate, .modal-animate {
+                                animation: none !important;
+                                transition: none !important;
+                        }
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Modal Backdrop Overlay -->
+        <div id="modal-backdrop" class="fixed inset-0 bg-primary/50 backdrop-blur-sm z-50 hidden transition-opacity duration-200" onclick="closeAddModal()"></div>
+
+        <!-- Left Navigation Sidebar -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+		<div class="flex flex-col flex-1 overflow-y-auto">
+			<!-- Sidebar Header & Logo with Collapsible Toggle -->
+			<div class="h-[70px] flex items-center justify-between px-5 border-b border-[#1e293b] select-none">
+				<a href="dashboard.html" class="flex items-center gap-2 overflow-hidden" title="MuleGuard Home">
+					<img alt="MuleGuard Logo" class="sidebar-logo-full w-[110px] h-auto object-contain transition-all" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+					<span class="sidebar-logo-compact hidden font-mono-technical font-extrabold text-[16px] text-secondary-container tracking-wider">MG</span>
+				</a>
+				<button id="sidebar-toggle-btn" onclick="toggleMuleGuardSidebar()" title="Toggle Sidebar (Expand/Collapse)" aria-label="Toggle Sidebar" class="text-on-primary-container/70 hover:text-on-primary p-1.5 rounded-lg hover:bg-secondary-container/20 transition-all focus:outline-none focus:ring-1 focus:ring-secondary/40 shrink-0">
+					<span class="material-symbols-outlined text-[20px] transition-transform duration-200" id="sidebar-toggle-icon">menu_open</span>
+				</button>
+			</div>
+
+			<!-- Sidebar Menu Groups -->
+			<nav class="flex-1 px-4 py-6 space-y-7">
+				<div class="space-y-1">
+					<div class="px-3 mb-2 sidebar-group-header">
+						<span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Command Center</span>
+					</div>
+					<a href="dashboard.html" id="nav-link-dashboard" title="Dashboard" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">dashboard</span>
+						<span class="sidebar-text truncate">Dashboard</span>
+					</a>
+					<a href="investigations.html" id="nav-link-investigations" title="Investigations" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">search_insights</span>
+						<span class="sidebar-text truncate">Investigations</span>
+					</a>
+					<a href="transactions.html" id="nav-link-transactions" title="Transactions" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">receipt_long</span>
+						<span class="sidebar-text truncate">Transactions</span>
+					</a>
+					<a href="entities.html" id="nav-link-entities" title="Entities" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">group</span>
+						<span class="sidebar-text truncate">Entities</span>
+					</a>
+					<a href="fraud_networks.html" id="nav-link-fraud_networks" title="Fraud Networks" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">share</span>
+						<span class="sidebar-text truncate">Fraud Networks</span>
+					</a>
+					<a href="alerts.html" id="nav-link-alerts" title="Alerts" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">notifications_active</span>
+						<span class="sidebar-text truncate">Alerts</span>
+					</a>
+					<a href="cases.html" id="nav-link-cases" title="Cases" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">work</span>
+						<span class="sidebar-text truncate">Cases</span>
+					</a>
+				</div>
+				<div class="space-y-1">
+					<div class="px-3 mb-2 sidebar-group-header">
+						<span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
+					</div>
+					<a href="risk-analytics.html" id="nav-link-risk-analytics" title="Risk Analytics" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">monitoring</span>
+						<span class="sidebar-text truncate">Risk Analytics</span>
+					</a>
+					<a href="network-intelligence.html" id="nav-link-network-intelligence" title="Network Intelligence" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">hub</span>
+						<span class="sidebar-text truncate">Network Intelligence</span>
+					</a>
+					<a href="watchlists.html" id="nav-link-watchlists" title="Watchlists" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] text-secondary-container shrink-0">rule_folder</span>
+						<span class="sidebar-text truncate font-medium">Watchlists</span>
+					</a>
+				</div>
+			</nav>
+		</div>
+
+		<!-- Sidebar Footer Status -->
+		<div class="p-3 border-t border-[#1e293b] space-y-3">
+			<div class="sidebar-footer-status flex items-center justify-between px-1">
+				<div class="flex items-center gap-2">
+					<span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+					<span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Systems OK</span>
+				</div>
+				<span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+			</div>
+			<div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]" title="J. Doe (Senior Fraud Investigator)">
+				<div class="flex items-center gap-3 overflow-hidden">
+					<div class="w-8 h-8 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[12px] text-on-primary font-bold shrink-0">
+						JD
+					</div>
+					<div class="sidebar-footer-text flex flex-col overflow-hidden">
+						<span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight truncate">J. Doe</span>
+						<span class="font-body-md text-[11px] text-on-primary-container/50 truncate">Senior Fraud Investigator</span>
+					</div>
+				</div>
+				<button class="sidebar-footer-text text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none ml-1" onclick="showToast('Settings opened.')">
+					<span class="material-symbols-outlined text-[18px]">settings</span>
+				</button>
+			</div>
+		</div>
+	</aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <button aria-label="Toggle Navigation Menu" class="md:hidden text-on-surface hover:text-secondary focus:outline-none focus:ring-2 focus:ring-secondary/50 rounded-lg p-1" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <div class="flex items-center gap-2 font-mono-technical text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">
+                                                <span>Intelligence</span>
+                                                <span class="material-symbols-outlined text-[12px]">chevron_right</span>
+                                                <span class="text-secondary font-bold">Watchlists</span>
+                                        </div>
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight leading-snug">Entity Watchlists & Active Monitoring</h1>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-4">
+                                <button class="bg-secondary hover:bg-secondary-container text-white rounded-lg px-4 py-2 font-label-md text-[12px] font-bold active:scale-95 transition-all duration-150 shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary/50 flex items-center gap-2" onclick="openAddModal()">
+                                        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                                        <span>+ Add to Watchlist</span>
+                                </button>
+                        </div>
+                </header>
+
+                <!-- Scrollable Workspace Body -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- KPI Metric Cards Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left heading-animate">
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-5 shadow-sm flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-secondary flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[26px]">rule_folder</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Total Monitored Entities</span>
+                                                <p id="kpi-total-watchlisted" class="font-headline-md text-[24px] font-extrabold text-on-surface leading-tight">0</p>
+                                        </div>
+                                </div>
+
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-5 shadow-sm flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-xl bg-red-500/10 text-red-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[26px]">priority_high</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">High Priority Entities</span>
+                                                <p id="kpi-high-priority" class="font-headline-md text-[24px] font-extrabold text-red-600 leading-tight">0</p>
+                                        </div>
+                                </div>
+
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-5 shadow-sm flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[26px]">payments</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">24h Monitored Account Volume</span>
+                                                <p id="kpi-24h-volume" class="font-headline-md text-[20px] font-extrabold text-on-surface leading-tight mt-0.5">₹0</p>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- Watchlist Section Card -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                        <div>
+                                                <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">Active Watchlist Matrix</h2>
+                                                <p class="font-body-md text-[13px] text-on-surface-variant">Elevated risk tracking and automated monitoring triggers for flagged corporate & personal accounts.</p>
+                                        </div>
+
+                                        <!-- Filter Controls -->
+                                        <div class="flex flex-wrap items-center gap-3">
+                                                <div class="relative min-w-[200px]">
+                                                        <input id="filter-search" type="text" placeholder="Search account or ID..." class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-3 py-1.5 font-body-md text-[12px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" oninput="renderWatchlist()" />
+                                                        <span class="material-symbols-outlined absolute left-2.5 top-2 text-[16px] text-on-surface-variant">search</span>
+                                                </div>
+
+                                                <select id="filter-priority" class="bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[12px] text-on-surface focus:outline-none focus:border-secondary cursor-pointer" onchange="renderWatchlist()">
+                                                        <option value="All">All Priorities</option>
+                                                        <option value="High">High Priority</option>
+                                                        <option value="Medium">Medium Priority</option>
+                                                        <option value="Low">Low Priority</option>
+                                                </select>
+                                        </div>
+                                </div>
+
+                                <!-- Watchlist Table Container -->
+                                <div class="w-full overflow-x-auto rounded-lg border border-outline-variant/30">
+                                        <table class="w-full border-collapse text-left">
+                                                <thead>
+                                                         <tr class="bg-surface-container-low border-b border-[#e2e8f0]">
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[160px]">Account Name</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Account ID</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">ML Risk Score</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Priority</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[200px]">Rationale</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Added By</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">Added Date</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[140px]">Latest Activity</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[180px]">Actions</th>
+                                                         </tr>
+                                                </thead>
+                                                <tbody id="watchlist-tbody" class="divide-y divide-[#f1f5f9]" aria-live="polite">
+                                                         <!-- Populated dynamically -->
+                                                </tbody>
+                                        </table>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Footer Status -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Watchlist Engine: Active</span>
+                                </div>
+                        </div>
+                        <div>
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2026 MuleGuard Fraud Intelligence</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Add Watchlist Modal Dialog -->
+        <div id="add-watchlist-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-interface-base border border-outline-variant/60 rounded-xl shadow-xl w-full max-w-md overflow-hidden modal-animate text-left space-y-5 p-6 relative">
+                        <div class="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+                                <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-secondary text-[22px]">add_moderator</span>
+                                        <h3 class="font-headline-md text-[16px] font-bold text-on-surface">Add Account to Watchlist</h3>
+                                </div>
+                                <button aria-label="Close Modal" class="text-on-surface-variant hover:text-on-surface focus:outline-none" onclick="closeAddModal()">
+                                        <span class="material-symbols-outlined text-[20px]">close</span>
+                                </button>
+                        </div>
+
+                        <form id="add-watchlist-form" onsubmit="handleAddWatchlistSubmit(event)" class="space-y-4">
+                                <div class="space-y-1">
+                                        <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Select Account</label>
+                                        <select id="modal-account-select" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary">
+                                                <!-- Dynamically populated -->
+                                        </select>
+                                </div>
+
+                                <div class="space-y-1">
+                                        <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Monitoring Priority</label>
+                                        <select id="modal-priority-select" required class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-2 font-body-md text-[13px] text-on-surface focus:outline-none focus:border-secondary">
+                                                <option value="High">High Priority</option>
+                                                <option value="Medium" selected>Medium Priority</option>
+                                                <option value="Low">Low Priority</option>
+                                        </select>
+                                </div>
+
+                                <div class="space-y-1">
+                                        <label class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Mandatory Rationale / Reason</label>
+                                        <textarea id="modal-reason-input" required rows="3" placeholder="Provide investigation context, suspicious indicator or trigger rationale..." class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg p-3 font-body-md text-[12px] text-on-surface focus:outline-none focus:border-secondary"></textarea>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3 pt-3 border-t border-outline-variant/30">
+                                        <button type="button" class="px-4 py-2 rounded-lg font-label-md text-[12px] text-on-surface-variant hover:bg-slate-100 transition-colors" onclick="closeAddModal()">Cancel</button>
+                                        <button type="submit" class="bg-secondary hover:bg-secondary-container text-white px-4 py-2 rounded-lg font-label-md text-[12px] font-bold active:scale-95 transition-all shadow-sm">Confirm Addition</button>
+                                </div>
+                        </form>
+                </div>
+        </div>
+
+        <!-- Confirmation Removal Modal -->
+        <div id="remove-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-interface-base border border-outline-variant/60 rounded-xl shadow-xl w-full max-w-sm overflow-hidden modal-animate text-left space-y-4 p-5 relative">
+                        <div class="flex items-center gap-3 text-red-600">
+                                <span class="material-symbols-outlined text-[26px]">warning</span>
+                                <h3 class="font-headline-md text-[16px] font-bold text-on-surface">Confirm Removal</h3>
+                        </div>
+                        <p id="remove-modal-text" class="font-body-md text-[13px] text-on-surface-variant">Are you sure you want to remove this account from active monitoring?</p>
+                        <div class="flex items-center justify-end gap-3 pt-2">
+                                <button type="button" class="px-4 py-2 rounded-lg font-label-md text-[12px] text-on-surface-variant hover:bg-slate-100" onclick="closeRemoveModal()">Cancel</button>
+                                <button id="remove-confirm-btn" type="button" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-label-md text-[12px] font-bold active:scale-95 transition-all shadow-sm">Remove Account</button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <script>
+                let pendingRemoveId = null;
+
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                overlay.classList.add('hidden');
+                        }
+                }
+
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        toastText.textContent = message;
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                function openAddModal() {
+                        if (!window.MuleGuardStore) return;
+                        const accounts = window.MuleGuardStore.getAccounts();
+                        const select = document.getElementById('modal-account-select');
+                        select.innerHTML = '';
+
+                        Object.keys(accounts).forEach(accId => {
+                                const isAdded = window.MuleGuardStore.isWatchlisted(accId);
+                                const acc = accounts[accId];
+                                select.innerHTML += `<option value="${accId}" ${isAdded ? 'disabled' : ''}>${accId} — ${acc.name} ${isAdded ? '(Already Monitored)' : ''}</option>`;
+                        });
+
+                        document.getElementById('modal-reason-input').value = '';
+                        document.getElementById('modal-priority-select').value = 'Medium';
+                        document.getElementById('add-watchlist-modal').classList.remove('hidden');
+                        document.getElementById('modal-backdrop').classList.remove('hidden');
+                }
+
+                function closeAddModal() {
+                        document.getElementById('add-watchlist-modal').classList.add('hidden');
+                        document.getElementById('modal-backdrop').classList.add('hidden');
+                }
+
+                function handleAddWatchlistSubmit(e) {
+                        e.preventDefault();
+                        if (!window.MuleGuardStore) return;
+                        const accId = document.getElementById('modal-account-select').value;
+                        const priority = document.getElementById('modal-priority-select').value;
+                        const reason = document.getElementById('modal-reason-input').value;
+
+                        const res = window.MuleGuardStore.addToWatchlist(accId, reason, priority, 'A. Kumar');
+                        if (res.success) {
+                                showToast(`Success: ${accId} added to active watchlist.`);
+                                closeAddModal();
+                                renderWatchlist();
+                        } else {
+                                showToast(`Error: ${res.error}`);
+                        }
+                }
+
+                function confirmRemoveWatchlist(accId, accName) {
+                        pendingRemoveId = accId;
+                        document.getElementById('remove-modal-text').textContent = `Are you sure you want to remove ${accId} (${accName}) from active monitoring?`;
+                        document.getElementById('remove-confirm-btn').onclick = () => {
+                                if (pendingRemoveId && window.MuleGuardStore) {
+                                        window.MuleGuardStore.removeFromWatchlist(pendingRemoveId, 'A. Kumar');
+                                        showToast(`Removed: ${pendingRemoveId} removed from watchlist.`);
+                                        closeRemoveModal();
+                                        renderWatchlist();
+                                }
+                        };
+                        document.getElementById('remove-modal').classList.remove('hidden');
+                        document.getElementById('modal-backdrop').classList.remove('hidden');
+                }
+
+                function closeRemoveModal() {
+                        pendingRemoveId = null;
+                        document.getElementById('remove-modal').classList.add('hidden');
+                        document.getElementById('modal-backdrop').classList.add('hidden');
+                }
+
+                function renderWatchlist() {
+                        if (!window.MuleGuardStore) return;
+                        const watchlist = window.MuleGuardStore.getWatchlist();
+                        const accounts = window.MuleGuardStore.getAccounts();
+                        const transactions = window.MuleGuardStore.getTransactions();
+                        const tbody = document.getElementById('watchlist-tbody');
+                        const searchVal = (document.getElementById('filter-search').value || '').toLowerCase().trim();
+                        const priorityVal = document.getElementById('filter-priority').value;
+
+                        // KPI Calculations
+                        document.getElementById('kpi-total-watchlisted').textContent = watchlist.length;
+                        const highCount = watchlist.filter(w => w.priority === 'High').length;
+                        document.getElementById('kpi-high-priority').textContent = highCount;
+
+                        let volume24h = 0;
+                        const watchedAccIds = new Set(watchlist.map(w => w.accountId));
+                        transactions.forEach(t => {
+                                if (watchedAccIds.has(t.senderId) || watchedAccIds.has(t.receiverId)) {
+                                        volume24h += (t.amountNumeric || 0);
+                                }
+                        });
+                        document.getElementById('kpi-24h-volume').textContent = window.MuleGuardStore.formatINR 
+                                ? window.MuleGuardStore.formatINR(volume24h) 
+                                : `₹${volume24h.toLocaleString('en-IN')}`;
+
+                        // Filter entries
+                        let filtered = watchlist.filter(w => {
+                                const matchesSearch = !searchVal || 
+                                        w.accountId.toLowerCase().includes(searchVal) || 
+                                        (w.accountName || '').toLowerCase().includes(searchVal) ||
+                                        (w.reason || '').toLowerCase().includes(searchVal);
+                                const matchesPriority = (priorityVal === 'All') || (w.priority === priorityVal);
+                                return matchesSearch && matchesPriority;
+                        });
+
+                        tbody.innerHTML = '';
+
+                        if (filtered.length === 0) {
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="9" class="py-12 text-center text-on-surface-variant opacity-75">
+                                                        <div class="flex flex-col items-center justify-center gap-2">
+                                                                <span class="material-symbols-outlined text-[36px] text-slate-400">rule_folder</span>
+                                                                <p class="font-headline-md text-[14px] font-bold">No Entities Currently Monitored</p>
+                                                                <p class="font-body-md text-[12px]">No accounts are currently matching the active filter criteria.</p>
+                                                                <button class="mt-2 bg-secondary text-white rounded-lg px-3 py-1.5 font-label-md text-[11px] font-bold" onclick="openAddModal()">+ Add Watchlist Entity</button>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
+                                return;
+                        }
+
+                        filtered.forEach(w => {
+                                const riskInfo = window.MuleGuardStore.predictAccountRisk(w.accountId);
+                                let riskBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                                let riskScoreText = 'Low Risk';
+
+                                if (riskInfo && typeof riskInfo.probability === 'number') {
+                                        const pct = Math.round(riskInfo.probability * 100);
+                                        riskScoreText = `${pct}% (${riskInfo.level})`;
+                                        if (pct >= 75) {
+                                                riskBadgeClass = 'bg-red-50 text-red-700 border-red-200';
+                                        } else if (pct >= 40) {
+                                                riskBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                                        }
+                                } else {
+                                        const acc = accounts[w.accountId];
+                                        if (acc && acc.riskScore) {
+                                                riskScoreText = `Score: ${acc.riskScore}`;
+                                                if (acc.riskScore >= 75) riskBadgeClass = 'bg-red-50 text-red-700 border-red-200';
+                                        }
+                                }
+
+                                let prioBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+                                if (w.priority === 'High') prioBadgeClass = 'bg-red-50 text-red-700 border-red-200';
+                                else if (w.priority === 'Medium') prioBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+
+                                // Find latest tx for this account
+                                const latestTx = transactions.find(t => t.senderId === w.accountId || t.receiverId === w.accountId);
+                                let latestTxText = 'No recent activity';
+                                if (latestTx) {
+                                        latestTxText = `${latestTx.id} (${latestTx.value || '₹' + latestTx.amountNumeric})`;
+                                }
+
+                                const dateStr = w.addedAt ? new Date(w.addedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently';
+
+                                tbody.innerHTML += `
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                                <td class="py-3.5 px-4 font-headline-md text-[12px] font-bold text-on-surface">${w.accountName || w.accountId}</td>
+                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${w.accountId}</td>
+                                                <td class="py-3.5 px-4">
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${riskBadgeClass}">${riskScoreText}</span>
+                                                </td>
+                                                <td class="py-3.5 px-4">
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${prioBadgeClass}">${w.priority}</span>
+                                                </td>
+                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant max-w-[240px] truncate" title="${(w.reason || '').replace(/"/g, '&quot;')}">${w.reason}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${w.addedBy || 'A. Kumar'}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${dateStr}</td>
+                                                <td class="py-3.5 px-4 font-mono-technical text-[11px] text-on-surface-variant">${latestTxText}</td>
+                                                <td class="py-3.5 px-4 text-right">
+                                                        <div class="flex items-center justify-end gap-1.5">
+                                                                <a href="investigations.html?account=${w.accountId}" class="text-secondary hover:bg-blue-50 p-1 rounded font-label-md text-[11px] font-bold" title="Investigate Entity">Investigate</a>
+                                                                <a href="fraud_networks.html" class="text-slate-600 hover:bg-slate-100 p-1 rounded font-label-md text-[11px] font-bold" title="View Graph Network">Network</a>
+                                                                <button class="text-red-600 hover:bg-red-50 p-1 rounded font-label-md text-[11px] font-bold" onclick="confirmRemoveWatchlist('${w.accountId}', '${(w.accountName || w.accountId).replace(/'/g, "\\'")}')" title="Remove from Watchlist">Remove</button>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
+                        });
+                }
+
+                // Keyboard modal accessibility (Escape key)
+                window.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                                closeAddModal();
+                                closeRemoveModal();
+                        }
+                });
+
+                window.addEventListener('DOMContentLoaded', renderWatchlist);
+                window.addEventListener('muleguard:transaction-ingested', renderWatchlist);
+        </script>
+</body>
+
+</html>

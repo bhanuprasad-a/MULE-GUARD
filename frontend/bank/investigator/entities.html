@@ -4,7 +4,8 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
-        <script src="../../scripts/data-store.js"></script>
+        <script src="../../scripts/api.js"></script>
+	<script src="../../scripts/data-store.js"></script>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <title>MuleGuard - Entities Intelligence</title>
@@ -500,208 +501,9 @@
                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Action</th>
                                                         </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-[#f1f5f9]" id="entities-tbody">
-                                                        <!-- Row 1 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982741" data-risk="Critical" data-status="Flagged" data-type="Corporate" onclick="rowClickAction(event, 'EN-982741')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982741</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">91 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">142</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">4</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 min ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">Flagged</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982741')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 2 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982736" data-risk="High" data-status="Under Review" data-type="Institutional" onclick="rowClickAction(event, 'EN-982736')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982736</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Orion Financial</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Institutional</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">78 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">89</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">5</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">28 min ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982736')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 3 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982728" data-risk="Medium" data-status="Normal" data-type="Corporate" onclick="rowClickAction(event, 'EN-982728')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982728</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vertex Imports</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">62 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">58</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">3</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">41 min ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982728')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 4 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982714" data-risk="Critical" data-status="Flagged" data-type="Corporate" onclick="rowClickAction(event, 'EN-982714')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982714</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Northstar Holdings</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">96 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">210</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">6</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">1 hr ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">Flagged</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982714')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 5 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982705" data-risk="Medium" data-status="Normal" data-type="Institutional" onclick="rowClickAction(event, 'EN-982705')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982705</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Meridian Capital</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Institutional</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">45 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">340</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">7</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">2 hrs ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982705')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 6 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982698" data-risk="Low" data-status="Normal" data-type="Corporate" onclick="rowClickAction(event, 'EN-982698')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982698</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Atlas Global Trading</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">32 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">24</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">2</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">3 hrs ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982698')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 7 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982685" data-risk="Low" data-status="Normal" data-type="Corporate" onclick="rowClickAction(event, 'EN-982685')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982685</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vanguard Logistics</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">18 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">112</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">3</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">5 hrs ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982685')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 8 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982672" data-risk="Critical" data-status="Blocked" data-type="Corporate" onclick="rowClickAction(event, 'EN-982672')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982672</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Blackwood Assets</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">98 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">15</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">2</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">8 hrs ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Blocked</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982672')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 9 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982659" data-risk="High" data-status="Under Review" data-type="Corporate" onclick="rowClickAction(event, 'EN-982659')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982659</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Phoenix Ventures</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">75 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">44</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">3</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 hrs ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982659')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 10 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-entity-id="EN-982641" data-risk="Medium" data-status="Normal" data-type="Corporate" onclick="rowClickAction(event, 'EN-982641')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">EN-982641</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Swift Logistics Corp</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Corporate</td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">52 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold">88</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold">3</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">18 hrs ago</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('EN-982641')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                </tbody>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="entities-tbody">
+													<!-- Populated dynamically from PostgreSQL via MuleGuardStore -->
+												</tbody>
                                         </table>
                                 </div>
                         </section>
@@ -752,7 +554,7 @@
                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Entity Name:</span>
-                                        <span id="drawer-entity-name" class="font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</span>
+                                        <span id="drawer-entity-name" class="font-headline-md text-[13px] text-on-surface font-bold">Prakash Chatterjee</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Entity Type:</span>
@@ -810,12 +612,12 @@
                                                 <!-- Target Center Node -->
                                                 <circle cx="200" cy="80" r="16" fill="#316bf3" stroke="#ffffff" stroke-width="1.5" class="node-pulse-center" />
                                                 <text x="200" y="83" fill="#ffffff" font-size="8" text-anchor="middle" font-family="monospace" font-weight="bold">TARGET</text>
-                                                <text id="node-center-label" x="200" y="110" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="600">Apex Trading</text>
+                                                <text id="node-center-label" x="200" y="110" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="600">Prakash Chatterjee</text>
 
                                                 <!-- Connected Node 1 -->
                                                 <circle cx="80" cy="40" r="12" fill="#1e293b" stroke="#38BDF8" stroke-width="1.5" />
                                                 <text x="80" y="43" fill="#94a3b8" font-size="7" text-anchor="middle" font-family="monospace">N1</text>
-                                                <text id="node-1-label" x="80" y="22" fill="#94a3b8" font-size="8" text-anchor="middle">Vertex Imports</text>
+                                                <text id="node-1-label" x="80" y="22" fill="#94a3b8" font-size="8" text-anchor="middle">Suresh Babu</text>
 
                                                 <!-- Connected Node 2 -->
                                                 <circle cx="80" cy="120" r="12" fill="#1e293b" stroke="#38BDF8" stroke-width="1.5" />
@@ -904,7 +706,7 @@
                 const entitiesDb = {
                         'EN-982741': {
                                 id: 'EN-982741',
-                                name: 'Apex Trading Ltd',
+                                name: 'Prakash Chatterjee',
                                 type: 'Corporate',
                                 score: 91,
                                 transactions: 142,
@@ -912,15 +714,15 @@
                                 connectedCount: 4,
                                 lastActivity: '12 min ago',
                                 status: 'Flagged',
-                                summary: 'Apex Trading Ltd is an international import-export entity. Recent transaction velocity anomalies indicate high volume routing across high-risk corridors.',
+                                summary: 'Prakash Chatterjee is an international import-export entity. Recent transaction velocity anomalies indicate high volume routing across high-risk corridors.',
                                 indicators: ['High transaction velocity', 'Cross-border wire concentration', 'Recent device transfer change'],
-                                connectedEntities: ['Vertex Imports', 'Northstar Holdings', 'Mule Acct A', 'Mule Acct B'],
+                                connectedEntities: ['Suresh Babu', 'Venkatesh Naidu', 'Mule Acct A', 'Mule Acct B'],
                                 riskExplanation: 'The entity exhibits a risk score of 91 due to structural nesting in multi-tiered offshore corridors. High transaction volume shifts (₹1.24M total) were completed within a compressed window without historical trade backing.',
                                 notes: 'Entity flagged by senior analyst on review of offshore shell patterns. Connected accounts have matching UBO indicators linked to verified networks.'
                         },
                         'EN-982736': {
                                 id: 'EN-982736',
-                                name: 'Orion Financial',
+                                name: 'Kalyan Chowdary',
                                 type: 'Institutional',
                                 score: 78,
                                 transactions: 89,
@@ -928,15 +730,15 @@
                                 connectedCount: 3,
                                 lastActivity: '28 min ago',
                                 status: 'Under Review',
-                                summary: 'Orion Financial operates as a clearing brokerage. Patterns indicate structural layering behavior matching sub-clearing deposits.',
+                                summary: 'Kalyan Chowdary operates as a clearing brokerage. Patterns indicate structural layering behavior matching sub-clearing deposits.',
                                 indicators: ['Layering indicators', 'Frequent rounding thresholds', 'Multi-source deposits'],
-                                connectedEntities: ['Meridian Capital', 'Blackwood Assets', 'Shell-901', 'None'],
+                                connectedEntities: ['Meridian Capital', 'Sri Venkateswara', 'Shell-901', 'None'],
                                 riskExplanation: 'Layers of brokerage deposit values totaling ₹3.82M were routed dynamically via domestic shell conduits, triggering systemic thresholds.',
                                 notes: 'Compliance review triggered on layering behaviors. Sub-account activity is currently under close ledger inspection.'
                         },
                         'EN-982728': {
                                 id: 'EN-982728',
-                                name: 'Vertex Imports',
+                                name: 'Suresh Babu',
                                 type: 'Corporate',
                                 score: 62,
                                 transactions: 58,
@@ -944,15 +746,15 @@
                                 connectedCount: 2,
                                 lastActivity: '41 min ago',
                                 status: 'Normal',
-                                summary: 'Vertex Imports is a wholesale logistics merchant trading primarily with verified European industrial supply chains.',
+                                summary: 'Suresh Babu is a wholesale logistics merchant trading primarily with verified European industrial supply chains.',
                                 indicators: ['Standard merchant history', 'Verified device setup', 'Stable activity bounds'],
-                                connectedEntities: ['Apex Trading Ltd', 'Vanguard Logistics', 'None', 'None'],
-                                riskExplanation: 'Risk score of 62 is driven primarily by indirect association with high-velocity accounts (Apex Trading). Direct activity remains standard.',
+                                connectedEntities: ['Prakash Chatterjee', 'Vanguard Logistics', 'None', 'None'],
+                                riskExplanation: 'Risk score of 62 is driven primarily by indirect association with high-velocity accounts (Prakash Chatterjee). Direct activity remains standard.',
                                 notes: 'Standard audit checks passed. Verified supplier certificates in place.'
                         },
                         'EN-982714': {
                                 id: 'EN-982714',
-                                name: 'Northstar Holdings',
+                                name: 'Venkatesh Naidu',
                                 type: 'Corporate',
                                 score: 96,
                                 transactions: 210,
@@ -960,9 +762,9 @@
                                 connectedCount: 4,
                                 lastActivity: '1 hr ago',
                                 status: 'Flagged',
-                                summary: 'Northstar Holdings is an investment management vehicle showing high-risk offshore flow redirects to high-risk zones.',
+                                summary: 'Venkatesh Naidu is an investment management vehicle showing high-risk offshore flow redirects to high-risk zones.',
                                 indicators: ['Critical value transfers', 'Blacklist beneficiary match', 'Corridor risk rating'],
-                                connectedEntities: ['Apex Trading Ltd', 'Meridian Capital', 'Mule-441', 'Black-002'],
+                                connectedEntities: ['Prakash Chatterjee', 'Meridian Capital', 'Mule-441', 'Black-002'],
                                 riskExplanation: 'Extremely high transaction values (₹8.45M) routing to multiple nested corporate shells. Beneficiary matches verification checks on regional blacklists.',
                                 notes: 'Urgent compliance hold active. Shell directory checks indicate duplicate director registrations.'
                         },
@@ -978,7 +780,7 @@
                                 status: 'Normal',
                                 summary: 'Meridian Capital is a regional treasury branch managing institutional corporate liquidity transfers.',
                                 indicators: ['High volume, stable profile', 'Consistent corridor routing', 'Verified clearing credentials'],
-                                connectedEntities: ['Orion Financial', 'Northstar Holdings', 'Swift Logistics', 'None'],
+                                connectedEntities: ['Kalyan Chowdary', 'Venkatesh Naidu', 'Swift Logistics', 'None'],
                                 riskExplanation: 'Overall risk is low (45). Score is purely elevated due to institutional volume scales and nested counterparties.',
                                 notes: 'Standard clearing baseline verified. Monthly regulatory reporting completed.'
                         },
@@ -1010,13 +812,13 @@
                                 status: 'Normal',
                                 summary: 'Vanguard Logistics provides shipping and clearance ledger services to import networks.',
                                 indicators: ['Consistent clearing records', 'Low risk corridor routing', 'Verified transit audits'],
-                                connectedEntities: ['Vertex Imports', 'Atlas Global Trading', 'None', 'None'],
+                                connectedEntities: ['Suresh Babu', 'Atlas Global Trading', 'None', 'None'],
                                 riskExplanation: 'Standard logistics provider profile. Highly consistent transaction velocity indices.',
                                 notes: 'Audit checks verified. Profile baseline stable.'
                         },
                         'EN-982672': {
                                 id: 'EN-982672',
-                                name: 'Blackwood Assets',
+                                name: 'Sri Venkateswara',
                                 type: 'Corporate',
                                 score: 98,
                                 transactions: 15,
@@ -1024,9 +826,9 @@
                                 connectedCount: 2,
                                 lastActivity: '8 hrs ago',
                                 status: 'Blocked',
-                                summary: 'Blackwood Assets is a holding entity flagged for laundering and rapid offshore transfer liquidation loops.',
+                                summary: 'Sri Venkateswara is a holding entity flagged for laundering and rapid offshore transfer liquidation loops.',
                                 indicators: ['Liquidation patterns', 'UBO verification failure', 'Concentration flags'],
-                                connectedEntities: ['Orion Financial', 'Mule-882', 'None', 'None'],
+                                connectedEntities: ['Kalyan Chowdary', 'Mule-882', 'None', 'None'],
                                 riskExplanation: 'Risk score of 98 triggered due to failure to verify ultimate beneficial ownership (UBO) and attempt to liquidate ₹9.2M within 24 hours of account creation.',
                                 notes: 'Account frozen under Section 3 AML provisions. Legal review files prepared.'
                         },
@@ -1510,21 +1312,8 @@
                 });
 
                 // Caches rows on loaded DOM structure
-                window.addEventListener('DOMContentLoaded', () => {
-                        const rows = document.querySelectorAll('#entities-tbody tr');
-                        cachedRows = Array.from(rows).map(row => {
-                                const entId = row.getAttribute('data-entity-id');
-                                const data = entitiesDb[entId];
-                                return {
-                                        element: row,
-                                        id: entId.toLowerCase(),
-                                        name: data.name.toLowerCase(),
-                                        type: data.type.toLowerCase(),
-                                        risk: row.getAttribute('data-risk'),
-                                        status: data.status
-                                };
-                        });
-                        recountSummaryCards();
+                window.addEventListener('DOMContentLoaded', () => {
+			renderEntitiesTable();
                 });
         </script>
 </body>

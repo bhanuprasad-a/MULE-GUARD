@@ -504,8 +504,66 @@ Store.ingestTransaction({
 });
 Store.evaluateRules();
 const dormTriggers = Store.getAccounts()[dormAccId].triggers || [];
+console.log("\n====================================================");
 assert(dormTriggers.some(t => t.includes("Dormant Account Activation")), "R-DORM-1 must trigger for account created >90 days ago receiving >₹50,000 in 24h");
 
+// -----------------------------------------------------------------------------
+// Test 18: Watchlist Store API & Validation (Phase 6C)
+// -----------------------------------------------------------------------------
+console.log("\n[Test 18] Watchlist Store API & Validation Verification...");
+
+const testAccount = "ACC-982134";
+const initialWatchlistCount = Store.getWatchlist().length;
+
+// 1. Valid watchlist addition
+const addRes = Store.addToWatchlist(testAccount, "High velocity circular transfer patterns", "High", "A. Kumar");
+assert(addRes.success === true, "Valid watchlist addition should succeed");
+assert(Store.isWatchlisted(testAccount) === true, "Account should be reported as watchlisted");
+const currentWatchlist = Store.getWatchlist();
+assert(currentWatchlist.length === initialWatchlistCount + 1, "Watchlist count should increment by 1");
+const entry = currentWatchlist.find(e => e.accountId === testAccount);
+assert(entry !== undefined && entry.priority === "High" && entry.addedBy === "A. Kumar", "Watchlist entry should contain priority and investigator name");
+
+// 2. Duplicate addition rejection
+const dupRes = Store.addToWatchlist(testAccount, "Duplicate attempt", "High", "A. Kumar");
+assert(dupRes.success === false && dupRes.error.includes("already"), "Duplicate watchlist addition must be rejected");
+
+// 3. Nonexistent account rejection
+const nonExistRes = Store.addToWatchlist("ACC-INVALID-999", "Suspicious", "Medium", "A. Kumar");
+assert(nonExistRes.success === false && nonExistRes.error.includes("not found"), "Addition of nonexistent account must be rejected");
+
+// 4. Missing reason rejection
+const noReasonRes = Store.addToWatchlist("ACC-982135", "", "High", "A. Kumar");
+assert(noReasonRes.success === false && noReasonRes.error.includes("Reason"), "Addition without reason must be rejected");
+
+// 5. Invalid priority rejection
+const badPriRes = Store.addToWatchlist("ACC-982135", "Valid reason", "Urgent", "A. Kumar");
+assert(badPriRes.success === false && badPriRes.error.includes("priority"), "Addition with invalid priority must be rejected");
+
+// State immutability check after failed validation calls
+assert(Store.getWatchlist().length === initialWatchlistCount + 1, "Watchlist state must not mutate on validation failures");
+
+// 6. Audit trail verification for addition
+const auditLogsAfterAdd = Store.getLogs();
+const addLog = auditLogsAfterAdd.find(l => l.eventType === "WATCHLIST_ADD" && l.accountId === testAccount);
+assert(addLog !== undefined && addLog.addedBy === "A. Kumar", "Audit log entry must be created for successful watchlist addition");
+
+// 7. Successful removal
+const removeRes = Store.removeFromWatchlist(testAccount, "A. Kumar");
+assert(removeRes.success === true, "Watchlist removal should succeed");
+assert(Store.isWatchlisted(testAccount) === false, "Removed account should no longer be watchlisted");
+assert(Store.getWatchlist().length === initialWatchlistCount, "Watchlist length should return to baseline after removal");
+
+// 8. Removal of nonexistent entry failure
+const removeFailRes = Store.removeFromWatchlist(testAccount, "A. Kumar");
+assert(removeFailRes.success === false && removeFailRes.error.includes("not on the watchlist"), "Removal of nonexistent entry must fail safely");
+
+// 9. Audit trail verification for removal
+const auditLogsAfterRemove = Store.getLogs();
+const removeLog = auditLogsAfterRemove.find(l => l.eventType === "WATCHLIST_REMOVE" && l.accountId === testAccount);
+assert(removeLog !== undefined && removeLog.removedBy === "A. Kumar", "Audit log entry must be created for successful watchlist removal");
+
 console.log("\n====================================================");
-console.log("ALL TESTS COMPLETED SUCCESSFULLY: 17/17 PASS");
+console.log("ALL TESTS COMPLETED SUCCESSFULLY: 18/18 PASS");
 console.log("====================================================");
+

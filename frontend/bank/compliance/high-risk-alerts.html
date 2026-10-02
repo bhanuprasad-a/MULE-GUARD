@@ -14,6 +14,7 @@
         
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
         <script src="../../scripts/data-store.js"></script>
 
         <style>
@@ -34,8 +35,123 @@
 
         <!-- Left Navigation Sidebar -->
         <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
-                <!-- Will be dynamically populated by auth-guard.js -->
-        </aside>
+		<div class="flex flex-col flex-1 overflow-y-auto">
+			<!-- Sidebar Header & Logo with Collapsible Toggle -->
+			<div class="h-[70px] flex items-center justify-between px-5 border-b border-[#1e293b] select-none">
+				<a href="dashboard.html" class="flex items-center gap-2 overflow-hidden" title="MuleGuard Home">
+					<img alt="MuleGuard Logo" class="sidebar-logo-full w-[110px] h-auto object-contain transition-all" src="../../../assets/MULEGUARD_LOGO_W&G.png" />
+					<span class="sidebar-logo-compact hidden font-mono-technical font-extrabold text-[16px] text-secondary-container tracking-wider">MG</span>
+				</a>
+				<button id="sidebar-toggle-btn" onclick="toggleMuleGuardSidebar()" title="Toggle Sidebar (Expand/Collapse)" aria-label="Toggle Sidebar" class="text-on-primary-container/70 hover:text-on-primary p-1.5 rounded-lg hover:bg-secondary-container/20 transition-all focus:outline-none focus:ring-1 focus:ring-secondary/40 shrink-0">
+					<span class="material-symbols-outlined text-[20px] transition-transform duration-200" id="sidebar-toggle-icon">menu_open</span>
+				</button>
+			</div>
+
+			<!-- Sidebar Menu Groups -->
+			<nav class="flex-1 px-4 py-6 space-y-7">
+				<div class="space-y-1">
+					<div class="px-3 mb-2 sidebar-group-header">
+						<span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Compliance Control</span>
+					</div>
+					<a href="dashboard.html" id="nav-link-dashboard"  title="Dashboard" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">dashboard</span>
+						<span class="sidebar-text truncate">Dashboard</span>
+					</a>
+					<a href="escalated-cases.html" id="nav-link-escalated-cases"  title="Escalated Cases" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">warning</span>
+						<span class="sidebar-text truncate">Escalated Cases</span>
+					</a>
+					<a href="high-risk-alerts.html" id="nav-link-high-risk-alerts"  title="High-Risk Alerts" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary font-body-md text-[14px] bg-secondary-container/25 border-l-2 border-secondary-container hover:bg-secondary-container/30 transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] text-secondary-container shrink-0">error</span>
+						<span class="sidebar-text truncate font-medium">High-Risk Alerts</span>
+					</a>
+					<a href="decisions.html" id="nav-link-decisions"  title="Decisions / Review" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">gavel</span>
+						<span class="sidebar-text truncate">Decisions / Review</span>
+					</a>
+					<a href="reports.html" id="nav-link-reports"  title="Reports" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">assessment</span>
+						<span class="sidebar-text truncate">Reports</span>
+					</a>
+				</div>
+				<div class="space-y-1">
+					<div class="px-3 mb-2 sidebar-group-header">
+						<span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Investigation Tools</span>
+					</div>
+					<a href="investigations.html" id="nav-link-investigations"  title="Investigations" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">search_insights</span>
+						<span class="sidebar-text truncate">Investigations</span>
+					</a>
+					<a href="transactions.html" id="nav-link-transactions"  title="Transactions" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">receipt_long</span>
+						<span class="sidebar-text truncate">Transactions</span>
+					</a>
+					<a href="entities.html" id="nav-link-entities"  title="Entities" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">group</span>
+						<span class="sidebar-text truncate">Entities</span>
+					</a>
+					<a href="fraud_networks.html" id="nav-link-fraud_networks"  title="Fraud Networks" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">share</span>
+						<span class="sidebar-text truncate">Fraud Networks</span>
+					</a>
+					<a href="network-intelligence.html" id="nav-link-network-intelligence"  title="Network Intelligence" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">hub</span>
+						<span class="sidebar-text truncate">Network Intelligence</span>
+					</a>
+					<a href="alerts.html" id="nav-link-alerts"  title="Alerts" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">notifications_active</span>
+						<span class="sidebar-text truncate">Alerts</span>
+					</a>
+					<a href="cases.html" id="nav-link-cases"  title="Cases" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">work</span>
+						<span class="sidebar-text truncate">Cases</span>
+					</a>
+				</div>
+				<div class="space-y-1">
+					<div class="px-3 mb-2 sidebar-group-header">
+						<span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Oversight</span>
+					</div>
+					<a href="#" id="nav-link-regulatory-filings" onclick="showToast('Regulatory filings queue opened')" title="Regulatory Filings" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">description</span>
+						<span class="sidebar-text truncate">Regulatory Filings</span>
+					</a>
+					<a href="#" id="nav-link-audit-trail" onclick="showToast('Compliance audit trails opened')" title="Audit Trail" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">history</span>
+						<span class="sidebar-text truncate">Audit Trail</span>
+					</a>
+					<a href="#" id="nav-link-compliance-watchlist" onclick="showToast('Compliance watchlists opened')" title="Compliance Watchlist" class="nav-item-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+						<span class="material-symbols-outlined text-[20px] shrink-0">rule_folder</span>
+						<span class="sidebar-text truncate">Compliance Watchlist</span>
+					</a>
+				</div>
+			</nav>
+		</div>
+
+		<!-- Sidebar Footer Status -->
+		<div class="p-3 border-t border-[#1e293b] space-y-3">
+			<div class="sidebar-footer-status flex items-center justify-between px-1">
+				<div class="flex items-center gap-2">
+					<span class="inline-block w-2 h-2 rounded-full bg-risk-low animate-pulse"></span>
+					<span class="font-mono-technical text-[10px] text-[#38BDF8] tracking-wider uppercase">Systems OK</span>
+				</div>
+				<span class="font-mono-technical text-[10px] text-on-primary-container/40">v1.2.4</span>
+			</div>
+			<div class="flex items-center justify-between p-2 rounded-lg bg-primary/20 border border-[#1e293b]" title="A. Kumar (Senior Compliance Officer)">
+				<div class="flex items-center gap-3 overflow-hidden">
+					<div class="w-8 h-8 rounded-full bg-secondary-container/30 border border-[#316bf3]/30 flex items-center justify-center font-headline-md text-[12px] text-on-primary font-bold shrink-0">
+						AK
+					</div>
+					<div class="sidebar-footer-text flex flex-col overflow-hidden">
+						<span class="font-headline-md text-[13px] text-on-primary font-semibold leading-tight truncate">A. Kumar</span>
+						<span class="font-body-md text-[11px] text-on-primary-container/50 truncate">Senior Compliance Officer</span>
+					</div>
+				</div>
+				<button class="sidebar-footer-text text-on-primary-container/50 hover:text-on-primary transition-colors focus:outline-none ml-1" onclick="showToast('Settings opened.')">
+					<span class="material-symbols-outlined text-[18px]">settings</span>
+				</button>
+			</div>
+		</div>
+	</aside>
 
         <!-- Main Content Workspace Container -->
         <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">

@@ -11,7 +11,7 @@
                 rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
                 rel="stylesheet" />
-        <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="style.css?v=2.2" />
         <script>
                 // Intercept and suppress external Chrome extension errors/warnings
                 (function () {
@@ -91,6 +91,69 @@
                 .login-btn:disabled {
                         background-color: #94a3b8 !important;
                         cursor: not-allowed;
+                }
+
+                /* =========================================================
+                   FRS BIOMETRIC MODAL GUARANTEED LAYOUT & GLASSMORPHISM
+                   ========================================================= */
+                #frs-enroll-modal.hidden {
+                        display: none !important;
+                }
+
+                #frs-enroll-modal:not(.hidden) {
+                        display: flex !important;
+                        position: fixed !important;
+                        top: 0 !important;
+                        left: 0 !important;
+                        right: 0 !important;
+                        bottom: 0 !important;
+                        width: 100vw !important;
+                        height: 100vh !important;
+                        z-index: 99999 !important;
+                        background: rgba(3, 7, 18, 0.85) !important;
+                        backdrop-filter: blur(12px) !important;
+                        -webkit-backdrop-filter: blur(12px) !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        padding: 16px !important;
+                        box-sizing: border-box !important;
+                }
+
+                .frs-modal-card {
+                        position: relative !important;
+                        width: 100% !important;
+                        max-width: 520px !important;
+                        background: #0B1322 !important;
+                        border: 1px solid #1E293B !important;
+                        border-radius: 18px !important;
+                        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(56, 189, 248, 0.25) !important;
+                        padding: 22px !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 16px !important;
+                        color: #F8FAFC !important;
+                        max-height: 94vh !important;
+                        overflow-y: auto !important;
+                        box-sizing: border-box !important;
+                }
+
+                .frs-modal-card input[type="password"],
+                .frs-modal-card input[type="text"] {
+                        background-color: #111C30 !important;
+                        border: 1px solid #1E293B !important;
+                        color: #FFFFFF !important;
+                        border-radius: 8px !important;
+                        padding: 10px 14px !important;
+                        font-size: 13px !important;
+                        outline: none !important;
+                        width: 100% !important;
+                        box-sizing: border-box !important;
+                }
+
+                .frs-modal-card input[type="password"]:focus,
+                .frs-modal-card input[type="text"]:focus {
+                        border-color: #38BDF8 !important;
+                        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25) !important;
                 }
         </style>
 </head>
@@ -262,83 +325,376 @@
                                         <p class="font-body-md text-body-md text-on-surface-variant text-[14px]">Secure
                                                 access to the financial investigation environment.</p>
                                 </div>
-                                <!-- Form -->
-                                <form class="flex flex-col gap-[20px]" onsubmit="event.preventDefault();">
-                                        <!-- Institutional Role Selector -->
-                                        <div class="flex flex-col gap-2">
-                                                <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-500"
-                                                        for="role-select">Institutional Role</label>
-                                                <div class="relative">
-                                                        <select id="role-select" name="role-select"
-                                                                class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200 appearance-none cursor-pointer pr-10"
-                                                                style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23475569%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 16px top 50%; background-size: 12px auto;">
-                                                                <option value="bank_investigator" selected>Bank
-                                                                        Investigator</option>
-                                                                <option value="bank_compliance">Bank Compliance Officer
-                                                                </option>
-                                                                <option value="internal_team">Internal Team</option>
-                                                        </select>
+                                <!-- Stage 1: Employee Credentials Form -->
+                                <div id="stage1-container" class="flex flex-col gap-[20px]">
+                                        <!-- Quick Institutional Persona Selector -->
+                                        <div class="flex flex-col gap-1.5">
+                                                <div class="flex items-center justify-between">
+                                                        <label class="font-label-md text-label-md text-[11px] font-bold tracking-wider uppercase text-slate-400">Select Institutional Employee</label>
+                                                        <span class="text-[10px] text-blue-400 font-mono-technical font-semibold">CLICK TO SWITCH</span>
                                                 </div>
-                                        </div>
-                                        <!-- Email / ID Input -->
-                                        <div class="flex flex-col gap-2">
-                                                <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-500"
-                                                        for="identifier">Email / Employee ID</label>
-                                                <div class="relative">
-                                                        <input class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200"
-                                                                id="identifier" name="identifier"
-                                                                placeholder="Enter your email or ID" required=""
-                                                                type="text" />
-                                                </div>
-                                        </div>
-                                        <!-- Password Input -->
-                                        <div class="flex flex-col gap-2">
-                                                <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-500"
-                                                        for="password">Password</label>
-                                                <div class="relative">
-                                                        <input class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200 pr-12"
-                                                                id="password" name="password"
-                                                                placeholder="Enter your password" required=""
-                                                                type="password" />
-                                                        <button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface focus:outline-none"
-                                                                onclick="togglePassword()" type="button">
-                                                                <span class="material-symbols-outlined text-[20px]"
-                                                                        id="visibility-icon">visibility</span>
+                                                <div class="grid grid-cols-3 gap-2">
+                                                        <button type="button" id="persona-btn-inv" onclick="fillEmployee('MG-INV-001', 'Password@123', this)" class="px-2.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant hover:border-secondary hover:bg-secondary/10 transition-all text-left flex flex-col focus:outline-none focus:ring-1 focus:ring-secondary">
+                                                                <span class="font-headline-md text-[12px] font-bold text-on-surface">Investigator</span>
+                                                                <span class="font-mono-technical text-[10px] text-slate-400">MG-INV-001</span>
+                                                        </button>
+                                                        <button type="button" id="persona-btn-cmp" onclick="fillEmployee('MG-CMP-001', 'Password@123', this)" class="px-2.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant hover:border-secondary hover:bg-secondary/10 transition-all text-left flex flex-col focus:outline-none focus:ring-1 focus:ring-secondary">
+                                                                <span class="font-headline-md text-[12px] font-bold text-on-surface">Compliance</span>
+                                                                <span class="font-mono-technical text-[10px] text-slate-400">MG-CMP-001</span>
+                                                        </button>
+                                                        <button type="button" id="persona-btn-adm" onclick="fillEmployee('MG-ADM-001', 'Password@123', this)" class="px-2.5 py-2 rounded-lg bg-surface-container-low border border-outline-variant hover:border-secondary hover:bg-secondary/10 transition-all text-left flex flex-col focus:outline-none focus:ring-1 focus:ring-secondary">
+                                                                <span class="font-headline-md text-[12px] font-bold text-on-surface flex items-center gap-1">
+                                                                        <span>Internal Team</span>
+                                                                        <span class="text-[9px] text-amber-500 font-normal">★</span>
+                                                                </span>
+                                                                <span class="font-mono-technical text-[10px] text-slate-400">MG-ADM-001</span>
                                                         </button>
                                                 </div>
                                         </div>
-                                        <!-- Actions Row -->
-                                        <div class="flex items-center justify-between mt-1">
-                                                <label class="flex items-center gap-2 cursor-pointer group">
-                                                        <input class="w-4 h-4 rounded border-outline-variant text-secondary focus:ring-secondary focus:ring-offset-0 bg-interface-base transition-colors cursor-pointer"
-                                                                type="checkbox" />
-                                                        <span
-                                                                class="font-body-md text-body-md text-on-surface-variant group-hover:text-on-surface transition-colors text-[14px]">Remember
-                                                                me</span>
-                                                </label>
-                                                <a class="font-label-sm text-label-sm text-secondary hover:text-secondary-container transition-colors text-[13px]"
-                                                        href="#" onclick="showToast('Password reset link sent.')">Forgot
-                                                        password?</a>
+
+                                        <!-- FRS Biometric Face Registration Banner -->
+                                        <div class="p-3 rounded-xl bg-gradient-to-r from-blue-900/40 via-cyan-900/20 to-blue-950/40 border border-blue-500/40 flex items-center justify-between shadow-sm">
+                                                <div class="flex items-center gap-2.5">
+                                                        <div class="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/40 shrink-0">
+                                                                <span class="material-symbols-outlined text-[22px] animate-pulse">face</span>
+                                                        </div>
+                                                        <div>
+                                                                <div class="text-[12px] font-bold text-white flex items-center gap-1.5">
+                                                                        <span>FRS Face Enrollment</span>
+                                                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-mono-technical bg-blue-500/20 text-cyan-300 border border-blue-500/30 font-semibold">128-D SFACE</span>
+                                                                </div>
+                                                                <div class="text-[11px] text-slate-300">Add your face for Internal Team or all 3 logins</div>
+                                                        </div>
+                                                </div>
+                                                <button type="button" onclick="openEnrollModal(document.getElementById('identifier').value || 'MG-ADM-001')" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-semibold text-[11px] flex items-center gap-1.5 transition-all shadow-md shrink-0 focus:outline-none">
+                                                        <span class="material-symbols-outlined text-[15px]">add_a_photo</span>
+                                                        <span>Add My Face</span>
+                                                </button>
                                         </div>
-                                        <!-- Submit Button -->
-                                        <button class="login-btn" type="submit">
-                                                Sign In
-                                                <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-                                        </button>
-                                </form>
+
+                                        <form id="stage1-form" class="flex flex-col gap-[18px]">
+                                                <!-- Employee ID Input -->
+                                                <div class="flex flex-col gap-2">
+                                                        <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-400"
+                                                                for="identifier">Employee ID</label>
+                                                        <div class="relative">
+                                                                <input class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-mono-technical text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200"
+                                                                        id="identifier" name="identifier"
+                                                                        placeholder="e.g. MG-ADM-001" required=""
+                                                                        type="text" value="MG-ADM-001" />
+                                                        </div>
+                                                </div>
+                                                <!-- Password Input -->
+                                                <div class="flex flex-col gap-2">
+                                                        <label class="font-label-md text-label-md text-on-surface text-[12px] font-bold tracking-wider uppercase text-slate-400"
+                                                                for="password">Password (Argon2id)</label>
+                                                        <div class="relative">
+                                                                <input class="w-full bg-interface-base border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-colors duration-200 pr-12"
+                                                                        id="password" name="password"
+                                                                        placeholder="Enter password" required=""
+                                                                        type="password" value="Password@123" />
+                                                                <button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface focus:outline-none"
+                                                                        onclick="togglePassword()" type="button">
+                                                                        <span class="material-symbols-outlined text-[20px]"
+                                                                                id="visibility-icon">visibility</span>
+                                                                </button>
+                                                        </div>
+                                                </div>
+                                                <!-- Actions Row -->
+                                                <div class="flex items-center justify-between text-[12px]">
+                                                        <button type="button" onclick="openEnrollModal(document.getElementById('identifier').value || 'MG-ADM-001')" class="font-label-sm text-secondary hover:text-secondary-container flex items-center gap-1 text-[11px] transition-colors focus:outline-none">
+                                                                <span class="material-symbols-outlined text-[15px]">add_a_photo</span>
+                                                                <span>Enroll Face (FRS Biometrics)</span>
+                                                        </button>
+                                                        <a class="font-label-sm text-slate-400 hover:text-secondary transition-colors"
+                                                                href="#" onclick="showToast('Password reset requires administrative authorization.')">Forgot password?</a>
+                                                </div>
+                                                <!-- Submit Button -->
+                                                <button id="stage1-btn" class="login-btn flex items-center justify-center gap-2" type="submit">
+                                                        <span>Verify & Proceed to Face ID</span>
+                                                        <span class="material-symbols-outlined text-[18px]">fingerprint</span>
+                                                </button>
+                                        </form>
+                                </div>
+
+
+                                <!-- Stage 2: Biometric Face Verification & Liveness Challenge (Initially Hidden) -->
+                                <div id="stage2-container" class="hidden flex flex-col gap-[18px]">
+                                        <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
+                                                <div class="flex items-center justify-between border-b border-[#1e293b] pb-2.5">
+                                                        <div class="flex items-center gap-2">
+                                                                <span class="material-symbols-outlined text-secondary text-[22px] animate-pulse">face</span>
+                                                                <div>
+                                                                        <h3 class="font-headline-md text-[14px] font-bold text-on-primary" id="stage2-emp-name">Employee Face Verification</h3>
+                                                                        <span class="font-mono-technical text-[11px] text-slate-400" id="stage2-emp-id">MG-INV-001</span>
+                                                                </div>
+                                                        </div>
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-secondary/20 text-secondary border border-secondary/30">Step 2 of 2</span>
+                                                </div>
+
+                                                <!-- Camera / Holographic Scanner Preview -->
+                                                <div class="relative w-full h-[180px] bg-[#050B14] rounded-lg overflow-hidden border border-[#1e293b] flex items-center justify-center">
+                                                        <video id="webcam-feed" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover hidden"></video>
+                                                        
+                                                        <!-- Face Reticle / Scanner Overlay -->
+                                                        <div class="relative z-10 w-28 h-28 rounded-full border-2 border-dashed border-secondary/60 flex items-center justify-center animate-pulse">
+                                                                <span class="material-symbols-outlined text-[44px] text-secondary/40">person</span>
+                                                                <div class="absolute inset-0 rounded-full border border-secondary/20 animate-ping"></div>
+                                                        </div>
+                                                        <!-- Scan line -->
+                                                        <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-secondary to-transparent animate-bounce"></div>
+                                                        
+                                                        <div class="absolute bottom-2 inset-x-2 flex items-center justify-between text-[11px] px-2 py-1 rounded bg-[#0b1320]/80 border border-[#1e293b] text-slate-300">
+                                                                <span class="flex items-center gap-1.5">
+                                                                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="scanner-indicator"></span>
+                                                                        <span id="scanner-status">Sensor Ready</span>
+                                                                </span>
+                                                                <div class="flex items-center gap-2">
+                                                                        <button type="button" id="camera-toggle-btn" onclick="toggleWebcamFeed()" class="text-[10px] text-cyan-400 hover:text-cyan-300 underline font-mono-technical focus:outline-none">Toggle Camera</button>
+                                                                        <span class="font-mono-technical text-[10px] text-secondary font-bold">128-D SFACE</span>
+                                                                </div>
+                                                        </div>
+                                                </div>
+
+                                                <!-- Liveness Challenge Box -->
+                                                <div class="p-3 rounded-lg bg-interface-base border border-secondary/30 flex items-center gap-3">
+                                                        <span class="material-symbols-outlined text-secondary text-[24px]">visibility</span>
+                                                        <div class="flex-1">
+                                                                <div class="font-mono-technical text-[10px] uppercase text-secondary font-bold tracking-wider">Liveness Challenge</div>
+                                                                <div class="font-body-md text-[13px] text-on-surface font-semibold" id="liveness-instruction">Blink both eyes naturally</div>
+                                                        </div>
+                                                </div>
+
+                                                <!-- Helpful Bypass Tip -->
+                                                <div id="stage2-bypass-tip" class="hidden p-2 rounded-lg bg-blue-950/40 border border-blue-500/40 text-[11px] text-blue-200 flex items-center gap-2">
+                                                        <span class="material-symbols-outlined text-[16px] text-blue-400 shrink-0">info</span>
+                                                        <span>Camera/lighting issue? Click <strong>Bypass Camera</strong> below to sign in instantly with demo biometrics.</span>
+                                                </div>
+
+                                                <!-- Action Buttons -->
+                                                <div class="flex gap-2.5 pt-1">
+                                                        <button type="button" onclick="cancelStage2()" class="w-1/3 py-2.5 rounded-lg border border-outline-variant hover:bg-surface-container text-on-surface text-[13px] font-semibold transition-colors focus:outline-none">
+                                                                Back
+                                                        </button>
+                                                        <button type="button" id="stage2-verify-btn" onclick="executeStage2Verification()" class="flex-1 py-2.5 rounded-lg bg-secondary hover:bg-secondary-container text-white text-[13px] font-bold shadow-md hover:shadow-secondary/20 transition-all flex items-center justify-center gap-2 focus:outline-none">
+                                                                <span>Verify Face & Sign In</span>
+                                                                <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                                                        </button>
+                                                </div>
+
+                                                <!-- Instant Bypass Button -->
+                                                <div class="pt-0.5">
+                                                        <button type="button" id="stage2-simulated-btn" onclick="executeSimulatedStage2()" class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white text-[12px] font-bold shadow-sm hover:shadow-emerald-600/30 transition-all flex items-center justify-center gap-1.5 focus:outline-none">
+                                                                <span class="material-symbols-outlined text-[17px]">bolt</span>
+                                                                <span>Bypass Camera (Use Enrolled Demo Biometrics)</span>
+                                                        </button>
+                                                </div>
+
+                                                <!-- Live Camera Face Enrollment Option -->
+                                                <div class="flex items-center justify-between text-[11px] px-1 pt-1 text-slate-400 border-t border-[#1e293b]/60">
+                                                        <button type="button" onclick="enrollCurrentFace()" class="hover:text-secondary underline flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200 transition-colors">
+                                                                <span class="material-symbols-outlined text-[14px]">add_a_photo</span>
+                                                                <span>Enroll / Update Face from Camera</span>
+                                                        </button>
+                                                        <span class="text-[10px] opacity-70 font-mono-technical">AES-256-GCM</span>
+                                                </div>
+                                        </div>
+                                </div>
+
                                 <!-- Environment Badge -->
                                 <div
-                                        class="mt-8 flex items-center justify-center gap-2 bg-surface-container-low border border-surface-container-highest rounded-lg p-3 text-center">
+                                        class="mt-4 flex items-center justify-center gap-2 bg-surface-container-low border border-surface-container-highest rounded-lg p-3 text-center">
                                         <span
                                                 class="material-symbols-outlined text-outline text-[16px]">shield_lock</span>
                                         <span
-                                                class="font-mono-technical text-mono-technical text-on-surface-variant uppercase">Protected
-                                                Bank Investigation Environment</span>
+                                                class="font-mono-technical text-mono-technical text-on-surface-variant uppercase text-[11px]">Protected
+                                                Institutional Banking Environment</span>
                                 </div>
                         </div>
                         <!-- Footer Text -->
                         <div class="absolute bottom-6 font-label-sm text-label-sm text-outline-variant md:hidden z-10">
                                 © 2024 MuleGuard Financial Intelligence
+                        </div>
+                </div>
+        </div>
+
+        <!-- FRS Face Enrollment Modal -->
+        <div id="frs-enroll-modal" class="frs-modal-overlay hidden">
+                <div class="frs-modal-card">
+                        <!-- Modal Header -->
+                        <div class="flex items-center justify-between border-b border-[#1e293b] pb-3">
+                                <div class="flex items-center gap-2.5">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">face</span>
+                                        </div>
+                                        <div>
+                                                <h3 class="text-[15px] font-bold text-white flex items-center gap-2">
+                                                        <span>Add Your Face (FRS Biometrics)</span>
+                                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-mono-technical bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 uppercase font-semibold">128-D SFACE</span>
+                                                </h3>
+                                                <p class="text-[11px] text-slate-400">Enroll your face for biometric sign-in</p>
+                                        </div>
+                                </div>
+                                <button type="button" onclick="closeEnrollModal()" class="w-8 h-8 rounded-lg bg-[#1e293b]/60 hover:bg-[#1e293b] text-slate-400 hover:text-white flex items-center justify-center transition-colors focus:outline-none">
+                                        <span class="material-symbols-outlined text-[18px]">close</span>
+                                </button>
+                        </div>
+
+                        <!-- Step 1: Account Selection -->
+                        <div class="flex flex-col gap-2">
+                                <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Step 1: Choose Login Account to Enroll</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                        <button type="button" id="enroll-target-adm" onclick="selectEnrollTarget('MG-ADM-001')" class="px-2.5 py-2 rounded-lg bg-blue-500/20 border-2 border-blue-400 text-left flex flex-col transition-all focus:outline-none">
+                                                <span class="text-[12px] font-bold text-white flex items-center gap-1">
+                                                        <span>Internal Team</span>
+                                                        <span class="text-amber-400 text-[10px]">★</span>
+                                                </span>
+                                                <span class="font-mono-technical text-[10px] text-blue-300">MG-ADM-001</span>
+                                        </button>
+                                        <button type="button" id="enroll-target-inv" onclick="selectEnrollTarget('MG-INV-001')" class="px-2.5 py-2 rounded-lg bg-[#111c30] border border-[#1e293b] hover:border-blue-400 text-left flex flex-col transition-all focus:outline-none">
+                                                <span class="text-[12px] font-bold text-slate-200">Investigator</span>
+                                                <span class="font-mono-technical text-[10px] text-slate-400">MG-INV-001</span>
+                                        </button>
+                                        <button type="button" id="enroll-target-cmp" onclick="selectEnrollTarget('MG-CMP-001')" class="px-2.5 py-2 rounded-lg bg-[#111c30] border border-[#1e293b] hover:border-blue-400 text-left flex flex-col transition-all focus:outline-none">
+                                                <span class="text-[12px] font-bold text-slate-200">Compliance</span>
+                                                <span class="font-mono-technical text-[10px] text-slate-400">MG-CMP-001</span>
+                                        </button>
+                                </div>
+
+                                <!-- Multi-Account Sync Checkbox -->
+                                <label class="flex items-center gap-2.5 mt-1 px-3 py-2 rounded-lg bg-[#111c30] border border-[#1e293b] cursor-pointer hover:border-blue-500/50 transition-colors">
+                                        <input type="checkbox" id="enroll-all-roles-checkbox" checked class="w-4 h-4 rounded text-blue-500 bg-[#0c1424] border-[#334155] focus:ring-0 focus:ring-offset-0 cursor-pointer" />
+                                        <div class="flex-1">
+                                                <span class="text-[12px] font-semibold text-slate-200 flex items-center gap-1.5">
+                                                        <span>Enroll for ALL 3 Logins</span>
+                                                        <span class="text-[10px] text-cyan-400 font-mono-technical">(Recommended)</span>
+                                                </span>
+                                                <p class="text-[10px] text-slate-400">Sets your face for Internal Team, Investigator & Compliance with 1 click</p>
+                                        </div>
+                                </label>
+                        </div>
+
+                        <!-- Step 2: Password Verification -->
+                        <div class="flex flex-col gap-1.5">
+                                <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400" for="enroll-password">Step 2: Password Authorization (Argon2id)</label>
+                                <div class="relative">
+                                        <input type="password" id="enroll-password" value="Password@123" class="w-full bg-[#111c30] border border-[#1e293b] rounded-lg px-3.5 py-2 text-[13px] text-white focus:outline-none focus:border-blue-400 font-mono-technical pr-10" />
+                                        <button type="button" onclick="toggleEnrollPassword()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white focus:outline-none">
+                                                <span class="material-symbols-outlined text-[18px]" id="enroll-pwd-icon">visibility</span>
+                                        </button>
+                                </div>
+                        </div>
+
+                        <!-- Step 3: Capture Mode (Live Camera vs Upload Photo) -->
+                        <div class="flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                        <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Step 3: Face Capture</label>
+                                        <div class="flex rounded-lg bg-[#111c30] p-0.5 border border-[#1e293b]">
+                                                <button type="button" id="tab-btn-cam" onclick="switchEnrollMode('camera')" class="px-2.5 py-1 rounded text-[11px] font-semibold bg-blue-600 text-white transition-all flex items-center gap-1 focus:outline-none">
+                                                        <span class="material-symbols-outlined text-[13px]">videocam</span>
+                                                        <span>Live Camera</span>
+                                                </button>
+                                                <button type="button" id="tab-btn-file" onclick="switchEnrollMode('file')" class="px-2.5 py-1 rounded text-[11px] font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1 focus:outline-none">
+                                                        <span class="material-symbols-outlined text-[13px]">upload_file</span>
+                                                        <span>Upload Photo</span>
+                                                </button>
+                                        </div>
+                                </div>
+
+                                <!-- Live Camera Viewport -->
+                                <div id="enroll-cam-viewport" class="relative w-full h-[210px] bg-[#050B14] rounded-xl overflow-hidden border border-[#1e293b] flex items-center justify-center">
+                                        <video id="enroll-webcam" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover hidden"></video>
+                                        
+                                        <!-- Face Oval Alignment Reticle -->
+                                        <div id="enroll-reticle" class="relative z-10 w-28 h-36 rounded-full border-2 border-dashed border-blue-400/80 flex items-center justify-center animate-pulse">
+                                                <span class="material-symbols-outlined text-[48px] text-blue-400/40">person</span>
+                                                <div class="absolute inset-0 rounded-full border border-blue-400/30 animate-ping"></div>
+                                        </div>
+                                        <!-- Scan Line -->
+                                        <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-bounce"></div>
+
+                                        <!-- Camera Error Fallback Card -->
+                                        <div id="enroll-cam-error" class="hidden absolute inset-0 z-20 bg-[#0B1322]/95 flex flex-col items-center justify-center p-4 text-center gap-2">
+                                                <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                                                        <span class="material-symbols-outlined text-[24px]">videocam_off</span>
+                                                </div>
+                                                <div class="text-[12px] font-bold text-slate-200">Webcam Inaccessible or Blocked</div>
+                                                <p class="text-[11px] text-slate-400 max-w-[280px]">No camera device detected or browser permissions denied.</p>
+                                                <button type="button" onclick="switchEnrollMode('file')" class="mt-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold flex items-center gap-1.5 transition-all shadow-md">
+                                                        <span class="material-symbols-outlined text-[14px]">upload_file</span>
+                                                        <span>Switch to Photo Upload</span>
+                                                </button>
+                                        </div>
+                                        
+                                        <!-- Status Overlay -->
+                                        <div class="absolute bottom-2 inset-x-2 flex items-center justify-between text-[11px] px-2.5 py-1 rounded-lg bg-[#0b1320]/85 border border-[#1e293b] text-slate-200 z-10">
+                                                <span class="flex items-center gap-1.5" id="enroll-cam-status">
+                                                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                                        <span>Position face in the oval</span>
+                                                </span>
+                                                <span class="font-mono-technical text-[10px] text-cyan-400 font-bold">YuNet + SFace</span>
+                                        </div>
+                                </div>
+
+                                <!-- Upload Photo Viewport (Initially Hidden) -->
+                                <div id="enroll-file-viewport" class="hidden relative w-full h-[210px] bg-[#050B14] rounded-xl overflow-hidden border border-dashed border-[#334155] flex flex-col items-center justify-center p-4 cursor-pointer hover:border-blue-400 transition-colors" onclick="document.getElementById('enroll-file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropFile(event)">
+                                        <input type="file" id="enroll-file-input" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="handleEnrollFileSelected(event)" />
+                                        <img id="enroll-file-preview" class="absolute inset-0 w-full h-full object-cover hidden" alt="Uploaded face preview" />
+                                        <div id="enroll-file-placeholder" class="flex flex-col items-center gap-2 text-center select-none pointer-events-none">
+                                                <div class="w-11 h-11 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+                                                        <span class="material-symbols-outlined text-[24px]">add_photo_alternate</span>
+                                                </div>
+                                                <div>
+                                                        <span class="text-[13px] font-semibold text-slate-200">Click to upload photo or drag & drop</span>
+                                                        <p class="text-[11px] text-slate-400">JPEG, PNG or WebP with clear frontal face</p>
+                                                </div>
+                                        </div>
+                                        <button type="button" id="btn-change-photo" onclick="event.stopPropagation(); document.getElementById('enroll-file-input').click()" class="hidden absolute top-2 right-2 px-2 py-1 rounded bg-[#0b1320]/80 hover:bg-[#0b1320] border border-[#334155] text-[11px] text-slate-200 flex items-center gap-1 z-10">
+                                                <span class="material-symbols-outlined text-[13px]">refresh</span>
+                                                <span>Change Photo</span>
+                                        </button>
+                                </div>
+
+                                <!-- Quick Test Sample Photo Helper -->
+                                <div class="flex items-center justify-between px-1">
+                                        <span class="text-[11px] text-slate-400">Need a photo to test?</span>
+                                        <button type="button" onclick="loadDemoSampleFace()" class="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 focus:outline-none transition-colors">
+                                                <span class="material-symbols-outlined text-[14px]">auto_fix_high</span>
+                                                <span>Use Sample Face (Demo)</span>
+                                        </button>
+                                </div>
+                        </div>
+
+                        <!-- Real-time Progress / Feedback -->
+                        <div id="enroll-progress-box" class="hidden p-3 rounded-lg bg-blue-950/40 border border-blue-500/40 flex items-center gap-2.5 text-[12px] text-blue-200">
+                                <span class="material-symbols-outlined text-[18px] animate-spin text-cyan-400">sync</span>
+                                <span id="enroll-progress-text">Extracting facial landmarks & SFace embeddings...</span>
+                        </div>
+
+                        <!-- Success Box -->
+                        <div id="enroll-success-box" class="hidden p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-500/50 flex flex-col gap-2">
+                                <div class="flex items-center gap-2 text-emerald-400">
+                                        <span class="material-symbols-outlined text-[22px]">check_circle</span>
+                                        <span class="font-bold text-[13px]">Face Registered Successfully!</span>
+                                </div>
+                                <div class="text-[11px] text-slate-300 leading-relaxed" id="enroll-success-detail">
+                                        Your face is now enrolled with 128-D OpenCV SFace biometrics.
+                                </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2.5 pt-1">
+                                <button type="button" onclick="closeEnrollModal()" class="w-1/3 py-2.5 rounded-xl border border-[#334155] hover:bg-[#1e293b] text-slate-300 text-[13px] font-semibold transition-colors focus:outline-none">
+                                        Close
+                                </button>
+                                <button type="button" id="btn-submit-enroll" onclick="executeFaceEnrollment()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-98 text-white text-[13px] font-bold shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 focus:outline-none">
+                                        <span class="material-symbols-outlined text-[18px]">camera</span>
+                                        <span id="enroll-btn-label">Capture & Enroll Face</span>
+                                </button>
+                                <button type="button" id="btn-login-with-face" onclick="proceedToLoginWithEnrolledFace()" class="hidden flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white text-[13px] font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 focus:outline-none">
+                                        <span>Sign In Now as Internal Team</span>
+                                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                </button>
                         </div>
                 </div>
         </div>
@@ -364,7 +720,7 @@
                         toastTimeout = setTimeout(() => {
                                 toast.classList.remove('translate-y-0', 'opacity-100');
                                 toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-                        }, 2800);
+                        }, 3500);
                 }
 
                 function togglePassword() {
@@ -380,73 +736,721 @@
                         }
                 }
 
-                // Connect form submission redirect to role-based dashboard
-                window.addEventListener('DOMContentLoaded', () => {
-                        const form = document.querySelector('form');
-                        if (form) {
-                                form.addEventListener('submit', (e) => {
-                                        e.preventDefault();
-                                        const selectedRoleVal = document.getElementById('role-select').value;
-                                        const identifierInput = document.getElementById('identifier').value.trim();
-                                        const passwordInput = document.getElementById('password').value.trim();
+                function fillEmployee(empId, pwd, clickedBtn) {
+                        document.getElementById('identifier').value = empId;
+                        document.getElementById('password').value = pwd;
 
-                                        if (!identifierInput || !passwordInput) {
-                                                showToast("Please enter your credentials.");
+                        // Update styling on persona buttons
+                        ['persona-btn-inv', 'persona-btn-cmp', 'persona-btn-adm'].forEach(id => {
+                                const btn = document.getElementById(id);
+                                if (btn) {
+                                        btn.classList.remove('border-secondary', 'bg-secondary/15', 'ring-1', 'ring-secondary');
+                                        btn.classList.add('border-outline-variant');
+                                }
+                        });
+
+                        let targetBtn = clickedBtn;
+                        if (!targetBtn) {
+                                if (empId === 'MG-INV-001') targetBtn = document.getElementById('persona-btn-inv');
+                                else if (empId === 'MG-CMP-001') targetBtn = document.getElementById('persona-btn-cmp');
+                                else targetBtn = document.getElementById('persona-btn-adm');
+                        }
+
+                        if (targetBtn) {
+                                targetBtn.classList.remove('border-outline-variant');
+                                targetBtn.classList.add('border-secondary', 'bg-secondary/15', 'ring-1', 'ring-secondary');
+                        }
+
+                        const label = empId === 'MG-ADM-001' ? 'Internal Team (MG-ADM-001)' : empId;
+                        showToast("Selected " + label);
+                }
+
+                // Active authentication session state
+                let currentChallenge = null;
+                let activeMediaStream = null;
+
+                function cancelStage2() {
+                        if (activeMediaStream) {
+                                activeMediaStream.getTracks().forEach(t => t.stop());
+                                activeMediaStream = null;
+                        }
+                        currentChallenge = null;
+                        document.getElementById('stage2-container').classList.add('hidden');
+                        document.getElementById('stage1-container').classList.remove('hidden');
+                        const btn = document.getElementById('stage1-btn');
+                        btn.disabled = false;
+                        btn.innerHTML = `<span>Verify & Proceed to Face ID</span><span class="material-symbols-outlined text-[18px]">fingerprint</span>`;
+                }
+
+                let isCameraDisabled = false;
+
+                function toggleWebcamFeed() {
+                        isCameraDisabled = !isCameraDisabled;
+                        const video = document.getElementById('webcam-feed');
+                        const btn = document.getElementById('camera-toggle-btn');
+                        const indicator = document.getElementById('scanner-indicator');
+                        const statusEl = document.getElementById('scanner-status');
+                        if (isCameraDisabled) {
+                                if (video) video.classList.add('hidden');
+                                if (activeMediaStream) {
+                                        activeMediaStream.getTracks().forEach(t => t.stop());
+                                        activeMediaStream = null;
+                                }
+                                if (btn) btn.textContent = 'Enable Camera';
+                                if (indicator) indicator.className = 'w-2 h-2 rounded-full bg-amber-400';
+                                if (statusEl) statusEl.textContent = 'Demo Key Mode (Camera Off)';
+                                showToast("Webcam disabled. Using demo biometric key mode.");
+                        } else {
+                                initWebcam();
+                                if (btn) btn.textContent = 'Toggle Camera';
+                                if (indicator) indicator.className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+                                if (statusEl) statusEl.textContent = 'Camera Streaming (Face Locked)';
+                                showToast("Webcam enabled for live face verification.");
+                        }
+                }
+
+                // Start webcam for Stage 2 if allowed by browser
+                async function initWebcam() {
+                        if (isCameraDisabled) return;
+                        try {
+                                const video = document.getElementById('webcam-feed');
+                                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                        activeMediaStream = await navigator.mediaDevices.getUserMedia({ video: { width: 480, height: 360 } });
+                                        video.srcObject = activeMediaStream;
+                                        video.classList.remove('hidden');
+                                        document.getElementById('scanner-status').textContent = 'Camera Streaming (Face Locked)';
+                                }
+                        } catch (err) {
+                                document.getElementById('scanner-status').textContent = 'Biometric Sensor Active (Simulated)';
+                        }
+                }
+
+                // ==========================================
+                // FRS BIOMETRIC FACE ENROLLMENT LOGIC
+                // ==========================================
+                let enrollTargetEmpId = 'MG-ADM-001';
+                let enrollMediaStream = null;
+                let enrollMode = 'camera'; // 'camera' or 'file'
+                let uploadedImageBase64 = null;
+
+                function openEnrollModal(targetEmpId = 'MG-ADM-001') {
+                        const modal = document.getElementById('frs-enroll-modal');
+                        modal.classList.remove('hidden');
+
+                        // Reset modal states
+                        document.getElementById('enroll-progress-box').classList.add('hidden');
+                        document.getElementById('enroll-success-box').classList.add('hidden');
+                        document.getElementById('btn-submit-enroll').classList.remove('hidden');
+                        document.getElementById('btn-login-with-face').classList.add('hidden');
+
+                        // Select the target persona (defaults to Internal Team)
+                        selectEnrollTarget(targetEmpId || 'MG-ADM-001');
+
+                        // Start camera if camera mode is active
+                        switchEnrollMode('camera');
+                }
+
+                function closeEnrollModal() {
+                        if (enrollMediaStream) {
+                                enrollMediaStream.getTracks().forEach(t => t.stop());
+                                enrollMediaStream = null;
+                        }
+                        document.getElementById('frs-enroll-modal').classList.add('hidden');
+                }
+
+                function selectEnrollTarget(empId) {
+                        enrollTargetEmpId = empId;
+                        const targets = ['adm', 'inv', 'cmp'];
+                        targets.forEach(t => {
+                                const btn = document.getElementById('enroll-target-' + t);
+                                if (btn) {
+                                        btn.className = "px-2.5 py-2 rounded-lg bg-[#111c30] border border-[#1e293b] hover:border-blue-400 text-left flex flex-col transition-all focus:outline-none";
+                                }
+                        });
+
+                        let activeBtnId = 'enroll-target-adm';
+                        if (empId === 'MG-INV-001') activeBtnId = 'enroll-target-inv';
+                        else if (empId === 'MG-CMP-001') activeBtnId = 'enroll-target-cmp';
+
+                        const activeBtn = document.getElementById(activeBtnId);
+                        if (activeBtn) {
+                                activeBtn.className = "px-2.5 py-2 rounded-lg bg-blue-500/20 border-2 border-blue-400 text-left flex flex-col transition-all focus:outline-none";
+                        }
+                }
+
+                function toggleEnrollPassword() {
+                        const pwd = document.getElementById('enroll-password');
+                        const icon = document.getElementById('enroll-pwd-icon');
+                        if (pwd.type === 'password') {
+                                pwd.type = 'text';
+                                icon.textContent = 'visibility_off';
+                        } else {
+                                pwd.type = 'password';
+                                icon.textContent = 'visibility';
+                        }
+                }
+
+                async function switchEnrollMode(mode) {
+                        enrollMode = mode;
+                        const camTab = document.getElementById('tab-btn-cam');
+                        const fileTab = document.getElementById('tab-btn-file');
+                        const camView = document.getElementById('enroll-cam-viewport');
+                        const fileView = document.getElementById('enroll-file-viewport');
+                        const btnLabel = document.getElementById('enroll-btn-label');
+                        const camError = document.getElementById('enroll-cam-error');
+
+                        if (mode === 'camera') {
+                                camTab.className = "px-2.5 py-1 rounded text-[11px] font-semibold bg-blue-600 text-white transition-all flex items-center gap-1 focus:outline-none";
+                                fileTab.className = "px-2.5 py-1 rounded text-[11px] font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1 focus:outline-none";
+                                camView.classList.remove('hidden');
+                                fileView.classList.add('hidden');
+                                if (camError) camError.classList.add('hidden');
+                                btnLabel.textContent = "Capture & Enroll Face";
+
+                                // Start webcam with relaxed constraints
+                                try {
+                                        const video = document.getElementById('enroll-webcam');
+                                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                                try {
+                                                        enrollMediaStream = await navigator.mediaDevices.getUserMedia({ 
+                                                                video: { width: { ideal: 640 }, height: { ideal: 480 } } 
+                                                        });
+                                                } catch (e1) {
+                                                        enrollMediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                                                }
+                                                video.srcObject = enrollMediaStream;
+                                                video.classList.remove('hidden');
+                                                document.getElementById('enroll-cam-status').innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>Webcam Live — Face Center</span>';
+                                        } else {
+                                                throw new Error("Webcam API not supported in browser");
+                                        }
+                                } catch (err) {
+                                        console.warn("Webcam access failed:", err);
+                                        if (camError) camError.classList.remove('hidden');
+                                        document.getElementById('enroll-cam-status').innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span>Webcam unavailable — use Photo Upload</span>';
+                                        // Auto-switch to file mode after brief notice so user is never stuck
+                                        setTimeout(() => {
+                                                if (enrollMode === 'camera' && (!enrollMediaStream || !video.srcObject)) {
+                                                        switchEnrollMode('file');
+                                                        showToast("Camera unavailable. Switched to Photo Upload mode.");
+                                                }
+                                        }, 1200);
+                                }
+                        } else {
+                                fileTab.className = "px-2.5 py-1 rounded text-[11px] font-semibold bg-blue-600 text-white transition-all flex items-center gap-1 focus:outline-none";
+                                camTab.className = "px-2.5 py-1 rounded text-[11px] font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1 focus:outline-none";
+                                fileView.classList.remove('hidden');
+                                camView.classList.add('hidden');
+                                btnLabel.textContent = "Upload & Enroll Face";
+
+                                if (enrollMediaStream) {
+                                        enrollMediaStream.getTracks().forEach(t => t.stop());
+                                        enrollMediaStream = null;
+                                }
+
+                                if (uploadedImageBase64) {
+                                        const preview = document.getElementById('enroll-file-preview');
+                                        const placeholder = document.getElementById('enroll-file-placeholder');
+                                        const changeBtn = document.getElementById('btn-change-photo');
+                                        preview.src = uploadedImageBase64;
+                                        preview.classList.remove('hidden');
+                                        placeholder.classList.add('hidden');
+                                        if (changeBtn) changeBtn.classList.remove('hidden');
+                                }
+                        }
+                }
+
+                function processImageFile(file) {
+                        if (!file || !file.type.startsWith('image/')) {
+                                showToast("Please select a valid image file (JPEG, PNG, WebP).");
+                                return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                                uploadedImageBase64 = event.target.result;
+                                const preview = document.getElementById('enroll-file-preview');
+                                const placeholder = document.getElementById('enroll-file-placeholder');
+                                const changeBtn = document.getElementById('btn-change-photo');
+                                preview.src = uploadedImageBase64;
+                                preview.classList.remove('hidden');
+                                placeholder.classList.add('hidden');
+                                if (changeBtn) changeBtn.classList.remove('hidden');
+                                showToast("Face photo loaded. Click 'Upload & Enroll Face' to complete.");
+                        };
+                        reader.readAsDataURL(file);
+                }
+
+                function handleEnrollFileSelected(e) {
+                        const file = e.target.files && e.target.files[0];
+                        if (file) processImageFile(file);
+                }
+
+                function handleDragOver(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.dataTransfer.dropEffect = 'copy';
+                        const vp = document.getElementById('enroll-file-viewport');
+                        if (vp) vp.classList.add('border-blue-400', 'bg-blue-950/30');
+                }
+
+                function handleDragLeave(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const vp = document.getElementById('enroll-file-viewport');
+                        if (vp) vp.classList.remove('border-blue-400', 'bg-blue-950/30');
+                }
+
+                function handleDropFile(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const vp = document.getElementById('enroll-file-viewport');
+                        if (vp) vp.classList.remove('border-blue-400', 'bg-blue-950/30');
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                processImageFile(e.dataTransfer.files[0]);
+                        }
+                }
+
+                async function loadDemoSampleFace() {
+                        try {
+                                showToast("Loading high-quality sample face photo...");
+                                const res = await fetch('/api/v1/auth/demo-sample-face');
+                                const data = await res.json();
+                                if (data.success && data.image_base64) {
+                                        uploadedImageBase64 = data.image_base64;
+                                        switchEnrollMode('file');
+                                        const preview = document.getElementById('enroll-file-preview');
+                                        const placeholder = document.getElementById('enroll-file-placeholder');
+                                        const changeBtn = document.getElementById('btn-change-photo');
+                                        preview.src = uploadedImageBase64;
+                                        preview.classList.remove('hidden');
+                                        placeholder.classList.add('hidden');
+                                        if (changeBtn) changeBtn.classList.remove('hidden');
+                                        showToast("Sample face loaded! Click 'Upload & Enroll Face' to save.");
+                                } else {
+                                        showToast(data.error || "Could not load sample face.");
+                                }
+                        } catch (err) {
+                                showToast("Failed to fetch demo sample face: " + err.message);
+                        }
+                }
+
+                async function executeFaceEnrollment() {
+                        const pwd = document.getElementById('enroll-password').value.trim();
+                        if (!pwd) {
+                                showToast("Please enter the account password to authorize enrollment.");
+                                return;
+                        }
+
+                        let imageB64 = null;
+
+                        if (enrollMode === 'camera') {
+                                const video = document.getElementById('enroll-webcam');
+                                if (!enrollMediaStream || !video || video.videoWidth === 0) {
+                                        if (uploadedImageBase64) {
+                                                imageB64 = uploadedImageBase64;
+                                        } else {
+                                                showToast("Webcam is not active. Please grant camera permission or use Upload Photo.");
+                                                switchEnrollMode('file');
+                                                return;
+                                        }
+                                } else {
+                                        const canvas = document.createElement('canvas');
+                                        canvas.width = video.videoWidth || 480;
+                                        canvas.height = video.videoHeight || 360;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                        imageB64 = canvas.toDataURL('image/jpeg', 0.90);
+                                }
+                        } else {
+                                if (!uploadedImageBase64) {
+                                        showToast("Please choose a photo file or click 'Use Sample Face'.");
+                                        return;
+                                }
+                                imageB64 = uploadedImageBase64;
+                        }
+
+                        const isAllRolesChecked = document.getElementById('enroll-all-roles-checkbox').checked;
+                        const progressBox = document.getElementById('enroll-progress-box');
+                        const progressText = document.getElementById('enroll-progress-text');
+                        const successBox = document.getElementById('enroll-success-box');
+                        const submitBtn = document.getElementById('btn-submit-enroll');
+
+                        progressBox.classList.remove('hidden');
+                        successBox.classList.add('hidden');
+                        submitBtn.disabled = true;
+                        progressText.textContent = "Detecting face & extracting 128-D SFace embedding...";
+
+                        try {
+                                const res = await fetch('/api/v1/auth/enroll-face', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                                employee_id: enrollTargetEmpId,
+                                                password: pwd,
+                                                image_base64: imageB64,
+                                                target_all_roles: isAllRolesChecked
+                                        })
+                                });
+
+                                const data = await res.json();
+                                progressBox.classList.add('hidden');
+                                submitBtn.disabled = false;
+
+                                if (!res.ok) {
+                                        showToast(data.detail || "Face enrollment failed.");
+                                        return;
+                                }
+
+                                // Success!
+                                successBox.classList.remove('hidden');
+                                submitBtn.classList.add('hidden');
+
+                                const loginBtn = document.getElementById('btn-login-with-face');
+                                loginBtn.classList.remove('hidden');
+                                const roleLabel = enrollTargetEmpId === 'MG-ADM-001' ? 'Internal Team' : (enrollTargetEmpId === 'MG-CMP-001' ? 'Compliance' : 'Investigator');
+                                loginBtn.querySelector('span').textContent = `Sign In Now as ${roleLabel}`;
+
+                                const accountsText = isAllRolesChecked 
+                                        ? "All 3 Logins (Internal Team, Investigator, Compliance)" 
+                                        : `${roleLabel} (${enrollTargetEmpId})`;
+
+                                document.getElementById('enroll-success-detail').innerHTML = `
+                                        <div><strong>Enrolled for:</strong> ${accountsText}</div>
+                                        <div><strong>Quality Score:</strong> ${data.quality_score}% (High Quality)</div>
+                                        <div class="text-[10px] text-cyan-300 font-mono-technical mt-1">128-D Vector Encrypted with AES-256-GCM & Saved to PostgreSQL</div>
+                                `;
+
+                                showToast("Face enrolled successfully!");
+
+                                // Pre-fill login credentials on main form
+                                fillEmployee(enrollTargetEmpId, pwd);
+
+                        } catch (err) {
+                                progressBox.classList.add('hidden');
+                                submitBtn.disabled = false;
+                                showToast("Enrollment error: " + err.message);
+                        }
+                }
+
+                function proceedToLoginWithEnrolledFace() {
+                        const pwd = document.getElementById('enroll-password').value.trim();
+                        closeEnrollModal();
+                        fillEmployee(enrollTargetEmpId, pwd);
+
+                        // Trigger Stage 1 submission automatically
+                        setTimeout(() => {
+                                const submitBtn = document.getElementById('stage1-btn');
+                                if (submitBtn) submitBtn.click();
+                        }, 200);
+                }
+
+                // Stage 1: Form Submit Handler
+                window.addEventListener('DOMContentLoaded', () => {
+                        // Initialize default persona selector highlight
+                        fillEmployee('MG-ADM-001', 'Password@123');
+
+                        const stage1Form = document.getElementById('stage1-form');
+                        if (stage1Form) {
+                                stage1Form.addEventListener('submit', async (e) => {
+                                        e.preventDefault();
+                                        const empId = document.getElementById('identifier').value.trim();
+                                        const pwd = document.getElementById('password').value.trim();
+
+                                        if (!empId || !pwd) {
+                                                showToast("Please enter Employee ID and Password.");
                                                 return;
                                         }
 
-                                        let role = 'bank_investigator';
-                                        let subRole = '';
-                                        let userName = 'J. Doe';
-                                        let userTitle = 'Bank Investigator';
+                                        const submitBtn = document.getElementById('stage1-btn');
+                                        submitBtn.disabled = true;
+                                        submitBtn.innerHTML = `Verifying Credentials... <span class="material-symbols-outlined text-[18px] animate-spin">sync</span>`;
 
-                                        if (selectedRoleVal === 'bank_compliance') {
-                                                role = 'bank_compliance';
-                                                userName = 'A. Kumar';
-                                                userTitle = 'Bank Compliance Officer';
-                                        } else if (selectedRoleVal === 'internal_team') {
-                                                role = 'internal_team';
-                                                userName = 'T. Miller';
-                                                userTitle = 'Platform Administrator';
-                                        } else {
-                                                role = 'bank_investigator';
-                                                userName = 'J. Doe';
-                                                userTitle = 'Bank Investigator';
-                                        }
+                                        try {
+                                                const res = await fetch('/api/v1/auth/stage1-login', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ employee_id: empId, password: pwd })
+                                                });
 
-                                        // Save session
-                                        const session = {
-                                                authenticated: true,
-                                                role: role,
-                                                subRole: subRole,
-                                                user: {
-                                                        name: userName,
-                                                        title: userTitle
+                                                const data = await res.json();
+
+                                                if (!res.ok) {
+                                                        showToast(data.detail || "Authentication failed.");
+                                                        submitBtn.disabled = false;
+                                                        submitBtn.innerHTML = `<span>Verify & Proceed to Face ID</span><span class="material-symbols-outlined text-[18px]">fingerprint</span>`;
+                                                        return;
                                                 }
-                                        };
-                                        sessionStorage.setItem('muleguard_session', JSON.stringify(session));
 
-                                        // Set loading state on button
-                                        const submitBtn = form.querySelector('button[type="submit"]');
-                                        if (submitBtn) {
-                                                submitBtn.disabled = true;
-                                                submitBtn.innerHTML = `Signing In... <span class="material-symbols-outlined text-[18px] animate-spin">sync</span>`;
-                                        }
-
-                                        // Redirect to dashboard based on role
-                                        setTimeout(() => {
-                                                if (role === 'internal_team') {
-                                                        window.location.href = 'internal/dashboard.html';
-                                                } else if (role === 'bank_compliance') {
-                                                        window.location.href = 'bank/compliance/dashboard.html';
-                                                } else {
-                                                        window.location.href = 'bank/investigator/dashboard.html';
+                                                // Stage 1 Passed: Transition to Stage 2
+                                                currentChallenge = data;
+                                                document.getElementById('stage2-emp-name').textContent = data.full_name || empId;
+                                                document.getElementById('stage2-emp-id').textContent = empId;
+                                                if (data.challenge && data.challenge.instruction) {
+                                                        document.getElementById('liveness-instruction').textContent = data.challenge.instruction;
                                                 }
-                                        }, 150);
+
+                                                document.getElementById('stage1-container').classList.add('hidden');
+                                                document.getElementById('stage2-container').classList.remove('hidden');
+                                                showToast("Credentials verified. Complete face liveness.");
+                                                initWebcam();
+
+                                        } catch (err) {
+                                                showToast("Backend connection error: " + err.message);
+                                                submitBtn.disabled = false;
+                                                submitBtn.innerHTML = `<span>Verify & Proceed to Face ID</span><span class="material-symbols-outlined text-[18px]">fingerprint</span>`;
+                                        }
                                 });
                         }
                 });
+
+                // Stage 2: Quick Face Enrollment Trigger from Stage 2
+                function enrollCurrentFace() {
+                        const targetId = (currentChallenge && currentChallenge.employee_id) || document.getElementById('identifier').value || 'MG-ADM-001';
+                        openEnrollModal(targetId);
+                }
+
+                async function refreshChallengeToken() {
+                        const empId = (currentChallenge && currentChallenge.employee_id) || document.getElementById('identifier').value.trim();
+                        const pwd = document.getElementById('password').value.trim();
+                        if (!empId || !pwd) return;
+                        try {
+                                const res = await fetch('/api/v1/auth/stage1-login', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ employee_id: empId, password: pwd })
+                                });
+                                const data = await res.json();
+                                if (res.ok && data.challenge) {
+                                        currentChallenge = data;
+                                        if (data.challenge.instruction) {
+                                                document.getElementById('liveness-instruction').textContent = data.challenge.instruction;
+                                        }
+                                }
+                        } catch (e) {
+                                console.warn("Could not refresh challenge token:", e);
+                        }
+                }
+
+                // Stage 2: Biometric Execution
+                async function executeStage2Verification() {
+                        if (!currentChallenge || !currentChallenge.challenge) {
+                                await refreshChallengeToken();
+                        }
+                        if (!currentChallenge || !currentChallenge.challenge) {
+                                showToast("No active challenge. Please re-enter credentials.");
+                                cancelStage2();
+                                return;
+                        }
+
+                        const verifyBtn = document.getElementById('stage2-verify-btn');
+                        const simBtn = document.getElementById('stage2-simulated-btn');
+                        const statusEl = document.getElementById('scanner-status');
+                        const empId = currentChallenge.employee_id;
+                        const challengeToken = currentChallenge.challenge.challenge_token;
+                        const challengeAction = currentChallenge.challenge.challenge_action;
+                        const challengeInstruction = currentChallenge.challenge.instruction;
+
+                        const video = document.getElementById('webcam-feed');
+
+                        // If camera is explicitly disabled or stream is not ready, run simulated bypass directly
+                        if (isCameraDisabled || !activeMediaStream || !video || video.paused || video.videoWidth === 0) {
+                                return await executeSimulatedStage2();
+                        }
+
+                        verifyBtn.disabled = true;
+                        if (simBtn) simBtn.disabled = true;
+
+                        try {
+                                let baselineImageBase64 = null;
+                                let actionImageBase64 = null;
+
+                                const captureFrame = () => {
+                                        const canvas = document.createElement('canvas');
+                                        canvas.width = video.videoWidth || 480;
+                                        canvas.height = video.videoHeight || 360;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                        return canvas.toDataURL('image/jpeg', 0.90);
+                                };
+
+                                // Step 1: Baseline Neutral Face Capture with visual countdown
+                                statusEl.textContent = '1/2: Look directly at camera (Neutral frame)...';
+                                verifyBtn.innerHTML = `Hold Neutral Face (2s)... <span class="material-symbols-outlined text-[18px] animate-pulse">face</span>`;
+                                await new Promise(r => setTimeout(r, 1000));
+                                verifyBtn.innerHTML = `Hold Neutral Face (1s)... <span class="material-symbols-outlined text-[18px] animate-pulse">face</span>`;
+                                await new Promise(r => setTimeout(r, 800));
+                                baselineImageBase64 = captureFrame();
+
+                                // Step 2: Active Liveness Movement Capture
+                                statusEl.textContent = `2/2: ${challengeInstruction}...`;
+                                verifyBtn.innerHTML = `Now: ${challengeInstruction}! <span class="material-symbols-outlined text-[18px] animate-pulse">directions_run</span>`;
+                                await new Promise(r => setTimeout(r, 1800));
+                                actionImageBase64 = captureFrame();
+
+                                statusEl.textContent = 'Evaluating Passive PAD & Landmark Motion...';
+                                verifyBtn.innerHTML = `Analyzing PAD & Liveness... <span class="material-symbols-outlined text-[18px] animate-spin">security</span>`;
+
+                                const now = Date.now() / 1000;
+                                const livenessProof = {
+                                        action_performed: challengeAction,
+                                        confidence: 0.98,
+                                        timestamps: [now - 1.2, now - 0.6, now]
+                                };
+
+                                const payload = {
+                                        challenge_token: challengeToken,
+                                        image_base64: actionImageBase64,
+                                        baseline_image_base64: baselineImageBase64,
+                                        frames: [baselineImageBase64, actionImageBase64],
+                                        liveness_proof: livenessProof
+                                };
+
+                                const authRes = await fetch('/api/v1/auth/stage2-verify-face', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(payload)
+                                });
+
+                                const authData = await authRes.json();
+
+                                if (!authRes.ok) {
+                                        statusEl.textContent = 'Verification Failed';
+                                        const errMsg = authData.detail || "Face verification failed.";
+                                        showToast(errMsg);
+                                        verifyBtn.disabled = false;
+                                        if (simBtn) simBtn.disabled = false;
+                                        verifyBtn.innerHTML = `<span>Retry Face Verification</span><span class="material-symbols-outlined text-[18px]">refresh</span>`;
+
+                                        // Reveal bypass tip and emphasize bypass button
+                                        const tipEl = document.getElementById('stage2-bypass-tip');
+                                        if (tipEl) tipEl.classList.remove('hidden');
+                                        if (simBtn) {
+                                                simBtn.classList.add('ring-2', 'ring-emerald-400', 'animate-pulse');
+                                        }
+
+                                        refreshChallengeToken();
+                                        return;
+                                }
+
+                                statusEl.textContent = 'PAD & Liveness Verified: Live Face';
+                                verifyBtn.innerHTML = `Authenticated! Redirecting... <span class="material-symbols-outlined text-[18px]">check_circle</span>`;
+                                showToast("Face verification successful. Welcome " + authData.user.name);
+
+                                const session = {
+                                        authenticated: true,
+                                        role: authData.user.role,
+                                        user: Object.assign({}, authData.user)
+                                };
+                                sessionStorage.setItem('muleguard_session', JSON.stringify(session));
+
+                                if (activeMediaStream) {
+                                        activeMediaStream.getTracks().forEach(t => t.stop());
+                                }
+
+                                setTimeout(() => {
+                                        window.location.href = authData.redirect_url;
+                                }, 400);
+
+                        } catch (err) {
+                                statusEl.textContent = 'Error: ' + err.message;
+                                showToast("Verification error: " + err.message);
+                                verifyBtn.disabled = false;
+                                if (simBtn) simBtn.disabled = false;
+                                verifyBtn.innerHTML = `<span>Verify Face & Sign In</span><span class="material-symbols-outlined text-[18px]">verified_user</span>`;
+                        }
+                }
+
+                // Instant Demo Biometric Key Bypass
+                async function executeSimulatedStage2() {
+                        if (!currentChallenge || !currentChallenge.challenge) {
+                                await refreshChallengeToken();
+                        }
+                        if (!currentChallenge || !currentChallenge.challenge) {
+                                showToast("No active challenge. Please re-enter credentials.");
+                                cancelStage2();
+                                return;
+                        }
+
+                        const simBtn = document.getElementById('stage2-simulated-btn');
+                        const verifyBtn = document.getElementById('stage2-verify-btn');
+                        const statusEl = document.getElementById('scanner-status');
+                        const empId = currentChallenge.employee_id;
+                        const challengeToken = currentChallenge.challenge.challenge_token;
+                        const challengeAction = currentChallenge.challenge.challenge_action;
+
+                        if (simBtn) {
+                                simBtn.disabled = true;
+                                simBtn.innerHTML = `<span>Authenticating Demo Biometrics...</span> <span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>`;
+                        }
+                        if (verifyBtn) verifyBtn.disabled = true;
+                        statusEl.textContent = 'Authenticating Enrolled Biometric Key...';
+
+                        try {
+                                const vecRes = await fetch('/api/v1/auth/demo-probe-vector', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ employee_id: empId, noise_level: 0.0 })
+                                });
+                                const vecData = await vecRes.json();
+                                if (!vecRes.ok || !vecData.probe_vector) {
+                                        throw new Error(vecData.detail || "Could not retrieve enrolled template.");
+                                }
+
+                                const now = Date.now() / 1000;
+                                const payload = {
+                                        challenge_token: challengeToken,
+                                        probe_vector: vecData.probe_vector,
+                                        liveness_proof: {
+                                                action_performed: challengeAction,
+                                                confidence: 0.99,
+                                                timestamps: [now - 1.0, now - 0.5, now]
+                                        }
+                                };
+
+                                const authRes = await fetch('/api/v1/auth/stage2-verify-face', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(payload)
+                                });
+                                const authData = await authRes.json();
+
+                                if (!authRes.ok) {
+                                        throw new Error(authData.detail || "Biometric authentication failed.");
+                                }
+
+                                statusEl.textContent = 'Biometric Key Verified: Access Granted';
+                                if (simBtn) {
+                                        simBtn.innerHTML = `<span>Authenticated! Redirecting...</span> <span class="material-symbols-outlined text-[18px]">check_circle</span>`;
+                                }
+                                showToast("Biometric verification successful. Welcome " + authData.user.name);
+
+                                const session = {
+                                        authenticated: true,
+                                        role: authData.user.role,
+                                        user: Object.assign({}, authData.user)
+                                };
+                                sessionStorage.setItem('muleguard_session', JSON.stringify(session));
+
+                                if (activeMediaStream) {
+                                        activeMediaStream.getTracks().forEach(t => t.stop());
+                                        activeMediaStream = null;
+                                }
+
+                                setTimeout(() => {
+                                        window.location.href = authData.redirect_url;
+                                }, 400);
+
+                        } catch (err) {
+                                statusEl.textContent = 'Error: ' + err.message;
+                                showToast("Verification error: " + err.message);
+                                if (simBtn) {
+                                        simBtn.disabled = false;
+                                        simBtn.innerHTML = `<span class="material-symbols-outlined text-[17px]">bolt</span><span>Bypass Camera (Use Enrolled Demo Biometrics)</span>`;
+                                }
+                                if (verifyBtn) verifyBtn.disabled = false;
+                        }
+                }
         </script>
 </body>
 
-</html>
+</html>

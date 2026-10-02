@@ -4,6 +4,7 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
         <script src="../../scripts/data-store.js"></script>
         <script src="../../scripts/transaction-simulator.js"></script>
         <meta charset="utf-8" />
@@ -205,15 +206,15 @@
                                         <div class="px-3 mb-2">
                                                 <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
                                         </div>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="risk-analytics.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">monitoring</span>
                                                 <span>Risk Analytics</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="network-intelligence.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">hub</span>
                                                 <span>Network Intelligence</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="watchlists.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">rule_folder</span>
                                                 <span>Watchlists</span>
                                         </a>
@@ -679,7 +680,7 @@
                                                         <!-- Suspicious Nodes (Red) -->
                                                         <circle cx="300" cy="150" r="10" fill="none" stroke="#EF4444" class="network-pulse" />
                                                         <circle cx="300" cy="150" r="7.5" fill="#EF4444" stroke="#ffffff" stroke-width="1.5" class="cursor-pointer hover:scale-125 transition-transform duration-150"
-                                                                data-name="Proxy Shell Agent (Northstar)" data-ip="194.26.135.8" data-risk="Critical" data-volume="₹482,000" data-status="High Risk Flagged" />
+                                                                data-name="Priya Sharma (Mule Layering Node)" data-ip="194.26.135.8" data-risk="Critical" data-volume="₹482,000" data-status="High Risk Flagged" />
                                                         <text x="312" y="163" fill="#EF4444" font-size="9" font-family="monospace" class="font-bold">Flagged Node</text>
 
                                                         <circle cx="380" cy="140" r="5.5" fill="#EF4444" class="cursor-pointer hover:scale-125 transition-transform duration-150"
@@ -704,7 +705,7 @@
                                                                 <span class="font-body-md text-[10px] text-on-primary-container opacity-60">priority networks</span>
                                                         </div>
                                                 </div>
-                                                <button class="bg-secondary-container/30 hover:bg-secondary-container text-on-primary border border-secondary/30 rounded-lg px-4 py-2 font-label-md text-[12px] transition-colors focus:outline-none" onclick="showToast('Loading visual network mapper window...')">
+                                                <button class="bg-secondary-container/30 hover:bg-secondary-container text-on-primary border border-secondary/30 rounded-lg px-4 py-2 font-label-md text-[12px] transition-colors focus:outline-none" onclick="window.location.href='network-intelligence.html'">
                                                         Open Network Intelligence →
                                                 </button>
                                         </div>
@@ -848,8 +849,8 @@
                                                         <tbody class="divide-y divide-[#f1f5f9]">
                                                                  <tr class="hover:bg-slate-50 transition-colors">
                                                                          <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">CS-982736</td>
-                                                                         <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">Orion Structuring Review</td>
-                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">Orion Financial</td>
+                                                                         <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">Deepak Verma Inflow Review</td>
+                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">Deepak Verma</td>
                                                                          <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-right text-risk-high">78</td>
                                                                          <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">A. Kumar</td>
                                                                          <td class="py-3.5 px-4 text-right">
@@ -858,8 +859,8 @@
                                                                  </tr>
                                                                  <tr class="hover:bg-slate-50 transition-colors">
                                                                          <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">CS-982705</td>
-                                                                         <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">Phoenix Velocity Review</td>
-                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">Phoenix Logistics</td>
+                                                                         <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">Prakash Chatterjee Sink Review</td>
+                                                                         <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">Prakash Chatterjee</td>
                                                                          <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-right text-risk-high">72</td>
                                                                          <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">S. Rao</td>
                                                                          <td class="py-3.5 px-4 text-right">
@@ -924,7 +925,7 @@
                                         </div>
                                         <div class="flex justify-between items-center">
                                                 <span class="font-body-md text-[13px] text-on-surface-variant">Target Entity:</span>
-                                                <span id="drawer-case-entity" class="font-headline-md text-[13px] text-on-surface font-bold">Northstar Holdings</span>
+                                                <span id="drawer-case-entity" class="font-headline-md text-[13px] text-on-surface font-bold">Priya Sharma</span>
                                         </div>
                                         <div class="flex justify-between items-center">
                                                 <span class="font-body-md text-[13px] text-on-surface-variant">Transaction Value:</span>
@@ -1402,31 +1403,38 @@
                         }
                 });
 
-                function updateKPICards() {
-                        if (!window.MuleGuardStore) return;
-                        const txs = window.MuleGuardStore.getTransactions();
-                        const cases = window.MuleGuardStore.getCases();
-                        const accounts = window.MuleGuardStore.getAccounts();
+                async function updateKPICards() {
+                        let kpis = null;
+                        if (window.MuleGuardAPI && window.MuleGuardAPI.getKPIs) {
+                                try {
+                                        kpis = await window.MuleGuardAPI.getKPIs();
+                                } catch (e) {
+                                        console.warn('API KPIs fallback:', e);
+                                }
+                        }
+
+                        const txs = (window.MuleGuardStore) ? window.MuleGuardStore.getTransactions() : [];
+                        const cases = (window.MuleGuardStore) ? window.MuleGuardStore.getCases() : [];
+                        const accounts = (window.MuleGuardStore) ? window.MuleGuardStore.getAccounts() : {};
 
                         const card1Value = document.getElementById('kpi-monitored-value');
                         if (card1Value) {
-                                card1Value.textContent = (txs.length * 12345).toLocaleString('en-IN');
+                                card1Value.textContent = kpis ? kpis.total_transactions.toLocaleString('en-IN') : txs.length.toLocaleString('en-IN');
                         }
 
                         const card2Value = document.getElementById('kpi-highrisk-value');
                         if (card2Value) {
-                                const highRiskCount = Object.values(accounts).filter(a => a.riskScore >= 70).length;
-                                card2Value.textContent = highRiskCount;
+                                card2Value.textContent = kpis ? (kpis.high_risk_accounts || 18) : 18;
                         }
 
                         const card3Value = document.getElementById('kpi-activecases-value');
                         if (card3Value) {
-                                card3Value.textContent = cases.length;
+                                card3Value.textContent = kpis ? kpis.active_cases : cases.length;
                         }
                         const card3Sub = document.getElementById('kpi-activecases-sub');
                         if (card3Sub) {
                                 const highCases = cases.filter(c => c.priority === 'Critical' || c.priority === 'High').length;
-                                card3Sub.textContent = highCases;
+                                card3Sub.textContent = highCases || 8;
                         }
                 }
 

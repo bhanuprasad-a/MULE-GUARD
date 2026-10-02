@@ -1,9 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html class="light" lang="en">
 
 <head>
         <!-- Authentication Guard -->
-        <script src="../../scripts/auth-guard.js"></script>`n        <script src="../../scripts/data-store.js"></script>
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>`n        <script src="../../scripts/data-store.js"></script>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <title>MuleGuard - Fraud Networks Investigation</title>
@@ -266,15 +267,15 @@
                                         <div class="px-3 mb-2">
                                                 <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
                                         </div>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="risk-analytics.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">monitoring</span>
                                                 <span>Risk Analytics</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="network-intelligence.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">hub</span>
                                                 <span>Network Intelligence</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="watchlists.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">rule_folder</span>
                                                 <span>Watchlists</span>
                                         </a>
@@ -521,132 +522,7 @@
                                                         </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-[#f1f5f9]" id="networks-tbody">
-                                                        <!-- Row 1 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082714" data-risk="Critical" data-status="Flagged" data-type="Shell Conduit" onclick="rowClickAction(event, 'NET-082714')">
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082714</td>
-                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Apex-Northstar Link</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Shell Conduit</td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">95 / 100</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹9.69M</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">5</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">12</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">8 min ago</td>
-                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">Flagged</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082714')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 2 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082703" data-risk="High" data-status="Under Review" data-type="Layering Loop" onclick="rowClickAction(event, 'NET-082703')">
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082703</td>
-                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Orion Clearing Loop</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Layering Loop</td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">82 / 100</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹4.20M</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">4</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">8</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">18 min ago</td>
-                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082703')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 3 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082691" data-risk="Medium" data-status="Active" data-type="Shell Conduit" onclick="rowClickAction(event, 'NET-082691')">
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082691</td>
-                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Vanguard Supplier Net</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Shell Conduit</td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">55 / 100</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹11.00 Lakh</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">3</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">5</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">35 min ago</td>
-                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Active</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082691')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 4 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082680" data-risk="Critical" data-status="Blocked" data-type="High-Risk Integration" onclick="rowClickAction(event, 'NET-082680')">
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082680</td>
-                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Blackwood Shell Array</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">High-Risk Integration</td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">98 / 100</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹1.45 Crore</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">6</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">18</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">1 hr ago</td>
-                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Blocked</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082680')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 5 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082672" data-risk="High" data-status="Under Review" data-type="Layering Loop" onclick="rowClickAction(event, 'NET-082672')">
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082672</td>
-                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Phoenix Circular Route</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">Layering Loop</td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">76 / 100</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹28.00 Lakh</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">4</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">6</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">2 hrs ago</td>
-                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082672')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 6 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="NET-082655" data-risk="Low" data-status="Active" data-type="High-Risk Integration" onclick="rowClickAction(event, 'NET-082655')">
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">NET-082655</td>
-                                                                <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">Meridian Treasury Conduits</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">High-Risk Integration</td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">38 / 100</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">₹2.48 Crore</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">8</td>
-                                                                <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">15</td>
-                                                                <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">3 hrs ago</td>
-                                                                <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Active</span>
-                                                                </td>
-                                                                <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('NET-082655')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
+                                                        <!-- Dynamically populated from PostgreSQL -->
                                                 </tbody>
                                         </table>
                                 </div>
@@ -685,7 +561,7 @@
                 <div class="p-6 border-b border-outline-variant/30 flex items-center justify-between bg-surface-container-low sticky top-0 z-10 flex-shrink-0">
                         <div class="flex flex-col text-left">
                                 <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Network Workspace</span>
-                                <h3 id="drawer-title-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">NET-082714</h3>
+                                <h3 id="drawer-title-id" class="font-headline-md text-[18px] text-on-surface font-extrabold mt-0.5">NET-982054</h3>
                         </div>
                         <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-outline-variant/30 transition-colors focus:outline-none" onclick="closeDetailDrawer()">
                                 <span class="material-symbols-outlined text-[20px] text-on-surface">close</span>
@@ -698,7 +574,7 @@
                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Network Name:</span>
-                                        <span id="drawer-network-name" class="font-headline-md text-[13px] text-on-surface font-bold">Apex-Northstar Link</span>
+                                        <span id="drawer-network-name" class="font-headline-md text-[13px] text-on-surface font-bold">Rapid Mule Dispersal Cluster</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Network Type:</span>
@@ -1283,25 +1159,141 @@
                         }
                 });
 
-                // Caches rows on loaded DOM structure
-                window.addEventListener('DOMContentLoaded', () => {
-                        const rows = document.querySelectorAll('#networks-tbody tr');
-                        cachedRows = Array.from(rows).map(row => {
+                // Load live networks from backend API (with Store fallback)
+                async function loadNetworksData() {
+                        let rawNetworks = null;
+                        if (window.MuleGuardAPI && window.MuleGuardAPI.getNetworks) {
+                                try {
+                                        rawNetworks = await window.MuleGuardAPI.getNetworks();
+                                } catch (e) {
+                                        console.warn("Backend API unavailable for networks, using store fallback:", e);
+                                }
+                        }
+
+                        networksDb = {};
+                        if (Array.isArray(rawNetworks) && rawNetworks.length > 0) {
+                                rawNetworks.forEach(net => {
+                                        if (net && net.id) {
+                                                networksDb[net.id] = net;
+                                        }
+                                });
+                        } else if (rawNetworks && typeof rawNetworks === 'object' && Object.keys(rawNetworks).length > 0) {
+                                networksDb = rawNetworks;
+                        } else if (window.MuleGuardStore && window.MuleGuardStore.getNetworks) {
+                                networksDb = window.MuleGuardStore.getNetworks() || {};
+                        }
+
+                        renderNetworksTable();
+                }
+
+                function renderNetworksTable() {
+                        const tbody = document.getElementById('networks-tbody');
+                        if (!tbody) return;
+
+                        const netList = Object.values(networksDb);
+                        tbody.innerHTML = '';
+
+                        if (netList.length === 0) {
+                                tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-on-surface-variant font-body-md">No transaction networks detected in database.</td></tr>`;
+                                cachedRows = [];
+                                recountSummaryCards();
+                                return;
+                        }
+
+                        netList.forEach(net => {
+                                const netId = net.id;
+                                const name = net.name || `Network ${netId}`;
+                                const type = net.type || 'Transaction Chain';
+                                const score = net.score !== undefined && net.score !== null ? net.score : 50;
+                                const totalValue = net.totalValue || '₹0';
+                                const members = net.members || 0;
+                                const connectedCount = net.connectedCount || 0;
+                                const lastActivity = net.lastActivity || 'Recent';
+                                const status = net.status || 'Active';
+
+                                let riskCategory = "Low";
+                                let scoreBadgeClass = "text-blue-800 bg-blue-50 border-blue-200";
+                                if (score >= 90) {
+                                        riskCategory = "Critical";
+                                        scoreBadgeClass = "text-red-600 bg-red-50 border-red-200";
+                                } else if (score >= 70) {
+                                        riskCategory = "High";
+                                        scoreBadgeClass = "text-orange-600 bg-orange-50 border-orange-200";
+                                } else if (score >= 50) {
+                                        riskCategory = "Medium";
+                                        scoreBadgeClass = "text-yellow-600 bg-yellow-50 border-yellow-200";
+                                }
+
+                                let statusBadgeClass = "bg-green-50 text-green-700 border-green-200";
+                                if (status === 'Blocked') statusBadgeClass = "bg-red-50 text-red-700 border-red-200";
+                                else if (status === 'Flagged') statusBadgeClass = "bg-orange-50 text-orange-700 border-orange-200";
+                                else if (status === 'Under Review') statusBadgeClass = "bg-blue-50 text-blue-700 border-blue-200";
+
+                                const tr = document.createElement('tr');
+                                tr.className = "hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer";
+                                tr.setAttribute('data-net-id', netId);
+                                tr.setAttribute('data-risk', riskCategory);
+                                tr.setAttribute('data-status', status);
+                                tr.setAttribute('data-type', type);
+                                tr.onclick = (e) => rowClickAction(e, netId);
+
+                                tr.innerHTML = `
+                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">${netId}</td>
+                                        <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">${name}</td>
+                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">${type}</td>
+                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                <span class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded border ${scoreBadgeClass}">${score} / 100</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">${totalValue}</td>
+                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">${members}</td>
+                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">${connectedCount}</td>
+                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${lastActivity}</td>
+                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
+                                                <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusBadgeClass}">${status}</span>
+                                        </td>
+                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
+                                                <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${netId}')">
+                                                        Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                </button>
+                                        </td>
+                                `;
+                                tbody.appendChild(tr);
+                        });
+
+                        cachedRows = Array.from(tbody.querySelectorAll('tr')).map(row => {
                                 const netId = row.getAttribute('data-net-id');
                                 const data = networksDb[netId];
                                 return {
                                         element: row,
-                                        id: netId.toLowerCase(),
-                                        name: data.name.toLowerCase(),
-                                        type: data.type.toLowerCase(),
+                                        id: netId ? netId.toLowerCase() : '',
+                                        name: data ? (data.name || '').toLowerCase() : '',
+                                        type: data ? (data.type || '').toLowerCase() : '',
                                         risk: row.getAttribute('data-risk'),
-                                        status: data.status
+                                        status: data ? data.status : 'Active'
                                 };
                         });
+
                         recountSummaryCards();
+                }
+
+                // Caches rows on loaded DOM structure
+                window.addEventListener('DOMContentLoaded', () => {
+                        renderNetworks();
+                        renderNetworks();
+                        loadNetworksData();
+                });
+
+                // Listen for real-time transaction ingestion events
+                window.addEventListener('muleguard:transaction-ingested', () => {
+                        loadNetworksData().then(() => {
+                                if (currentlyRenderedNetworkId) {
+                                        renderNetworkGraph(currentlyRenderedNetworkId);
+                                }
+                        });
                 });
         </script>
 </body>
 
 </html>
+
 

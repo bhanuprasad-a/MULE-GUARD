@@ -5,6 +5,16 @@
 (function() {
     const STORE_KEY = 'muleguard_db';
 
+    // Invalidate deprecated pre-PostgreSQL cache containing legacy 'Shell Partner' data
+    if (typeof localStorage !== 'undefined') {
+        try {
+            const legacy = localStorage.getItem('muleguard_db');
+            if (legacy && legacy.includes('Shell Partner')) {
+                localStorage.removeItem('muleguard_db');
+            }
+        } catch (_) {}
+    }
+
     // Helper to generate relative time offsets
     function getRelativeTime(offsetMinutes) {
         const d = new Date();
@@ -64,7 +74,8 @@
     }
 
     // Default Seed Data
-    const defaultDb = window.MuleGuardExpandedDB || {
+    // Default Seed Data - PostgreSQL Authoritative Indian Retail Universe
+    const defaultDb = (typeof window !== 'undefined' && window.MuleGuardExpandedDB) ? window.MuleGuardExpandedDB : {
         rules: [
             { id: 'R-VEL-1', name: 'Velocity Spike (Inbound Degree)', threshold: 5, unit: 'transfers/24h', description: 'Triggers when an account receives more than the threshold of inbound UPI transfers in a 24-hour period.', active: true },
             { id: 'R-HOLD-1', name: 'Short Holding Time Ratio', threshold: 80, unit: '% ratio', description: 'Triggers when more than the threshold of received funds are transferred out of the account within 30 minutes.', active: true },
@@ -74,160 +85,109 @@
             { id: 'R-DORM-1', name: 'Dormant Account Activation', threshold: 50000, unit: 'INR/24h', description: 'Triggers when a previously inactive/dormant account receives significant transaction volume within 24 hours.', active: true }
         ],
         accounts: {
-            'ACC-982741': { id: 'ACC-982741', name: 'Apex Trading Ltd', type: 'Current', balance: 450000.00, riskScore: 91, status: 'Flagged', created: '2025-01-10', phone: '+91 90110 54321', device: 'IPHONE_15_PRO', ip: '192.168.4.15', address: '12th Floor, Apex Towers, Mumbai' },
-            'ACC-982736': { id: 'ACC-982736', name: 'Orion Financial', type: 'Current', balance: 124000.50, riskScore: 78, status: 'Under Review', created: '2025-03-12', phone: '+91 80990 12345', device: 'MACBOOK_PRO_M3', ip: '10.15.22.45', address: 'Suite 4B, Blackwood Plaza, Chennai' },
-            'ACC-982728': { id: 'ACC-982728', name: 'Vertex Imports', type: 'Current', balance: 89000.00, riskScore: 62, status: 'Normal', created: '2024-06-20', phone: '+91 72001 98765', device: 'SAMSUNG_S24', ip: '172.16.89.12', address: 'Vertex Depot, Kandla Port, Gujarat' },
-            'ACC-982714': { id: 'ACC-982714', name: 'Northstar Holdings', type: 'Current', balance: 312000.00, riskScore: 96, status: 'Critical', created: '2024-09-15', phone: '+91 90110 54321', device: 'IPHONE_15_PRO', ip: '192.168.4.15', address: '12th Floor, Apex Towers, Mumbai' },
-            'ACC-982705': { id: 'ACC-982705', name: 'Meridian Capital', type: 'Current', balance: 94600.00, riskScore: 45, status: 'Normal', created: '2026-05-01', phone: '+91 98450 11223', device: 'THINKPAD_T14', ip: '198.51.100.7', address: 'Meridian Chambers, Nariman Point, Mumbai' },
-            'ACC-982698': { id: 'ACC-982698', name: 'Atlas Global Trading', type: 'Current', balance: 28450.00, riskScore: 32, status: 'Normal', created: '2026-05-10', phone: '+91 94440 55667', device: 'DELL_LATITUDE', ip: '203.0.113.12', address: 'Atlas Logistics Yard, Chennai Port' },
-            'ACC-982685': { id: 'ACC-982685', name: 'Vanguard Logistics', type: 'Current', balance: 15600.00, riskScore: 18, status: 'Normal', created: '2026-05-12', phone: '+91 91500 88990', device: 'IPAD_AIR', ip: '198.51.100.8', address: 'Vanguard Shed, Kochi Port, Kerala' },
-            'ACC-982672': { id: 'ACC-982672', name: 'Blackwood Assets', type: 'Current', balance: 620000.00, riskScore: 98, status: 'Blocked', created: '2026-02-18', phone: '+91 80990 12345', device: 'MACBOOK_PRO_M3', ip: '10.15.22.45', address: 'Suite 4B, Blackwood Plaza, Chennai' },
-            'ACC-982659': { id: 'ACC-982659', name: 'Phoenix Ventures', type: 'Current', balance: 105300.00, riskScore: 75, status: 'Under Review', created: '2026-02-20', phone: '+91 88877 66554', device: 'IPHONE_14', ip: '192.168.10.88', address: 'Phoenix Tech Park, Bangalore' },
-            'ACC-982641': { id: 'ACC-982641', name: 'Swift Logistics Corp', type: 'Current', balance: 38200.00, riskScore: 52, status: 'Normal', created: '2025-11-05', phone: '+91 77766 55443', device: 'MACBOOK_AIR', ip: '172.16.4.5', address: 'Swift Cargo House, Kolkata' }
+            'ACC-982001': { id: 'ACC-982001', name: 'Sri Venkateswara Kirana & General Stores', type: 'Current', balance: 147939.55, riskScore: 20, status: 'Normal', created: '2024-07-19', phone: '+91 83321 81960', device: 'SAMSUNG_M34_5G', ip: '49.37.56.60', address: 'Shop No 33, Main Bazaar Road, Bengaluru, Karnataka - 560013' },
+            'ACC-982002': { id: 'ACC-982002', name: 'Annapurna Provisions & Rice Depot', type: 'Current', balance: 18608.09, riskScore: 20, status: 'Normal', created: '2025-12-18', phone: '+91 99402 65423', device: 'DELL_INSPIRON_3520', ip: '106.52.27.24', address: 'Shop No 25, Main Bazaar Road, Guntur, Andhra Pradesh - 522038' },
+            'ACC-982003': { id: 'ACC-982003', name: 'Sai Krupa Medical Agencies', type: 'Current', balance: 246527.89, riskScore: 20, status: 'Normal', created: '2025-08-06', phone: '+91 98161 84959', device: 'VIVO_V29E', ip: '182.73.18.12', address: 'Shop No 43, Main Bazaar Road, Visakhapatnam, Andhra Pradesh - 530015' },
+            'ACC-982004': { id: 'ACC-982004', name: 'Balaji Textiles & Handlooms', type: 'Current', balance: 12370.05, riskScore: 20, status: 'Normal', created: '2025-10-11', phone: '+91 94752 55341', device: 'SAMSUNG_A54', ip: '182.72.44.137', address: 'Shop No 16, Main Bazaar Road, Kolkata, West Bengal - 700022' },
+            'ACC-982005': { id: 'ACC-982005', name: 'Hyderabad Biryani Point & Caterers', type: 'Current', balance: 43186.69, riskScore: 20, status: 'Normal', created: '2024-11-01', phone: '+91 80305 64139', device: 'MACBOOK_AIR_M2', ip: '182.73.81.55', address: 'Shop No 42, Main Bazaar Road, Kolkata, West Bengal - 700097' },
+            'ACC-982050': { id: 'ACC-982050', name: 'Deepak Verma', type: 'Savings', balance: 49200.00, riskScore: 88, status: 'Flagged', created: '2025-10-01', phone: '+91 98765 43210', device: 'ONEPLUS_11R', ip: '106.51.72.10', address: 'Flat 101, Lakeview Apts, Hyderabad, Telangana' },
+            'ACC-982054': { id: 'ACC-982054', name: 'Priya Sharma', type: 'Savings', balance: 128500.00, riskScore: 94, status: 'Critical', created: '2025-08-15', phone: '+91 91234 56789', device: 'IPHONE_14', ip: '182.72.88.42', address: 'Plot 45, Sector 12, Noida, Uttar Pradesh' },
+            'ACC-982061': { id: 'ACC-982061', name: 'Kishore Varma', type: 'Savings', balance: 45153.32, riskScore: 75, status: 'Under Review', created: '2026-04-02', phone: '+91 89663 19314', device: 'ACER_ASPIRE_5', ip: '182.72.154.207', address: 'Flat 224, Green Acres Colony, Chennai, Tamil Nadu - 600013' },
+            'ACC-982062': { id: 'ACC-982062', name: 'Naveen Goud', type: 'Savings', balance: 30225.95, riskScore: 75, status: 'Under Review', created: '2026-07-16', phone: '+91 95185 06716', device: 'MOTO_G84_5G', ip: '182.72.229.213', address: 'Flat 571, Green Acres Colony, Chennai, Tamil Nadu - 600054' },
+            'ACC-982067': { id: 'ACC-982067', name: 'Prakash Chatterjee', type: 'Savings', balance: 21997.51, riskScore: 92, status: 'Critical', created: '2026-01-01', phone: '+91 73374 98941', device: 'ACER_ASPIRE_5', ip: '122.162.76.59', address: 'Flat 470, Green Acres Colony, Bengaluru, Karnataka - 560078' }
         },
         transactions: [
-            // Circular money flow loop: Phoenix (ACC-982659) -> Swift (ACC-982641) -> Orion (ACC-982736) -> Phoenix (ACC-982659)
-            { id: 'TX-LOOP-01', senderId: 'ACC-982659', receiverId: 'ACC-982641', amountNumeric: 35000, type: 'Transfer', value: '₹35,000', score: 72, time: getRelativeTime(12), origin: 'Bangalore', destination: 'Kolkata', status: 'Normal', summary: 'Circular loop element 1.' },
-            { id: 'TX-LOOP-02', senderId: 'ACC-982641', receiverId: 'ACC-982736', amountNumeric: 35000, type: 'Transfer', value: '₹35,000', score: 72, time: getRelativeTime(15), origin: 'Kolkata', destination: 'Chennai', status: 'Normal', summary: 'Circular loop element 2.' },
-            { id: 'TX-LOOP-03', senderId: 'ACC-982736', receiverId: 'ACC-982659', amountNumeric: 35000, type: 'Transfer', value: '₹35,000', score: 72, time: getRelativeTime(18), origin: 'Chennai', destination: 'Bangalore', status: 'Normal', summary: 'Circular loop element 3.' },
-
-            // Aggregation into Apex Trading (ACC-982741)
-            { id: 'TX-AGG-01', senderId: 'ACC-982705', receiverId: 'ACC-982741', amountNumeric: 10000, type: 'Transfer', value: '₹10,000', score: 60, time: getRelativeTime(30), origin: 'Mumbai', destination: 'Mumbai', status: 'Normal', summary: 'Inbound layering conduit.' },
-            { id: 'TX-AGG-02', senderId: 'ACC-982728', receiverId: 'ACC-982741', amountNumeric: 12000, type: 'Transfer', value: '₹12,000', score: 60, time: getRelativeTime(40), origin: 'Gujarat', destination: 'Mumbai', status: 'Normal', summary: 'Inbound layering conduit.' },
-            { id: 'TX-AGG-03', senderId: 'ACC-982698', receiverId: 'ACC-982741', amountNumeric: 9500, type: 'Transfer', value: '₹9,500', score: 60, time: getRelativeTime(50), origin: 'Chennai', destination: 'Mumbai', status: 'Normal', summary: 'Inbound layering conduit.' },
-            { id: 'TX-AGG-04', senderId: 'ACC-982685', receiverId: 'ACC-982741', amountNumeric: 11000, type: 'Transfer', value: '₹11,000', score: 60, time: getRelativeTime(60), origin: 'Kerala', destination: 'Mumbai', status: 'Normal', summary: 'Inbound layering conduit.' },
-            { id: 'TX-AGG-05', senderId: 'ACC-982641', receiverId: 'ACC-982741', amountNumeric: 8000, type: 'Transfer', value: '₹8,000', score: 60, time: getRelativeTime(70), origin: 'Kolkata', destination: 'Mumbai', status: 'Normal', summary: 'Inbound layering conduit.' },
-            { id: 'TX-AGG-06', senderId: 'ACC-982659', receiverId: 'ACC-982741', amountNumeric: 15000, type: 'Transfer', value: '₹15,000', score: 60, time: getRelativeTime(80), origin: 'Bangalore', destination: 'Mumbai', status: 'Normal', summary: 'Inbound layering conduit.' },
-
-            // Outbound distribution from Northstar Holdings (ACC-982714)
-            { id: 'TX-DIST-01', senderId: 'ACC-982714', receiverId: 'ACC-982705', amountNumeric: 15000, type: 'Transfer', value: '₹15,000', score: 50, time: getRelativeTime(90), origin: 'Mumbai', destination: 'Mumbai', status: 'Normal', summary: 'Outbound smurfing transfer.' },
-            { id: 'TX-DIST-02', senderId: 'ACC-982714', receiverId: 'ACC-982728', amountNumeric: 15000, type: 'Transfer', value: '₹15,000', score: 50, time: getRelativeTime(100), origin: 'Mumbai', destination: 'Gujarat', status: 'Normal', summary: 'Outbound smurfing transfer.' },
-            { id: 'TX-DIST-03', senderId: 'ACC-982714', receiverId: 'ACC-982698', amountNumeric: 15000, type: 'Transfer', value: '₹15,000', score: 50, time: getRelativeTime(110), origin: 'Mumbai', destination: 'Chennai', status: 'Normal', summary: 'Outbound smurfing transfer.' },
-            { id: 'TX-DIST-04', senderId: 'ACC-982714', receiverId: 'ACC-982685', amountNumeric: 15000, type: 'Transfer', value: '₹15,000', score: 50, time: getRelativeTime(120), origin: 'Mumbai', destination: 'Kerala', status: 'Normal', summary: 'Outbound smurfing transfer.' },
-            { id: 'TX-DIST-05', senderId: 'ACC-982714', receiverId: 'ACC-982641', amountNumeric: 15000, type: 'Transfer', value: '₹15,000', score: 50, time: getRelativeTime(130), origin: 'Mumbai', destination: 'Kolkata', status: 'Normal', summary: 'Outbound smurfing transfer.' },
-
-            // High-Value Transfers (Shell routing / unusual sizing)
-            { id: 'TX-HIGH-01', senderId: 'ACC-982741', receiverId: 'ACC-982714', amountNumeric: 127500, type: 'Transfer', value: '₹1,27,500', score: 91, time: getRelativeTime(12), origin: 'Singapore', destination: 'India', status: 'Flagged', summary: 'High velocity circular loop conduit.' },
-            { id: 'TX-HIGH-02', senderId: 'ACC-982672', receiverId: 'ACC-982714', amountNumeric: 312400, type: 'Transfer', value: '₹3,12,400', score: 96, time: getRelativeTime(60), origin: 'Zurich', destination: 'India', status: 'Blocked', summary: 'High risk shell integration block.' },
-            { id: 'TX-HIGH-03', senderId: 'ACC-982672', receiverId: 'ACC-982705', amountNumeric: 620000, type: 'Transfer', value: '₹6,20,000', score: 98, time: getRelativeTime(480), origin: 'Zurich', destination: 'India', status: 'Blocked', summary: 'Critical value shell routing.' },
-            { id: 'TX-HIGH-04', senderId: 'ACC-982736', receiverId: 'ACC-982672', amountNumeric: 86200, type: 'Transfer', value: '₹86,200', score: 78, time: getRelativeTime(28), origin: 'London', destination: 'India', status: 'Under Review', summary: 'Layering transfer structuring.' },
-
-            // Normal operating baseline transfers
-            { id: 'TX-NORM-01', senderId: 'ACC-982728', receiverId: 'ACC-982705', amountNumeric: 42800, type: 'Payment', value: '₹42,800', score: 20, time: getRelativeTime(41), origin: 'Dubai', destination: 'India', status: 'Normal', summary: 'Normal supplier clearing.' },
-            { id: 'TX-NORM-02', senderId: 'ACC-982705', receiverId: 'ACC-982698', amountNumeric: 94600, type: 'Deposit', value: '₹94,600', score: 15, time: getRelativeTime(120), origin: 'New York', destination: 'India', status: 'Normal', summary: 'Standard corporate deposit.' },
-            { id: 'TX-NORM-03', senderId: 'ACC-982698', receiverId: 'ACC-982685', amountNumeric: 28450, type: 'Payment', value: '₹28,450', score: 10, time: getRelativeTime(180), origin: 'Singapore', destination: 'India', status: 'Normal', summary: 'Trade logistical payment.' },
-            { id: 'TX-NORM-04', senderId: 'ACC-982685', receiverId: 'ACC-982641', amountNumeric: 15600, type: 'Payment', value: '₹15,600', score: 10, time: getRelativeTime(300), origin: 'Tokyo', destination: 'India', status: 'Normal', summary: 'Standard logistics dispatch.' },
-            { id: 'TX-NORM-05', senderId: 'ACC-982641', receiverId: 'ACC-982705', amountNumeric: 38200, type: 'Withdrawal', value: '₹38,200', score: 22, time: getRelativeTime(1080), origin: 'Sydney', destination: 'India', status: 'Normal', summary: 'Standard corporate debit.' }
+            { id: 'TX-982050', senderId: 'ACC-982001', receiverId: 'ACC-982050', amountNumeric: 45000, type: 'UPI', value: '₹45,000', score: 88, time: getRelativeTime(12), origin: 'Bengaluru', destination: 'Hyderabad', status: 'Flagged', summary: 'Velocity spike into flagged account.' },
+            { id: 'TX-982054', senderId: 'ACC-982050', receiverId: 'ACC-982054', amountNumeric: 44000, type: 'IMPS', value: '₹44,000', score: 94, time: getRelativeTime(25), origin: 'Hyderabad', destination: 'Noida', status: 'Flagged', summary: 'Short holding time pass-through.' },
+            { id: 'TX-982067', senderId: 'ACC-982054', receiverId: 'ACC-982067', amountNumeric: 42000, type: 'NEFT', value: '₹42,000', score: 92, time: getRelativeTime(40), origin: 'Noida', destination: 'Bengaluru', status: 'Flagged', summary: 'Downstream layering flow to critical mule node.' },
+            { id: 'TX-982061', senderId: 'ACC-982002', receiverId: 'ACC-982061', amountNumeric: 18000, type: 'UPI', value: '₹18,000', score: 75, time: getRelativeTime(60), origin: 'Guntur', destination: 'Chennai', status: 'Under Review', summary: 'Suspicious device link cluster transfer.' },
+            { id: 'TX-982062', senderId: 'ACC-982003', receiverId: 'ACC-982062', amountNumeric: 25000, type: 'IMPS', value: '₹25,000', score: 75, time: getRelativeTime(90), origin: 'Visakhapatnam', destination: 'Chennai', status: 'Under Review', summary: 'Intermediate smurfer account routing.' }
         ],
         alerts: [
-            { id: 'AL-982711', target: 'Apex Trading Ltd', category: 'Velocity Anomaly', score: 91, amount: '₹1,27,500', time: getRelativeTime(12), severity: 'Critical', status: 'New', summary: 'Dynamic rule evaluation triggers.', indicators: [], riskExplanation: '', notes: 'Active ledger monitoring.', caseId: 'CS-982714' },
-            { id: 'AL-982705', target: 'Orion Financial', category: 'Suspicious Connection', score: 78, amount: '₹86,200', time: getRelativeTime(28), severity: 'High', status: 'Investigating', summary: 'Shares device with Blocked entity.', indicators: [], riskExplanation: '', notes: 'Awaiting sub-ledger reviews.', caseId: 'CS-982701' },
-            { id: 'AL-982684', target: 'Blackwood Assets', category: 'Critical Value Shell', score: 98, amount: '₹6,20,000', time: getRelativeTime(60), severity: 'Critical', status: 'New', summary: 'Account routing to blocked entities.', indicators: [], riskExplanation: '', notes: 'Locked.', caseId: 'CS-982714' }
+            { id: 'AL-982054', target: 'Priya Sharma', category: 'Short Holding Time', score: 94, amount: '₹44,000', time: getRelativeTime(25), severity: 'Critical', status: 'New', summary: 'Immediate 95% pass-through within 13 minutes.', indicators: ['Short Holding Ratio', 'High Risk Corridor'], riskExplanation: 'Pass-through velocity alert on Priya Sharma account.', notes: 'Active ledger monitoring.', caseId: 'CS-982054' },
+            { id: 'AL-982050', target: 'Deepak Verma', category: 'Velocity Spike', score: 88, amount: '₹45,000', time: getRelativeTime(12), severity: 'High', status: 'Investigating', summary: 'Spike in inbound UPI transfers from retail merchant.', indicators: ['Inbound Spike', 'New Terminal Link'], riskExplanation: 'Velocity anomaly detected on Deepak Verma account.', notes: 'Reviewing linked counterparties.', caseId: 'CS-982050' },
+            { id: 'AL-982067', target: 'Prakash Chatterjee', category: 'Mule Layering Endpoint', score: 92, amount: '₹42,000', time: getRelativeTime(40), severity: 'Critical', status: 'New', summary: 'Terminal recipient in structured dispersal chain.', indicators: ['Mule Topology', 'Rapid Inbound-Outbound'], riskExplanation: 'Prakash Chatterjee flagged as critical mule sink node.', notes: 'Account restricted pending KYC audit.', caseId: 'CS-982054' }
         ],
         cases: [
             {
-                id: 'CS-982701',
-                title: 'Orion Structuring Review',
-                entity: 'Orion Financial',
-                primaryEntityId: 'ACC-982736',
-                priority: 'High',
-                score: 78,
-                assignee: 'S. Rao',
-                createdTime: '2 hrs ago',
-                lastUpdated: '28 min ago',
+                id: 'CS-982054',
+                title: 'Priya Sharma Dispersal Investigation',
+                entity: 'Priya Sharma',
+                primaryEntityId: 'ACC-982054',
+                priority: 'Critical',
+                score: 94,
+                assignee: 'A. Kumar',
+                createdTime: '1 hr ago',
+                lastUpdated: '15 min ago',
                 status: 'Investigating',
-                summary: 'Orion Financial shares registration metadata with Blocked assets.',
+                summary: 'Rapid funds pass-through and multi-hop layering into Prakash Chatterjee node.',
                 findings: [
-                        'Shared device footprint with blocked account ACC-982672',
-                        'Shared IP address matching Zurich shell conduit'
+                    'Short holding time ratio exceeds 95%',
+                    'Shared IP sub-network with flagged mule nodes',
+                    'High velocity UPI/IMPS transactions across interstate nodes'
                 ],
-                notes: 'Awaiting sub-ledger reviews.',
+                notes: 'SAR filing initiated. Coordinated review with nodal compliance officer.',
                 activity: [
-                        { time: '28 min ago', text: 'Investigation status updated' },
-                        { time: '2 hrs ago', text: 'Alert AL-982705 linked' }
+                    { time: '15 min ago', text: 'Investigation status updated to Critical' },
+                    { time: '40 min ago', text: 'Alert AL-982067 linked to case' },
+                    { time: '1 hr ago', text: 'Case created from alert AL-982054' }
                 ]
             },
             {
-                id: 'CS-982714',
-                title: 'Apex & Northstar Review',
-                entity: 'Apex Trading Ltd',
-                primaryEntityId: 'ACC-982741',
-                priority: 'Critical',
-                score: 91,
-                assignee: 'R. Singh',
-                createdTime: '3 hrs ago',
-                lastUpdated: '1 hr ago',
-                status: 'Escalated',
-                summary: 'Suspicious loops routing funds offshore.',
+                id: 'CS-982050',
+                title: 'Deepak Verma Inflow Audit',
+                entity: 'Deepak Verma',
+                primaryEntityId: 'ACC-982050',
+                priority: 'High',
+                score: 88,
+                assignee: 'S. Rao',
+                createdTime: '2 hrs ago',
+                lastUpdated: '30 min ago',
+                status: 'Open',
+                summary: 'Inbound velocity spike from retail accounts into newly activated account.',
                 findings: [
-                        'Velocity spike detected on current account',
-                        'Funds holding time ratio exceeds 95%',
-                        'Common device footprint matched to Northstar Holdings'
+                    'Unusual burst of 5 transfers within 30 minutes',
+                    'New mobile device footprint'
                 ],
-                notes: 'Active ledger monitoring.',
+                notes: 'Awaiting beneficiary verification response.',
                 activity: [
-                        { time: '1 hr ago', text: 'Escalated to Compliance' },
-                        { time: '3 hrs ago', text: 'Alert AL-982711 linked' }
+                    { time: '30 min ago', text: 'Case review commenced by S. Rao' },
+                    { time: '2 hrs ago', text: 'Case created automatically' }
                 ]
             }
         ],
         decisions: [
-            { id: 'DEC-001', caseId: 'CS-982701', caseTitle: 'Orion Structuring Review', decision: 'Hold / Escalate', rationale: 'Escalating for cross-border terminal audit.', timestamp: '1 day ago', reviewer: 'A. Kumar' }
+            { id: 'DEC-982054', caseId: 'CS-982054', caseTitle: 'Priya Sharma Dispersal Investigation', decision: 'Hold / Escalate', rationale: 'Escalated for immediate forensic audit of mule sink accounts.', timestamp: '1 hour ago', reviewer: 'A. Kumar' }
         ],
         auditLogs: [
-            { id: 'LOG-001', actor: 'System Engine', action: 'Initialized MuleGuard synthetic data environment', time: 'Just now', details: 'Loaded 10 accounts and 50+ transaction history.' }
+            { id: 'LOG-001', actor: 'System Engine', action: 'Initialized MuleGuard PostgreSQL Indian retail dataset', time: 'Just now', details: 'Authoritative database connection active.' }
         ],
         networks: {
-            'NET-082714': {
-                id: 'NET-082714',
-                name: 'Apex-Northstar Link',
-                type: 'Shell Conduit',
-                score: 95,
-                members: 5,
-                totalValue: '₹96,90,000',
-                connectedCount: 12,
-                lastActivity: '8 min ago',
-                status: 'Flagged',
-                summary: 'The Apex-Northstar link constitutes a high-velocity circular loop routing funds from international trading accounts to verified shell nodes.',
-                graphNodes: [
-                    { id: 'ACC-982741', label: 'Apex Hub', role: 'Main Treasury Conduit', risk: 'Critical', cx: 200, cy: 80, r: 16 },
-                    { id: 'ACC-982714', label: 'Northstar', role: 'Offshore Receiver', risk: 'Critical', cx: 80, cy: 40, r: 12 },
-                    { id: 'ACC-982728', label: 'Vertex Imp', role: 'Trade Interface', risk: 'Medium', cx: 80, cy: 120, r: 12 },
-                    { id: 'ACC-982705', label: 'Mule Acct A', role: 'Sub-Clearing Node', risk: 'High', cx: 320, cy: 40, r: 12 },
-                    { id: 'ACC-982736', label: 'Mule Acct B', role: 'Intermediary Smurfer', risk: 'High', cx: 320, cy: 120, r: 12 }
-                ],
-                graphLinks: [
-                    { source: 0, target: 1, flow: true },
-                    { source: 2, target: 0, flow: true },
-                    { source: 0, target: 3, flow: true },
-                    { source: 0, target: 4, flow: true }
-                ]
-            },
-            'NET-082703': {
-                id: 'NET-082703',
-                name: 'Orion Clearing Loop',
-                type: 'Layering Loop',
-                score: 82,
+            'NET-982054': {
+                id: 'NET-982054',
+                name: 'Rapid Mule Dispersal Cluster',
+                type: 'Dispersal Mesh',
+                score: 94,
                 members: 4,
-                totalValue: '₹42,00,000',
-                connectedCount: 8,
-                lastActivity: '18 min ago',
-                status: 'Under Review',
-                summary: 'Orion Clearing Loop routes deposits continuously via sub-clearing micro-accounts to mask layering activity.',
+                totalValue: '₹1,75,000',
+                connectedCount: 6,
+                lastActivity: '12 min ago',
+                status: 'Critical',
+                summary: 'Coordinated rapid transit layering corridor connecting retail sources through Deepak Verma and Priya Sharma to Prakash Chatterjee.',
                 graphNodes: [
-                    { id: 'ACC-982736', label: 'Orion Hub', role: 'Broker clearing interface', risk: 'High', cx: 200, cy: 80, r: 16 },
-                    { id: 'ACC-982705', label: 'Meridian', role: 'Treasury source', risk: 'Low', cx: 90, cy: 45, r: 12 },
-                    { id: 'ACC-982672', label: 'Blackwood', role: 'Loop exit account', risk: 'Critical', cx: 310, cy: 50, r: 12 },
-                    { id: 'ACC-982659', label: 'Shell-901', role: 'Dynamic Layerer', risk: 'High', cx: 200, cy: 140, r: 12 }
+                    { id: 'ACC-982054', label: 'Priya Sharma', role: 'Main Layering Node', risk: 'Critical', cx: 200, cy: 80, r: 16 },
+                    { id: 'ACC-982050', label: 'Deepak Verma', role: 'Inbound Conduit', risk: 'High', cx: 80, cy: 80, r: 14 },
+                    { id: 'ACC-982067', label: 'Prakash Chatterjee', role: 'Mule Sink Node', risk: 'Critical', cx: 320, cy: 80, r: 16 },
+                    { id: 'ACC-982001', label: 'Sri Venkateswara', role: 'Retail Ingress', risk: 'Low', cx: 80, cy: 160, r: 12 }
                 ],
                 graphLinks: [
+                    { source: 3, target: 1, flow: true },
                     { source: 1, target: 0, flow: true },
-                    { source: 0, target: 2, flow: true },
-                    { source: 2, target: 3, flow: true },
-                    { source: 3, target: 0, flow: true }
+                    { source: 0, target: 2, flow: true }
                 ]
             }
-        }
+        },
+        watchlists: {}
     };
 
     const REQUIRED_RULES = [
@@ -248,22 +208,29 @@
         });
     }
 
-    // Load Database
+    // Load Database - PostgreSQL Single Source of Truth
     function getDb() {
         const stored = localStorage.getItem(STORE_KEY);
+        const legacyPattern = /Apex Trading|ACC-982741|ACC-982736|Orion Financial|Vertex Imports|Shell Partner|Northstar Holdings|Blackwood Assets/;
         let db;
-        if (!stored) {
-            db = defaultDb;
+        if (!stored || legacyPattern.test(stored)) {
+            if (stored && legacyPattern.test(stored)) {
+                try { localStorage.removeItem(STORE_KEY); } catch (_) {}
+            }
+            db = (typeof window !== 'undefined' && window.MuleGuardExpandedDB) ? window.MuleGuardExpandedDB : defaultDb;
+            if (!db.watchlists) db.watchlists = {};
             ensureDefaultRules(db);
             saveDb(db);
             return db;
         }
         try {
             db = JSON.parse(stored);
+            if (!db.watchlists) db.watchlists = {};
             ensureDefaultRules(db);
             return db;
         } catch (e) {
-            db = defaultDb;
+            db = (typeof window !== 'undefined' && window.MuleGuardExpandedDB) ? window.MuleGuardExpandedDB : defaultDb;
+            if (!db.watchlists) db.watchlists = {};
             ensureDefaultRules(db);
             saveDb(db);
             return db;
@@ -537,19 +504,117 @@
         // Networks (Phase 5: dynamic SVG rendering datasets)
         getNetworks: function() {
             const db = getDb();
-            // Enrich graphNode risk labels dynamically based on live accounts table
-            const enriched = JSON.parse(JSON.stringify(db.networks));
-            Object.keys(enriched).forEach(netId => {
-                const net = enriched[netId];
-                net.graphNodes.forEach(node => {
-                    if (node.id && db.accounts[node.id]) {
-                        const acc = db.accounts[node.id];
-                        node.risk = acc.riskScore >= 90 ? 'Critical' : (acc.riskScore >= 70 ? 'High' : (acc.riskScore >= 40 ? 'Medium' : 'Low'));
-                        node.status = acc.status; // live state (Normal, Blocked, Under Review, Flagged)
-                    }
-                });
+            const accounts = db.accounts || {};
+            const txs = db.transactions || [];
+            
+            const adj = {};
+            const inDeg = {};
+            const outDeg = {};
+            
+            txs.forEach(t => {
+                const s = t.senderId;
+                const r = t.receiverId;
+                if (s && r && accounts[s] && accounts[r]) {
+                    if (!adj[s]) adj[s] = new Set();
+                    if (!adj[r]) adj[r] = new Set();
+                    adj[s].add(r);
+                    adj[r].add(s);
+                    inDeg[r] = (inDeg[r] || 0) + 1;
+                    outDeg[s] = (outDeg[s] || 0) + 1;
+                }
             });
-            return enriched;
+
+            const networksMap = JSON.parse(JSON.stringify(db.networks || {}));
+            
+            Object.keys(networksMap).forEach(netId => {
+                const net = networksMap[netId];
+                if (net.graphNodes) {
+                    net.graphNodes.forEach(node => {
+                        if (node.id && accounts[node.id]) {
+                            const acc = accounts[node.id];
+                            node.risk = acc.riskScore >= 90 ? 'Critical' : (acc.riskScore >= 70 ? 'High' : (acc.riskScore >= 40 ? 'Medium' : 'Low'));
+                            node.status = acc.status;
+                        }
+                    });
+                }
+            });
+
+            const hubAccIds = Object.keys(accounts).filter(accId => {
+                const acc = accounts[accId];
+                const totalDeg = (inDeg[accId] || 0) + (outDeg[accId] || 0);
+                return totalDeg >= 2 || (acc && (acc.status === 'Flagged' || acc.status === 'Blocked' || acc.riskScore >= 70));
+            });
+
+            hubAccIds.forEach(hubId => {
+                const cleanDigits = hubId.replace(/\D/g, '');
+                const netId = `NET-${cleanDigits.slice(-6).padStart(6, '0')}`;
+                
+                if (!networksMap[netId]) {
+                    const hubAcc = accounts[hubId];
+                    const neighbors = Array.from(adj[hubId] || []);
+                    const members = [hubId, ...neighbors];
+                    
+                    const compTxs = txs.filter(t => members.includes(t.senderId) && members.includes(t.receiverId));
+                    const totalVal = compTxs.reduce((sum, t) => sum + (t.amountNumeric || 0), 0);
+                    
+                    const suspiciousCount = members.filter(m => accounts[m] && (accounts[m].status === 'Flagged' || accounts[m].status === 'Blocked' || accounts[m].riskScore >= 70)).length;
+                    
+                    const graphNodes = members.map((mId, i) => {
+                        const mAcc = accounts[mId] || { name: mId, status: 'Normal', riskScore: 20 };
+                        let cx = 200, cy = 80, r = 16;
+                        if (i > 0) {
+                            const angle = (2 * Math.PI * (i - 1)) / Math.max(1, members.length - 1);
+                            cx = Math.round(200 + 100 * Math.cos(angle));
+                            cy = Math.round(80 + 100 * Math.sin(angle));
+                            r = 12;
+                        }
+                        return {
+                            id: mId,
+                            label: mAcc.name || mId,
+                            role: i === 0 ? 'Primary Hub' : 'Member Node',
+                            risk: mAcc.riskScore >= 90 ? 'Critical' : (mAcc.riskScore >= 70 ? 'High' : (mAcc.riskScore >= 40 ? 'Medium' : 'Low')),
+                            status: mAcc.status || 'Normal',
+                            cx: cx,
+                            cy: cy,
+                            r: r
+                        };
+                    });
+
+                    const nodeIdxMap = {};
+                    graphNodes.forEach((n, i) => nodeIdxMap[n.id] = i);
+                    
+                    const graphLinks = [];
+                    compTxs.forEach(t => {
+                        const sIdx = nodeIdxMap[t.senderId];
+                        const rIdx = nodeIdxMap[t.receiverId];
+                        if (sIdx !== undefined && rIdx !== undefined) {
+                            graphLinks.push({ source: sIdx, target: rIdx, flow: true });
+                        }
+                    });
+
+                    const score = Math.min(99, Math.max(20, Math.round(hubAcc.riskScore || 50)));
+
+                    networksMap[netId] = {
+                        id: netId,
+                        name: `${hubAcc.name || hubId} Network`,
+                        type: suspiciousCount >= 2 ? 'Shell Conduit' : 'Layering Loop',
+                        score: score,
+                        members: members.length,
+                        totalValue: `₹${(totalVal / 100000).toFixed(2)} Lakh`,
+                        connectedCount: compTxs.length,
+                        lastActivity: 'Recent',
+                        status: hubAcc.status || 'Active',
+                        summary: `Network ${netId} centered around hub account ${hubId} (${hubAcc.name}).`,
+                        riskExplanation: `Risk score ${score} derived from ${suspiciousCount} suspicious accounts and transaction connections.`,
+                        notes: `Store network generated from ${members.length} connected accounts.`,
+                        indicators: [suspiciousCount > 0 ? `${suspiciousCount} Suspicious Accounts` : 'Active Flow', 'Transaction Network'],
+                        graphNodes: graphNodes,
+                        graphLinks: graphLinks
+                    };
+                }
+            });
+
+            return networksMap;
         },
 
         // Transactions
@@ -1006,7 +1071,7 @@
         // Extended log() — accepts optional structured audit opts
         log: function(actor, action, details, opts) {
             const db = getDb();
-            const newLog = {
+            const newLog = Object.assign({
                 id: 'LOG-' + (db.auditLogs.length + 1).toString().padStart(4, '0'),
                 eventType:  (opts && opts.eventType)  || 'SYSTEM_EVENT',
                 caseId:     (opts && opts.caseId)     || null,
@@ -1018,7 +1083,7 @@
                 time:       'Just now',
                 isoTimestamp: new Date().toISOString(),
                 details:    details || ''
-            };
+            }, opts || {});
             db.auditLogs.unshift(newLog);
             saveDb(db);
         },
@@ -1558,6 +1623,18 @@
                     eventType: 'TRANSACTION_INGESTED'
                 });
 
+                if (typeof window !== 'undefined' && window.MuleGuardAPI && window.MuleGuardAPI.ingestTransaction) {
+                    window.MuleGuardAPI.ingestTransaction({
+                        senderId,
+                        receiverId,
+                        amountNumeric,
+                        type,
+                        origin,
+                        destination,
+                        summary
+                    }).catch(err => console.warn('Backend transaction ingest sync warning:', err));
+                }
+
                 // Dispatch custom event to notify open browser pages
                 if (typeof window !== 'undefined') {
                     const event = new CustomEvent('muleguard:transaction-ingested', {
@@ -1649,6 +1726,116 @@
                 lastTxTime: null,
                 intervalMs: 3000
             };
+        },
+
+        // ── Watchlist Management API ─────────────────────────────────────────
+        getWatchlist: function() {
+            const db = getDb();
+            if (!db.watchlists) db.watchlists = {};
+            return Object.values(db.watchlists);
+        },
+
+        isWatchlisted: function(accountId) {
+            if (!accountId) return false;
+            const db = getDb();
+            if (!db.watchlists) db.watchlists = {};
+            return Boolean(db.watchlists[accountId]);
+        },
+
+        addToWatchlist: function(accountId, reason, priority, addedBy) {
+            if (!accountId || typeof accountId !== 'string') {
+                return { success: false, error: 'Account ID is required' };
+            }
+
+            const db = getDb();
+            if (!db.watchlists) db.watchlists = {};
+
+            // 1. Validate account existence
+            const acc = db.accounts && db.accounts[accountId];
+            if (!acc) {
+                return { success: false, error: `Account ${accountId} not found` };
+            }
+
+            // 2. Validate reason mandatory
+            if (!reason || typeof reason !== 'string' || reason.trim() === '') {
+                return { success: false, error: 'Reason is required' };
+            }
+
+            // 3. Validate priority (High, Medium, Low)
+            const validPriorities = ['High', 'Medium', 'Low'];
+            const normalizedPriority = priority ? String(priority).trim() : 'Medium';
+            if (!validPriorities.includes(normalizedPriority)) {
+                return { success: false, error: 'Invalid priority. Must be High, Medium, or Low' };
+            }
+
+            // 4. Prevent duplicate watchlist entries
+            if (db.watchlists[accountId]) {
+                return { success: false, error: `Account ${accountId} is already on the watchlist` };
+            }
+
+            const investigatorName = addedBy && typeof addedBy === 'string' && addedBy.trim() ? addedBy.trim() : 'Investigator';
+            const now = new Date().toISOString();
+
+            // Find latest active transaction reference for account if any
+            let lastActiveTx = null;
+            if (db.transactions && Array.isArray(db.transactions)) {
+                const tx = db.transactions.find(t => t.senderId === accountId || t.receiverId === accountId);
+                if (tx) lastActiveTx = tx.id;
+            }
+
+            const entry = {
+                accountId: accountId,
+                accountName: acc.name || accountId,
+                addedBy: investigatorName,
+                addedAt: now,
+                reason: reason.trim(),
+                priority: normalizedPriority,
+                autoFlagOnTx: true,
+                lastActiveTx: lastActiveTx
+            };
+
+            db.watchlists[accountId] = entry;
+            saveDb(db);
+
+            // Create audit log entry
+            this.log('Watchlist Engine', `Account Added to Watchlist: ${accountId}`,
+                `Account ${accountId} (${acc.name || accountId}) added to watchlist by ${investigatorName}. Priority: ${normalizedPriority}. Reason: ${reason.trim()}.`, {
+                eventType: 'WATCHLIST_ADD',
+                accountId: accountId,
+                addedBy: investigatorName,
+                priority: normalizedPriority
+            });
+
+            return { success: true, entry: entry };
+        },
+
+        removeFromWatchlist: function(accountId, removedBy) {
+            if (!accountId || typeof accountId !== 'string') {
+                return { success: false, error: 'Account ID is required' };
+            }
+
+            const db = getDb();
+            if (!db.watchlists) db.watchlists = {};
+
+            const entry = db.watchlists[accountId];
+            if (!entry) {
+                return { success: false, error: `Account ${accountId} is not on the watchlist` };
+            }
+
+            const investigatorName = removedBy && typeof removedBy === 'string' && removedBy.trim() ? removedBy.trim() : 'Investigator';
+
+            delete db.watchlists[accountId];
+            saveDb(db);
+
+            // Create audit log entry
+            this.log('Watchlist Engine', `Account Removed from Watchlist: ${accountId}`,
+                `Account ${accountId} (${entry.accountName || accountId}) removed from watchlist by ${investigatorName}.`, {
+                eventType: 'WATCHLIST_REMOVE',
+                accountId: accountId,
+                removedBy: investigatorName
+            });
+
+            return { success: true, accountId: accountId };
         }
     };
 

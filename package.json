@@ -4,6 +4,7 @@
   "description": "MuleGuard Frontend",
   "main": "index.js",
   "scripts": {
+    "start": "python run.py",
     "build:css": "tailwindcss -i ./frontend/input.css -o ./frontend/style.css --minify"
   },
   "devDependencies": {

@@ -4,6 +4,7 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
         <script src="../../scripts/data-store.js"></script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -196,15 +197,15 @@
                                         <div class="px-3 mb-2">
                                                 <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
                                         </div>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="risk-analytics.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">monitoring</span>
                                                 <span>Risk Analytics</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="network-intelligence.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">hub</span>
                                                 <span>Network Intelligence</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="watchlists.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">rule_folder</span>
                                                 <span>Watchlists</span>
                                         </a>
@@ -505,11 +506,11 @@
                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Case Title:</span>
-                                        <span id="drawer-case-title" class="font-headline-md text-[13px] text-on-surface font-bold">Orion Structuring Review</span>
+                                        <span id="drawer-case-title" class="font-headline-md text-[13px] text-on-surface font-bold">Case Dossier</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Primary Entity:</span>
-                                        <span id="drawer-primary-entity" class="font-body-md text-[13px] text-on-surface font-semibold">Orion Financial</span>
+                                        <span id="drawer-primary-entity" class="font-body-md text-[13px] text-on-surface font-semibold">Selected Case Account</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Risk Score:</span>
@@ -1055,13 +1056,19 @@
                         if (e.key === 'Escape') { closeDetailDrawer(); closeConfirmModal(); }
                 });
 
-                // Initialize on DOM ready
-                window.addEventListener('DOMContentLoaded', () => {
+                function initComplianceCases() {
                         if (window.MuleGuardStore && window.MuleGuardStore.generateAlertsFromAllAccounts) {
                                 window.MuleGuardStore.generateAlertsFromAllAccounts();
                         }
                         renderCases();
-                });
+                }
+
+                if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initComplianceCases);
+                } else {
+                        initComplianceCases();
+                }
+                window.addEventListener('DOMContentLoaded', initComplianceCases);
 
                 window.addEventListener('muleguard:transaction-ingested', () => {
                         if (typeof renderCases === 'function') renderCases();

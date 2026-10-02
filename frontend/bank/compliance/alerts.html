@@ -4,6 +4,7 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
         <script src="../../scripts/data-store.js"></script>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -232,15 +233,15 @@
                                         <div class="px-3 mb-2">
                                                 <span class="font-mono-technical text-[10px] text-on-primary-container tracking-wider uppercase opacity-55">Intelligence</span>
                                         </div>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="risk-analytics.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">monitoring</span>
                                                 <span>Risk Analytics</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="network-intelligence.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">hub</span>
                                                 <span>Network Intelligence</span>
                                         </a>
-                                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
+                                        <a href="watchlists.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container/70 font-body-md text-[14px] hover:bg-secondary-container/10 hover:text-on-primary border-l-2 border-transparent transition-all duration-150">
                                                 <span class="material-symbols-outlined text-[20px]">rule_folder</span>
                                                 <span>Watchlists</span>
                                         </a>
@@ -547,7 +548,7 @@
                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Target Account:</span>
-                                        <span id="drawer-target-account" class="font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</span>
+                                        <span id="drawer-target-account" class="font-headline-md text-[13px] text-on-surface font-bold">Target Account</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Alert Category:</span>
@@ -612,7 +613,7 @@
                         <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-4">
                                 <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block text-left">2. Risk Trigger Explanation</span>
                                 <p id="drawer-risk-explanation" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed text-left pt-1">
-                                        Alert triggered on account Apex Trading routing 12 consecutive ₹20,000 batches inside a 30-minute window.
+                                        Alert details will populate dynamically upon selecting an account.
                                 </p>
                         </div>
 
@@ -695,97 +696,7 @@
         <!-- Javascript Dynamic Page Interactions -->
         <script>
                 // Alerts database loaded dynamically from MuleGuardStore
-                const staticAlertsFallback = {
-                        'AL-982711': {
-                                id: 'AL-982711',
-                                target: 'Apex Trading Ltd',
-                                category: 'Velocity Anomaly',
-                                score: 91,
-                                amount: '₹2,40,000',
-                                time: '12 min ago',
-                                severity: 'Critical',
-                                status: 'New',
-                                summary: 'Aggregate transfers exceeded maximum daily velocity threshold by 240%.',
-                                indicators: ['High frequency routing', 'Offshore destination mismatch', 'Velocity cap breach'],
-                                riskExplanation: 'Alert triggered on account Apex Trading routing 12 consecutive ₹20,000 batches inside a 30-minute window.',
-                                notes: 'Related to Apex-Northstar shell network. Requires immediate escalation.'
-                        },
-                        'AL-982705': {
-                                id: 'AL-982705',
-                                target: 'Orion Financial',
-                                category: 'Structuring',
-                                score: 78,
-                                amount: '₹9,950',
-                                time: '28 min ago',
-                                severity: 'High',
-                                status: 'Investigating',
-                                summary: 'Suspicious transaction structuring below standard reporting limits.',
-                                indicators: ['Limit avoidance', 'Multiple locations', 'Same-day cashout'],
-                                riskExplanation: 'Transaction of ₹9,950 processed immediately following a ₹9,900 deposit at a separate terminal location.',
-                                notes: 'Sub-ledger details review pending. Account owner has active PEP links.'
-                        },
-                        'AL-982698': {
-                                id: 'AL-982698',
-                                target: 'Vertex Imports',
-                                category: 'Behavioral Shift',
-                                score: 62,
-                                amount: '₹1,50,000',
-                                time: '41 min ago',
-                                severity: 'Medium',
-                                status: 'New',
-                                summary: 'Abnormal transaction sizing compared to 90-day historic account averages.',
-                                indicators: ['Historic average breach', 'New counterparty routing', 'Foreign clearing source'],
-                                riskExplanation: 'An incoming clearance of ₹150,000 from a new counterparty deviates significantly from Vertex Imports typical average of ₹5,000.',
-                                notes: 'Shipping bills matched for domestic logistics. Flagged temporarily.'
-                        },
-                        'AL-982684': {
-                                id: 'AL-982684',
-                                target: 'Blackwood Assets',
-                                category: 'Identity Fraud',
-                                score: 97,
-                                amount: '₹12,00,000',
-                                time: '1 hr ago',
-                                severity: 'Critical',
-                                status: 'New',
-                                summary: 'Duplicate corporate registration files and device footprint detected.',
-                                indicators: ['Identity document duplication', 'Shared device footprint', 'High risk region access'],
-                                riskExplanation: 'Identical UBO certification registry upload matched directly against previously blacklisted shell nodes.',
-                                notes: 'Operations blocked. SAR package compiled for financial intelligence unit.'
-                        },
-                        'AL-982676': {
-                                id: 'AL-982676',
-                                target: 'Phoenix Logistics',
-                                category: 'Velocity Anomaly',
-                                score: 72,
-                                amount: '₹35,000',
-                                time: '2 hrs ago',
-                                severity: 'High',
-                                status: 'Investigating',
-                                summary: 'Rapid circular pass-through funds routing observed across domestic nodes.',
-                                indicators: ['Circular balance clearing', 'Rapid transit routing', 'Short duration holding'],
-                                riskExplanation: 'Phoenix Logistics received ₹35,000 and routed the exact amount to swift sub-clearance accounts within 12 seconds.',
-                                notes: 'Awaiting invoice verification details from trade compliance desk.'
-                        },
-                        'AL-982650': {
-                                id: 'AL-982650',
-                                target: 'Meridian Treasury',
-                                category: 'Behavioral Shift',
-                                score: 38,
-                                amount: '₹45,00,000',
-                                time: '3 hrs ago',
-                                severity: 'Low',
-                                status: 'Dismissed',
-                                summary: 'Standard clearing baseline clearance. Flagged due to initial automated size limit thresholds.',
-                                indicators: ['Automated limit trigger', 'Institutional counterparties', 'No high risk attributes'],
-                                riskExplanation: 'Risk score low (38). Standard high-value corporate treasury dispatch. Approved counterparties verified.',
-                                notes: 'Audited and cleared by senior compliance team.'
-                        }
-                };
-
-                const alertsDb = (window.MuleGuardStore) ? window.MuleGuardStore.getAlerts().reduce((acc, a) => {
-                        acc[a.id] = a;
-                        return acc;
-                }, {}) : staticAlertsFallback;
+                const alertsDb = (window.MuleGuardStore) ? window.MuleGuardStore.getAlerts().reduce((acc, a) => { acc[a.id] = a; return acc; }, {}) : (window.MuleGuardExpandedDB ? window.MuleGuardExpandedDB.alerts.reduce((acc, a) => { acc[a.id] = a; return acc; }, {}) : {});
 
                 // Global variables for cached workspace operations
                 let cachedRows = [];
@@ -1260,13 +1171,19 @@
                         if (e.key === 'Escape') { closeDetailDrawer(); closeConfirmModal(); }
                 });
 
-                window.addEventListener('DOMContentLoaded', () => {
+                function initAlertsPage() {
                         if (window.MuleGuardStore) {
                                 window.MuleGuardStore.evaluateRules();
                                 window.MuleGuardStore.generateAlertsFromAllAccounts();
                         }
                         renderAlerts();
-                });
+                }
+                if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initAlertsPage);
+                } else {
+                        initAlertsPage();
+                }
+                window.addEventListener('DOMContentLoaded', initAlertsPage);
 
                 window.addEventListener('muleguard:transaction-ingested', () => {
                         if (typeof renderAlerts === 'function') renderAlerts();

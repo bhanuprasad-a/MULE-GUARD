@@ -4,7 +4,8 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
-        <script src="../../scripts/data-store.js"></script>
+        <script src="../../scripts/api.js"></script>
+	<script src="../../scripts/data-store.js"></script>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <title>MuleGuard - Transactions Workspace</title>
@@ -15,6 +16,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
                 rel="stylesheet" />
         <link rel="stylesheet" href="../../style.css" />
+        <link rel="stylesheet" href="../../shared.css" />
         <script>
                 // Suppress Chrome extension errors
                 (function() {
@@ -635,208 +637,9 @@
                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right">Action</th>
                                                         </tr>
                                                 </thead>
-                                                <tbody class="divide-y divide-[#f1f5f9]" id="transactions-tbody">
-                                                        <!-- Row 1 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982741" data-risk="Critical" data-status="Flagged" data-type="Cross-border" onclick="rowClickAction(event, 'TX-982741')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982741</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Cross-border Transfer</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,27,500</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">91 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 min ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Singapore → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">Flagged</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982741')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 2 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982736" data-risk="High" data-status="Under Review" data-type="Transfer" onclick="rowClickAction(event, 'TX-982736')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982736</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Orion Financial</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Wire Transfer</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹86,200</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">78 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">28 min ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">London → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982736')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 3 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982728" data-risk="Medium" data-status="Under Review" data-type="Payment" onclick="rowClickAction(event, 'TX-982728')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982728</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vertex Imports</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Payment</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹42,800</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">62 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">41 min ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Dubai → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">Monitoring</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982728')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 4 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982714" data-risk="Critical" data-status="Flagged" data-type="Cross-border" onclick="rowClickAction(event, 'TX-982714')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982714</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Northstar Holdings</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Cross-border Transfer</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹3,12,400</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">96 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">1 hr ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Hong Kong → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Critical</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982714')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 5 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982705" data-risk="Medium" data-status="Normal" data-type="Deposit" onclick="rowClickAction(event, 'TX-982705')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982705</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Meridian Capital</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Deposit</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹94,600</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-yellow-600 px-2 py-0.5 rounded bg-yellow-50 border border-yellow-200">45 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">2 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">New York → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982705')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 6 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982698" data-risk="Low" data-status="Normal" data-type="Transfer" onclick="rowClickAction(event, 'TX-982698')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982698</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Atlas Global Trading</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Wire Transfer</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹28,450</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">32 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">3 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Singapore → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982698')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 7 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982685" data-risk="Low" data-status="Normal" data-type="Payment" onclick="rowClickAction(event, 'TX-982685')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982685</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Vanguard Logistics</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Payment</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹15,600</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-blue-800 px-2 py-0.5 rounded bg-blue-50 border border-blue-200">18 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">5 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Tokyo → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982685')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 8 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982672" data-risk="Critical" data-status="Blocked" data-type="Cross-border" onclick="rowClickAction(event, 'TX-982672')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982672</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Blackwood Assets</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Cross-border Transfer</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹6,20,000</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">98 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">8 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Zurich → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Blocked</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982672')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 9 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982659" data-risk="High" data-status="Under Review" data-type="Payment" onclick="rowClickAction(event, 'TX-982659')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982659</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Phoenix Ventures</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Payment</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,05,300</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">75 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Frankfurt → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Under Review</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982659')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 10 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="TX-982641" data-risk="High" data-status="Normal" data-type="Withdrawal" onclick="rowClickAction(event, 'TX-982641')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">TX-982641</td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Swift Logistics Corp</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">Withdrawal</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹38,200</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="font-mono-technical text-[12px] font-bold text-orange-600 px-2 py-0.5 rounded bg-orange-50 border border-orange-200">52 / 100</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">18 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">Sydney → India</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Normal</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('TX-982641')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                </tbody>
+                                                <tbody class="divide-y divide-[#f1f5f9]" id="transactions-tbody" aria-live="polite">
+													<!-- Populated dynamically from PostgreSQL via MuleGuardStore -->
+												</tbody>
                                         </table>
                                 </div>
                         </section>
@@ -888,7 +691,7 @@
                         <div class="p-4 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-3 drawer-section drawer-stagger-1">
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Account / Entity:</span>
-                                        <span id="drawer-entity-name" class="font-headline-md text-[13px] text-on-surface font-bold">Apex Trading Ltd</span>
+                                        <span id="drawer-entity-name" class="font-headline-md text-[13px] text-on-surface font-bold">Prakash Chatterjee</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                         <span class="font-body-md text-[13px] text-on-surface-variant font-medium">Transaction Amount:</span>
@@ -920,7 +723,7 @@
                         <div class="space-y-2 border-t border-outline-variant/20 pt-4 drawer-section drawer-stagger-2">
                                 <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider font-extrabold block">1. Transaction Summary</span>
                                 <p id="drawer-summary" class="font-body-md text-[13px] text-on-surface-variant leading-relaxed bg-[#f8fafc] border border-[#e2e8f0] p-3 rounded-lg mt-1">
-                                        Apex Trading Ltd initiated a cross-border wire transfer of ₹1,27,500 to beneficiary accounts in India. Anomaly alerts triggered based on high baseline velocity ratios.
+                                        Prakash Chatterjee initiated a cross-border wire transfer of ₹1,27,500 to beneficiary accounts in India. Anomaly alerts triggered based on high baseline velocity ratios.
                                 </p>
                         </div>
 
@@ -1074,7 +877,7 @@
                 const transactionsDb = {
                         'TX-982741': {
                                 id: 'TX-982741',
-                                entity: 'Apex Trading Ltd',
+                                entity: 'Prakash Chatterjee',
                                 type: 'Cross-border Transfer',
                                 value: '₹1,27,500',
                                 amountNumeric: 127500,
@@ -1083,11 +886,11 @@
                                 origin: 'Singapore',
                                 destination: 'India',
                                 status: 'Flagged',
-                                summary: 'Apex Trading Ltd initiated a cross-border wire transfer of ₹1,27,500 to beneficiary accounts in India. Anomaly alerts triggered based on high baseline velocity ratios.'
+                                summary: 'Prakash Chatterjee initiated a cross-border wire transfer of ₹1,27,500 to beneficiary accounts in India. Anomaly alerts triggered based on high baseline velocity ratios.'
                         },
                         'TX-982736': {
                                 id: 'TX-982736',
-                                entity: 'Orion Financial',
+                                entity: 'Kalyan Chowdary',
                                 type: 'Wire Transfer',
                                 value: '₹86,200',
                                 amountNumeric: 86200,
@@ -1096,11 +899,11 @@
                                 origin: 'London',
                                 destination: 'India',
                                 status: 'Under Review',
-                                summary: 'Frequent intermediate wiring setup initiated between Orion Financial branch accounts. Suspicious beneficiary account match triggered review.'
+                                summary: 'Frequent intermediate wiring setup initiated between Kalyan Chowdary branch accounts. Suspicious beneficiary account match triggered review.'
                         },
                         'TX-982728': {
                                 id: 'TX-982728',
-                                entity: 'Vertex Imports',
+                                entity: 'Suresh Babu',
                                 type: 'Payment',
                                 value: '₹42,800',
                                 amountNumeric: 42800,
@@ -1109,11 +912,11 @@
                                 origin: 'Dubai',
                                 destination: 'India',
                                 status: 'Normal',
-                                summary: 'Normal high-value import payment ledger setup for Vertex Imports. Account historically conducts transaction bounds of this magnitude.'
+                                summary: 'Normal high-value import payment ledger setup for Suresh Babu. Account historically conducts transaction bounds of this magnitude.'
                         },
                         'TX-982714': {
                                 id: 'TX-982714',
-                                entity: 'Northstar Holdings',
+                                entity: 'Venkatesh Naidu',
                                 type: 'Cross-border Transfer',
                                 value: '₹3,12,400',
                                 amountNumeric: 312400,
@@ -1165,7 +968,7 @@
                         },
                         'TX-982672': {
                                 id: 'TX-982672',
-                                entity: 'Blackwood Assets',
+                                entity: 'Sri Venkateswara',
                                 type: 'Cross-border Transfer',
                                 value: '₹6,20,000',
                                 amountNumeric: 620000,
@@ -1699,22 +1502,7 @@
 
                 // Initial count setup and caching DOM elements
                 window.addEventListener('DOMContentLoaded', () => {
-                        const rows = document.querySelectorAll('#transactions-tbody tr');
-                        cachedRows = Array.from(rows).map(row => {
-                                const txnId = row.getAttribute('data-txn-id');
-                                const data = transactionsDb[txnId];
-                                return {
-                                        element: row,
-                                        id: txnId.toLowerCase(),
-                                        entity: data.entity.toLowerCase(),
-                                        type: data.type.toLowerCase(),
-                                        risk: row.getAttribute('data-risk'),
-                                        amountNumeric: data.amountNumeric,
-                                        valueString: data.value.toLowerCase(),
-                                        cleanValueString: data.amountNumeric.toString()
-                                };
-                        });
-                        recountSummaryCards();
+			renderTransactionsTable();
                         animateChartOnLoad();
                 });
 
@@ -1765,7 +1553,12 @@
                         }
                         recountSummaryCards();
                 });
-        </script>
+        
+		// Real-time live ingestion sync
+		window.addEventListener('muleguard:transaction-ingested', () => {
+			renderTransactionsTable();
+		});
+</script>
 </body>
 
 </html>
