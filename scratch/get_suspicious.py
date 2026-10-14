@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Add project root to path for standalone execution
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from app.db.database import get_connection
 
 

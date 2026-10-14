@@ -358,7 +358,7 @@
                                                 </div>
                                         </div>
                                         <h3 class="font-headline-lg text-[26px] text-on-surface font-extrabold leading-tight tracking-tight"
-                                                id="kpi-reports">3</h3>
+                                                id="kpi-reports">0</h3>
                                         <span class="text-[11px] text-on-surface-variant block mt-1">Submitted/Pending
                                                 SAR filings</span>
                                 </div>
@@ -484,40 +484,37 @@
                         }, 2800);
                 }
 
-                // Render Dashboard Stats and Queues
+                // Render Dashboard Stats and Queues from authoritative PostgreSQL backend
                 async function renderComplianceDashboard() {
                         let cases = [], alerts = [], decisions = [];
                         let kpis = null;
 
                         if (window.MuleGuardAPI) {
                                 try {
-                                        kpis = await window.MuleGuardAPI.getKPIs();
-                                        cases = await window.MuleGuardAPI.getCases();
-                                        alerts = await window.MuleGuardAPI.getAlerts();
-                                        decisions = await window.MuleGuardAPI.getDecisions();
+                                        [kpis, cases, alerts, decisions] = await Promise.all([
+                                                window.MuleGuardAPI.getKPIs ? window.MuleGuardAPI.getKPIs() : null,
+                                                window.MuleGuardAPI.getCases ? window.MuleGuardAPI.getCases({ limit: 50 }) : [],
+                                                window.MuleGuardAPI.getAlerts ? window.MuleGuardAPI.getAlerts({ limit: 50 }) : [],
+                                                window.MuleGuardAPI.getDecisions ? window.MuleGuardAPI.getDecisions({ limit: 50 }) : []
+                                        ]);
                                 } catch (e) {
-                                        console.warn("Backend API unavailable, using store fallback:", e);
+                                        console.error("MuleGuardAPI compliance data retrieval error:", e);
                                 }
                         }
 
-                        if (!kpis && window.MuleGuardStore) {
-                                const storeCases = window.MuleGuardStore.getCases() || [];
-                                const storeAlerts = window.MuleGuardStore.getAlerts() || [];
-                                const storeDecisions = window.MuleGuardStore.getDecisions() || [];
-                                cases = storeCases;
-                                alerts = storeAlerts;
-                                decisions = storeDecisions;
+                        if (kpis) {
+                                const kpiEscalated = document.getElementById('kpi-escalated-cases');
+                                if (kpiEscalated) kpiEscalated.textContent = kpis.active_cases !== undefined ? kpis.active_cases : 0;
 
-                                const escalated = storeCases.filter(c => c.status === 'Escalated');
-                                const openHighRisk = storeAlerts.filter(a => a.status !== 'Resolved' && (a.severity === 'Critical' || a.severity === 'High'));
-                                
-                                document.getElementById('kpi-escalated-cases').textContent = escalated.length;
-                                document.getElementById('kpi-high-risk-alerts').textContent = openHighRisk.length;
-                                document.getElementById('kpi-decisions-logged').textContent = storeDecisions.length;
-                        } else if (kpis) {
-                                document.getElementById('kpi-escalated-cases').textContent = kpis.active_cases;
-                                document.getElementById('kpi-high-risk-alerts').textContent = kpis.open_alerts;
-                                document.getElementById('kpi-decisions-logged').textContent = decisions.length;
+                                const kpiAlerts = document.getElementById('kpi-high-risk-alerts');
+                                if (kpiAlerts) kpiAlerts.textContent = kpis.open_alerts !== undefined ? kpis.open_alerts : 0;
+
+                                const kpiDecisions = document.getElementById('kpi-decisions-logged');
+                                if (kpiDecisions) kpiDecisions.textContent = decisions.length;
+
+                                const sarsFiled = decisions.filter(d => d.decision === 'Escalate' || d.decision === 'Block').length;
+                                const kpiReports = document.getElementById('kpi-reports');
+                                if (kpiReports) kpiReports.textContent = sarsFiled;
                         }
 
                         const escalatedCases = cases.filter(c => c.status === 'Escalated' || c.status === 'Open' || c.priority === 'High' || c.priority === 'Critical');
@@ -527,7 +524,7 @@
                         if (tbody) {
                                 tbody.innerHTML = '';
                                 if (escalatedCases.length === 0) {
-                                        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-on-surface-variant opacity-60">No pending case escalations.</td></tr>`;
+                                        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-on-surface-variant opacity-60">No pending case escalations in PostgreSQL.</td></tr>`;
                                 } else {
                                         escalatedCases.forEach(c => {
                                                 const caseId = c.case_id || c.id;
@@ -556,7 +553,7 @@
                                 list.innerHTML = '';
                                 const latestDecisions = decisions.slice(0, 4);
                                 if (latestDecisions.length === 0) {
-                                        list.innerHTML = `<p class="text-[12px] text-on-surface-variant text-center opacity-60 py-2">No historical decisions logged.</p>`;
+                                        list.innerHTML = `<p class="text-[12px] text-on-surface-variant text-center opacity-60 py-2">No historical decisions logged in PostgreSQL.</p>`;
                                 } else {
                                         latestDecisions.forEach(d => {
                                                 const dec = d.decision || 'Review';
@@ -588,9 +585,6 @@
                 }
 
                 function initComplianceDashboard() {
-                        if (window.MuleGuardStore && window.MuleGuardStore.generateAlertsFromAllAccounts) {
-                                window.MuleGuardStore.generateAlertsFromAllAccounts();
-                        }
                         renderComplianceDashboard();
                 }
 

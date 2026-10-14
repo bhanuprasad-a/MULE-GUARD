@@ -1,5 +1,5 @@
 import time
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Path
 
 from app.db.database import get_connection
 from app.services.risk_engine import analyze_account
@@ -169,7 +169,7 @@ def compute_risk_summary(force_refresh: bool = False):
 
 
 @router.get("/accounts/{account_id}/risk")
-def get_account_risk(account_id: str):
+def get_account_risk(account_id: str = Path(..., max_length=64, description="Target account ID")):
     try:
         result = analyze_account(account_id)
 

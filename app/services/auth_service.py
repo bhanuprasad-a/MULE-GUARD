@@ -35,6 +35,8 @@ from app.services.face_engine import (
     DEFAULT_FACE_THRESHOLD
 )
 
+from app.core.config import IS_PRODUCTION
+
 SESSION_DURATION_HOURS = 8
 IDLE_TIMEOUT_MINUTES = 30
 
@@ -324,6 +326,13 @@ def authenticate_stage2_biometrics(
         probe_vector = extracted_vector
 
     elif probe_vector:
+        if IS_PRODUCTION:
+            log_audit("FACE_VERIFICATION_FAILED", user_id, employee_id, ip_address, user_agent, "FAILURE", "SYNTHETIC_PROBE_PROHIBITED")
+            return {
+                "success": False,
+                "error": "Synthetic probe vectors are strictly prohibited in production. Live camera capture is required.",
+                "code": "SYNTHETIC_PROBE_PROHIBITED"
+            }
         # Probe vector mode (test/simulated vector)
         if liveness_proof:
             is_proof_live, proof_reason, proof_score = verify_liveness(liveness_proof, required_action)

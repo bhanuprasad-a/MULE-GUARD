@@ -523,7 +523,14 @@
                                                         </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-[#f1f5f9]" id="networks-tbody">
-                                                        <!-- Dynamically populated from PostgreSQL -->
+                                                        <tr id="networks-loading-row">
+                                                                <td colspan="10" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]">
+                                                                        <div class="flex items-center justify-center gap-2">
+                                                                                <span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span>
+                                                                                <span>Loading transaction networks from PostgreSQL...</span>
+                                                                        </div>
+                                                                </td>
+                                                        </tr>
                                                 </tbody>
                                         </table>
                                 </div>
@@ -686,42 +693,8 @@
         <!-- Javascript Dynamic Page Interactions -->
         <script>
                 // Fraud Networks database
-                let networksDb = window.MuleGuardStore.getNetworks();
+                let networksDb = {};
 
-        function renderNetworks() {
-                const tbody = document.getElementById('networks-tbody');
-                if (!tbody) return;
-                const networks = window.MuleGuardStore ? window.MuleGuardStore.getNetworks() : {};
-                const list = Object.values(networks);
-                if (list.length === 0) return;
-                tbody.innerHTML = list.map(net => {
-                        const statusBadgeClass = net.status === 'Critical' ? 'bg-red-50 text-red-700 border-red-200' :
-                                (net.status === 'Flagged' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-blue-50 text-blue-700 border-blue-200');
-                        return `
-                                <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-net-id="${net.id}" data-risk="${net.score >= 90 ? 'Critical' : (net.score >= 70 ? 'High' : 'Medium')}" data-status="${net.status}" data-type="${net.type}" onclick="rowClickAction(event, '${net.id}')">
-                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">${net.id}</td>
-                                        <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">${net.name}</td>
-                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">${net.type}</td>
-                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                <span class="font-mono-technical text-[12px] font-bold text-red-600 px-2 py-0.5 rounded bg-red-50 border border-red-200">${net.score} / 100</span>
-                                        </td>
-                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface text-right font-semibold align-middle whitespace-nowrap">${net.totalValue}</td>
-                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">${net.members}</td>
-                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-on-surface-variant text-right font-semibold align-middle whitespace-nowrap">${net.connectedCount}</td>
-                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${net.lastActivity}</td>
-                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${statusBadgeClass}">${net.status}</span>
-                                        </td>
-                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${net.id}')">
-                                                        Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                </button>
-                                        </td>
-                                </tr>
-                        `;
-                }).join('');
-                cacheDOMRows();
-        }
     
 
                 // Global variables for cached workspace operations
@@ -878,10 +851,10 @@
                         const infoBox = document.getElementById('graph-node-info');
                         if (!infoBox) return;
 
-                        const db = window.MuleGuardStore ? window.MuleGuardStore.getAccounts() : null;
-                        const acc = db ? db[nodeId] : null;
-                        const statusText = acc ? acc.status : 'Normal';
-                        const score = acc ? acc.riskScore : (risk === 'Critical' ? 95 : (risk === 'High' ? 82 : (risk === 'Medium' ? 62 : 20)));
+                        const currNet = networksDb[currentlyRenderedNetworkId];
+                        const nodeObj = (currNet && currNet.graphNodes) ? currNet.graphNodes.find(n => n.id === nodeId) : null;
+                        const statusText = nodeObj ? (nodeObj.status || 'Normal') : 'Normal';
+                        const score = nodeObj ? (nodeObj.score !== undefined ? nodeObj.score : (risk === 'Critical' ? 95 : (risk === 'High' ? 82 : (risk === 'Medium' ? 62 : 20)))) : (risk === 'Critical' ? 95 : (risk === 'High' ? 82 : (risk === 'Medium' ? 62 : 20)));
 
                         let badgeColor = "bg-blue-50 text-blue-800 border-blue-200";
                         if (statusText === 'Blocked') badgeColor = "bg-slate-900 text-slate-300 border-slate-700";
@@ -889,11 +862,12 @@
                         else if (statusText === 'Under Review') badgeColor = "bg-orange-50 text-orange-700 border-orange-200";
 
                         let triggersHtml = '';
-                        if (acc && acc.triggers && acc.triggers.length > 0) {
+                        const triggersList = (nodeObj && Array.isArray(nodeObj.triggers)) ? nodeObj.triggers : [];
+                        if (triggersList.length > 0) {
                                 triggersHtml = `
                                         <div class="mt-2 pt-2 border-t border-slate-800 text-[10px] space-y-1">
                                                 <div class="font-bold text-slate-300 uppercase tracking-wider">Triggers:</div>
-                                                ${acc.triggers.map(t => `<div class="text-red-400">• ${t}</div>`).join('')}
+                                                ${triggersList.map(t => `<div class="text-red-400">• ${t}</div>`).join('')}
                                         </div>
                                 `;
                         }
@@ -1112,9 +1086,9 @@
                         const typeVal = document.getElementById('filter-type').value;
                         const statusVal = document.getElementById('filter-status').value;
 
+                        let visibleCount = 0;
                         cachedRows.forEach(row => {
-                                // Sync dynamic database properties
-                                const currentStatus = networksDb[row.id.toUpperCase()].status;
+                                const currentStatus = networksDb[row.id.toUpperCase()] ? networksDb[row.id.toUpperCase()].status : (row.status || 'Active');
 
                                 const matchesSearch = !searchQuery ||
                                         row.id.includes(searchQuery) ||
@@ -1122,15 +1096,29 @@
                                         row.type.includes(searchQuery);
 
                                 const matchesRisk = (riskVal === 'All' || row.risk === riskVal);
-                                const matchesType = (typeVal === 'All' || row.type === typeVal.toLowerCase());
+                                const matchesType = (typeVal === 'All' || row.type.toLowerCase().includes(typeVal.toLowerCase()));
                                 const matchesStatus = (statusVal === 'All' || currentStatus === statusVal);
 
                                 if (matchesSearch && matchesRisk && matchesType && matchesStatus) {
                                         row.element.classList.remove('hidden');
+                                        visibleCount++;
                                 } else {
                                         row.element.classList.add('hidden');
                                 }
                         });
+
+                        const tbodyEl = document.getElementById('networks-tbody');
+                        let emptyFilterRow = document.getElementById('networks-filter-empty-row');
+                        if (visibleCount === 0 && cachedRows.length > 0 && tbodyEl) {
+                                if (!emptyFilterRow) {
+                                        emptyFilterRow = document.createElement('tr');
+                                        emptyFilterRow.id = 'networks-filter-empty-row';
+                                        emptyFilterRow.innerHTML = `<td colspan="10" class="py-12 text-center text-on-surface-variant font-body-md text-[13px] italic">No transaction networks match the selected filter criteria.</td></tr>`;
+                                        tbodyEl.appendChild(emptyFilterRow);
+                                }
+                        } else if (emptyFilterRow) {
+                                emptyFilterRow.remove();
+                        }
 
                         recountSummaryCards();
                 }
@@ -1198,6 +1186,10 @@
 
                 // Load live networks from backend API (with Store fallback)
                 async function loadNetworksData() {
+                        const tbody = document.getElementById('networks-tbody');
+                        if (tbody && (!networksDb || Object.keys(networksDb).length === 0)) {
+                                tbody.innerHTML = `<tr><td colspan="10" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]"><div class="flex items-center justify-center gap-2"><span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span><span>Loading transaction networks from PostgreSQL...</span></div></td></tr>`;
+                        }
                         let rawNetworks = null;
                         if (window.MuleGuardAPI && window.MuleGuardAPI.getNetworks) {
                                 try {
@@ -1216,8 +1208,6 @@
                                 });
                         } else if (rawNetworks && typeof rawNetworks === 'object' && Object.keys(rawNetworks).length > 0) {
                                 networksDb = rawNetworks;
-                        } else if (window.MuleGuardStore && window.MuleGuardStore.getNetworks) {
-                                networksDb = window.MuleGuardStore.getNetworks() || {};
                         }
 
                         renderNetworksTable();
@@ -1231,7 +1221,7 @@
                         tbody.innerHTML = '';
 
                         if (netList.length === 0) {
-                                tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-on-surface-variant font-body-md">No transaction networks detected in database.</td></tr>`;
+                                tbody.innerHTML = `<tr><td colspan="10" class="py-16 text-center text-on-surface-variant font-body-md text-[13px] italic">No transaction networks detected in database. Networks are synthesized dynamically from account cluster topologies.</td></tr>`;
                                 cachedRows = [];
                                 recountSummaryCards();
                                 return;

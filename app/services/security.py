@@ -21,11 +21,24 @@ ph = PasswordHasher(
     salt_len=16
 )
 
-# 256-bit encryption key for biometric vectors (read from env or fallback to stable deterministic master key)
-DEFAULT_MASTER_KEY = b"MuleGuard_Bio_Master_Key_2026_!" # 32 bytes
-BIO_ENCRYPTION_KEY = os.getenv("MULEGUARD_BIO_KEY", "").encode("utf-8")
-if len(BIO_ENCRYPTION_KEY) != 32:
-    BIO_ENCRYPTION_KEY = hashlib.sha256(DEFAULT_MASTER_KEY).digest()
+from app.core.config import IS_PRODUCTION
+
+# 256-bit encryption key for biometric vectors
+_raw_bio_key = os.getenv("MULEGUARD_BIO_KEY", "").encode("utf-8")
+if IS_PRODUCTION:
+    if not _raw_bio_key or len(_raw_bio_key) != 32:
+        raise RuntimeError(
+            "CRITICAL SECURITY CONFIGURATION ERROR: MULEGUARD_BIO_KEY must be explicitly configured "
+            "as a valid 32-byte key in production environments. Application startup aborted."
+        )
+    BIO_ENCRYPTION_KEY = _raw_bio_key
+else:
+    # Development fallback only
+    DEFAULT_MASTER_KEY = b"MuleGuard_Bio_Master_Key_2026_!"
+    if len(_raw_bio_key) == 32:
+        BIO_ENCRYPTION_KEY = _raw_bio_key
+    else:
+        BIO_ENCRYPTION_KEY = hashlib.sha256(DEFAULT_MASTER_KEY).digest()
 
 
 def hash_password(password: str) -> str:

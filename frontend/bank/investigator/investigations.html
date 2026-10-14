@@ -4,10 +4,10 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
-        <script src="../../scripts/api.js"></script>`n        <script src="../../scripts/data-store.js"></script>
+        <script src="../../scripts/api.js"></script>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-        <title>MuleGuard - Investigations Workspace</title>
+        <title>MuleGuard - Investigation Work Queue</title>
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap"
@@ -289,8 +289,8 @@
                                         <span class="material-symbols-outlined text-[24px]">menu</span>
                                 </button>
                                 <div class="flex flex-col text-left">
-                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Investigations</h1>
-                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Financial threat investigations and case intelligence</p>
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Investigation Work Queue</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Active investigator triage queue, entity risk analysis, and transaction relationship graph.</p>
                                 </div>
                         </div>
 
@@ -497,214 +497,12 @@
                                                         </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-[#f1f5f9]" id="investigations-tbody">
-                                                        <!-- Row 1 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20479" data-risk="Critical" data-status="Escalated" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20479')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20479</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-[#ef4444] border border-[#fca5a5]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse"></span>Critical
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Priya Sharma</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,27,500</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 min ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Escalated</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20479')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 2 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20473" data-risk="High" data-status="Investigating" data-analyst="S. Patel" onclick="rowClickAction(event, 'MG-20473')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20473</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-[#ea580c] border border-[#ffedd5]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>High
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Deepak Verma</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹86,200</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">28 min ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">S. Patel</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20473')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 3 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20468" data-risk="Medium" data-status="Monitoring" data-analyst="A. Kumar" onclick="rowClickAction(event, 'MG-20468')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20468</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-[#d97706] border border-[#fef3c7]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>Medium
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Kishore Varma</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹42,800</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">41 min ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">A. Kumar</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">Monitoring</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20468')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 4 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20461" data-risk="Critical" data-status="Escalated" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20461')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20461</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-[#ef4444] border border-[#fca5a5]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse"></span>Critical
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Prakash Chatterjee</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹3,12,400</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">1 hr ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Escalated</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20461')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 5 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20455" data-risk="High" data-status="Investigating" data-analyst="A. Kumar" onclick="rowClickAction(event, 'MG-20455')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20455</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-[#ea580c] border border-[#ffedd5]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>High
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Sri Venkateswara Kirana</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹94,600</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">2 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">A. Kumar</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20455')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 6 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20441" data-risk="Medium" data-status="Monitoring" data-analyst="S. Patel" onclick="rowClickAction(event, 'MG-20441')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20441</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-[#d97706] border border-[#fef3c7]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>Medium
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Annapurna Provisions Trading</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹28,450</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">3 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">S. Patel</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">Monitoring</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20441')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 7 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20436" data-risk="Low" data-status="Resolved" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20436')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20436</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#2563eb] border border-[#dbeafe]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#2563eb]"></span>Low
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Santosh Hegde</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹15,600</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">5 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Resolved</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20436')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 8 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20430" data-risk="Critical" data-status="Investigating" data-analyst="S. Patel" onclick="rowClickAction(event, 'MG-20430')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20430</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-[#ef4444] border border-[#fca5a5]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse"></span>Critical
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Naveen Goud</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹6,20,000</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">8 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">S. Patel</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">Investigating</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20430')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 9 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20424" data-risk="High" data-status="Escalated" data-analyst="A. Kumar" onclick="rowClickAction(event, 'MG-20424')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20424</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-[#ea580c] border border-[#ffedd5]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>High
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Subhash Nair</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹1,05,300</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">12 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">A. Kumar</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Escalated</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20424')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
-                                                                </td>
-                                                        </tr>
-                                                        <!-- Row 10 -->
-                                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="MG-20418" data-risk="Medium" data-status="Resolved" data-analyst="R. Sharma" onclick="rowClickAction(event, 'MG-20418')">
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">MG-20418</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-[#d97706] border border-[#fef3c7]">
-                                                                                <span class="w-1.5 h-1.5 rounded-full bg-[#d97706]"></span>Medium
-                                                                        </span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">Sai Krupa Medical Corp</td>
-                                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">₹38,200</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">18 hrs ago</td>
-                                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">R. Sharma</td>
-                                                                <td class="py-3.5 px-4">
-                                                                        <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Resolved</span>
-                                                                </td>
-                                                                <td class="py-3.5 px-4 text-right">
-                                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('MG-20418')">
-                                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                                        </button>
+                                                        <tr id="investigations-loading-row">
+                                                                <td colspan="8" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]">
+                                                                        <div class="flex items-center justify-center gap-2">
+                                                                                <span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span>
+                                                                                <span>Loading active investigations from PostgreSQL...</span>
+                                                                        </div>
                                                                 </td>
                                                         </tr>
                                                 </tbody>
@@ -730,7 +528,7 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                         <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
-                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Intelligence Graph: Online</span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Investigation Queue: Online</span>
                                 </div>
                         </div>
                         <div class="hidden sm:block">
@@ -914,129 +712,177 @@
 
         <!-- JS Filter / Details Workspace Core Logic -->
         <script>
-                // Investigations Queue mock database records
-                const investigationsDb = {
-                        'MG-20479': {
-                                id: 'MG-20479',
-                                risk: 'Critical',
-                                entity: 'Priya Sharma',
-                                value: '₹1,27,500',
-                                score: '94 / 100',
-                                time: '12 min ago',
-                                analyst: 'R. Sharma',
-                                status: 'Escalated',
-                                summary: 'Multiple high-value cross-border transactions were detected across connected accounts. The activity pattern indicates potential beneficiary relationships requiring further investigation and entity verification.',
-                                fundsFrozen: false
-                        },
-                        'MG-20473': {
-                                id: 'MG-20473',
-                                risk: 'High',
-                                entity: 'Deepak Verma',
-                                value: '₹86,200',
-                                score: '78 / 100',
-                                time: '28 min ago',
-                                analyst: 'S. Patel',
-                                status: 'Investigating',
-                                summary: 'Repetitive settlement requests sent from unverified entity addresses within brief succession thresholds. Triggered alert due to high risk country matching indicators.',
-                                fundsFrozen: false
-                        },
-                        'MG-20468': {
-                                id: 'MG-20468',
-                                risk: 'Medium',
-                                entity: 'Kishore Varma',
-                                value: '₹42,800',
-                                score: '56 / 100',
-                                time: '41 min ago',
-                                analyst: 'A. Kumar',
-                                status: 'Monitoring',
-                                summary: 'Structured deposits flagged under structural velocity thresholds. Ongoing tracking of beneficiary IP fingerprints recommended.',
-                                fundsFrozen: false
-                        },
-                        'MG-20461': {
-                                id: 'MG-20461',
-                                risk: 'Critical',
-                                entity: 'Prakash Chatterjee',
-                                value: '₹3,12,400',
-                                score: '91 / 100',
-                                time: '1 hr ago',
-                                analyst: 'R. Sharma',
-                                status: 'Escalated',
-                                summary: 'Significant outbound clearing volumes channeled to offshore destinations matching blocklist entities. Immediate legal hold suggested.',
-                                fundsFrozen: false
-                        },
-                        'MG-20455': {
-                                id: 'MG-20455',
-                                risk: 'High',
-                                entity: 'Sri Venkateswara Kirana',
-                                value: '₹94,600',
-                                score: '82 / 100',
-                                time: '2 hrs ago',
-                                analyst: 'A. Kumar',
-                                status: 'Investigating',
-                                summary: 'High correlation with verified mule account clusters in regional banking nodes. Case file escalated to international intelligence department.',
-                                fundsFrozen: false
-                        },
-                        'MG-20441': {
-                                id: 'MG-20441',
-                                risk: 'Medium',
-                                entity: 'Annapurna Provisions Trading',
-                                value: '₹28,450',
-                                score: '48 / 100',
-                                time: '3 hrs ago',
-                                analyst: 'S. Patel',
-                                status: 'Monitoring',
-                                summary: 'Unusual device authorization patterns identified during wire transmission setups. Multi-factor verification requested.',
-                                fundsFrozen: false
-                        },
-                        'MG-20436': {
-                                id: 'MG-20436',
-                                risk: 'Low',
-                                entity: 'Santosh Hegde',
-                                value: '₹15,600',
-                                score: '24 / 100',
-                                time: '5 hrs ago',
-                                analyst: 'R. Sharma',
-                                status: 'Resolved',
-                                summary: 'Investigated and resolved. Account verified as a valid institutional commercial transaction portal.',
-                                fundsFrozen: false
-                        },
-                        'MG-20430': {
-                                id: 'MG-20430',
-                                risk: 'Critical',
-                                entity: 'Naveen Goud',
-                                value: '₹6,20,000',
-                                score: '96 / 100',
-                                time: '8 hrs ago',
-                                analyst: 'S. Patel',
-                                status: 'Investigating',
-                                summary: 'Large deposit threshold exceeded with zero matching source of funds records. Case assigned to senior advisory audit team.',
-                                fundsFrozen: false
-                        },
-                        'MG-20424': {
-                                id: 'MG-20424',
-                                risk: 'High',
-                                entity: 'Subhash Nair',
-                                value: '₹1,05,300',
-                                score: '84 / 100',
-                                time: '12 hrs ago',
-                                analyst: 'A. Kumar',
-                                status: 'Escalated',
-                                summary: 'Linked proxy routing loops identified during audit of incoming transactional settlement hashes.',
-                                fundsFrozen: false
-                        },
-                        'MG-20418': {
-                                id: 'MG-20418',
-                                risk: 'Medium',
-                                entity: 'Sai Krupa Medical Corp',
-                                value: '₹38,200',
-                                score: '42 / 100',
-                                time: '18 hrs ago',
-                                analyst: 'R. Sharma',
-                                status: 'Resolved',
-                                summary: 'Investigated. Corporate validation papers filed and confirmed as legitimate.',
-                                fundsFrozen: false
+                // Live PostgreSQL Investigations Workspace Cache
+                let liveInvestigationsCache = {};
+
+                // Helper: format relative time
+                function formatRelativeTime(dateString) {
+                        if (!dateString) return 'Recently';
+                        try {
+                                const date = new Date(dateString);
+                                if (isNaN(date.getTime())) return String(dateString).slice(0, 16);
+                                const now = new Date();
+                                const diffMs = now - date;
+                                const diffMins = Math.floor(diffMs / 60000);
+                                if (diffMins < 1) return 'Just now';
+                                if (diffMins < 60) return `${diffMins} min ago`;
+                                const diffHours = Math.floor(diffMins / 60);
+                                if (diffHours < 24) return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+                                const diffDays = Math.floor(diffHours / 24);
+                                return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                        } catch (e) {
+                                return 'Recently';
                         }
-                };
+                }
+
+                // Helper: score string from priority
+                function getScoreForPriority(priority) {
+                        if (priority === 'Critical') return '94 / 100';
+                        if (priority === 'High') return '78 / 100';
+                        if (priority === 'Medium') return '52 / 100';
+                        return '24 / 100';
+                }
+
+                // Load investigations from PostgreSQL via api.js
+                async function loadInvestigations() {
+                        const tbody = document.getElementById('investigations-tbody');
+                        if (!tbody) return;
+
+                        // Display clean loading state
+                        tbody.innerHTML = `
+                                <tr id="investigations-loading-row">
+                                        <td colspan="8" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]">
+                                                <div class="flex items-center justify-center gap-2">
+                                                        <span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span>
+                                                        <span>Loading active investigations from PostgreSQL...</span>
+                                                </div>
+                                        </td>
+                                </tr>
+                        `;
+
+                        try {
+                                let casesList = [];
+                                if (window.MuleGuardAPI && typeof MuleGuardAPI.getCases === 'function') {
+                                        casesList = await MuleGuardAPI.getCases({ limit: 100 });
+                                } else {
+                                        throw new Error('MuleGuardAPI client unavailable');
+                                }
+
+                                liveInvestigationsCache = {};
+                                if (Array.isArray(casesList)) {
+                                        casesList.forEach(c => {
+                                                const caseId = c.id || c.case_id;
+                                                const risk = c.priority || 'Medium';
+                                                const score = getScoreForPriority(risk);
+                                                const timeDisplay = formatRelativeTime(c.created_at || c.createdTime);
+
+                                                let formattedVal = '₹0';
+                                                if (c.amount) {
+                                                        formattedVal = c.amount;
+                                                } else if (c.balance !== undefined && c.balance !== null) {
+                                                        formattedVal = '₹' + Number(c.balance).toLocaleString('en-IN');
+                                                }
+
+                                                liveInvestigationsCache[caseId] = {
+                                                        id: caseId,
+                                                        risk: risk,
+                                                        entity: c.customer_name || c.entity || c.account_id || ('Entity ' + caseId),
+                                                        value: formattedVal,
+                                                        score: score,
+                                                        time: timeDisplay,
+                                                        analyst: c.assignee || 'A. Kumar',
+                                                        status: c.status || 'Investigating',
+                                                        summary: c.title || `Suspicious activity investigation on account ${c.account_id || caseId}.`,
+                                                        accountId: c.account_id,
+                                                        alertId: c.alert_id,
+                                                        fundsFrozen: false
+                                                };
+                                        });
+                                }
+
+                                renderInvestigationsTable();
+                        } catch (err) {
+                                console.error('Failed to load investigations from live backend:', err);
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="8" class="py-16 text-center text-risk-high font-body-md text-[13px]">
+                                                        Failed to load investigations from secure banking core. Please verify backend service status.
+                                                </td>
+                                        </tr>
+                                `;
+                                showToast('Notice: Unable to retrieve investigations from live database.');
+                        }
+                }
+
+                // Render table rows dynamically from PostgreSQL data
+                function renderInvestigationsTable() {
+                        const tbody = document.getElementById('investigations-tbody');
+                        if (!tbody) return;
+
+                        const records = Object.values(liveInvestigationsCache);
+                        if (records.length === 0) {
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="8" class="py-16 text-center text-on-surface-variant font-body-md text-[13px] italic">
+                                                        No active investigations in queue. Active investigations are initialized from suspicious transaction alerts.
+                                                </td>
+                                        </tr>
+                                `;
+                                recountSummaryCards();
+                                return;
+                        }
+
+                        tbody.innerHTML = records.map(item => {
+                                let riskBadge = '';
+                                if (item.risk === 'Critical') {
+                                        riskBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-[#ef4444] border border-[#fca5a5]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ef4444] animate-pulse"></span>Critical
+                                        </span>`;
+                                } else if (item.risk === 'High') {
+                                        riskBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-[#ea580c] border border-[#ffedd5]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ea580c]"></span>High
+                                        </span>`;
+                                } else if (item.risk === 'Medium') {
+                                        riskBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-yellow-50 text-[#ca8a04] border border-[#fef08a]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#ca8a04]"></span>Medium
+                                        </span>`;
+                                } else {
+                                        riskBadge = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-[#16a34a] border border-[#bbf7d0]">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-[#16a34a]"></span>Low
+                                        </span>`;
+                                }
+
+                                let statusBadge = '';
+                                if (item.status === 'Escalated') {
+                                        statusBadge = `<span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">Escalated</span>`;
+                                } else if (item.status === 'Resolved') {
+                                        statusBadge = `<span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200">Resolved</span>`;
+                                } else if (item.status === 'Monitoring') {
+                                        statusBadge = `<span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Monitoring</span>`;
+                                } else {
+                                        statusBadge = `<span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">${item.status || 'Investigating'}</span>`;
+                                }
+
+                                return `
+                                        <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="${item.id}" data-risk="${item.risk}" data-status="${item.status}" data-analyst="${item.analyst}" onclick="rowClickAction(event, '${item.id}')">
+                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 case-id-cell">${item.id}</td>
+                                                <td class="py-3.5 px-4">${riskBadge}</td>
+                                                <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">${item.entity}</td>
+                                                <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">${item.value}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface-variant">${item.time}</td>
+                                                <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">${item.analyst}</td>
+                                                <td class="py-3.5 px-4">${statusBadge}</td>
+                                                <td class="py-3.5 px-4 text-right">
+                                                        <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${item.id}')">
+                                                                Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                        </button>
+                                                </td>
+                                        </tr>
+                                `;
+                        }).join('');
+
+                        applyWorkspaceFilters();
+                }
 
                 // Toggle sidebar on mobile
                 function toggleMobileSidebar() {
@@ -1068,7 +914,7 @@
                 function openDetailDrawer(caseId) {
                         const drawer = document.getElementById('detail-drawer');
                         const overlay = document.getElementById('drawer-overlay');
-                        const data = investigationsDb[caseId];
+                        const data = liveInvestigationsCache[caseId];
 
                         if (data) {
                                 document.getElementById('drawer-title-id').textContent = data.id;
@@ -1125,7 +971,7 @@
 
                 function triggerDrawerAction(actionName) {
                         const caseId = document.getElementById('drawer-title-id').textContent;
-                        const data = investigationsDb[caseId];
+                        const data = liveInvestigationsCache[caseId];
                         if (!data) return;
 
                         pendingAction = actionName;
@@ -1169,49 +1015,46 @@
                         pendingCaseId = null;
                 }
 
-                function submitConfirmModal() {
+                async function submitConfirmModal() {
                         if (!pendingCaseId || !pendingAction) return;
 
                         const caseId = pendingCaseId;
                         const action = pendingAction;
-                        const data = investigationsDb[caseId];
+                        const data = liveInvestigationsCache[caseId];
 
                         closeConfirmModal();
 
                         if (action === 'Freeze Funds') {
-                                data.fundsFrozen = true;
-                                showToast(`Success: Funds frozen for entity ${data.entity}.`);
-                                const frozenBadge = document.getElementById('drawer-frozen-badge');
-                                if (frozenBadge) {
-                                        frozenBadge.classList.remove('hidden');
-                                }
+                                // Compliance governance: direct account freeze requires Compliance authorization
+                                showToast(`Asset freeze unavailable: Requires Compliance authorization. Escalate case ${caseId} to request hold.`);
                         } else if (action === 'Escalate') {
-                                data.status = 'Escalated';
-                                const row = document.querySelector("#investigations-tbody tr[data-case-id='" + caseId + "']");
-                                if (row) {
-                                        row.setAttribute('data-status', 'Escalated');
-                                        const statusCell = row.querySelector('.status-badge-cell');
-                                        if (statusCell) {
-                                                statusCell.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
-                                                statusCell.textContent = "Escalated";
+                                try {
+                                        if (window.MuleGuardAPI && typeof MuleGuardAPI.escalateCase === 'function') {
+                                                await MuleGuardAPI.escalateCase(caseId);
+                                                showToast(`Success: Case ${caseId} escalated to senior queue.`);
+                                                await loadInvestigations();
+                                        } else {
+                                                throw new Error('API client unavailable');
                                         }
+                                } catch (err) {
+                                        console.error('Failed to escalate case:', err);
+                                        showToast(`Failed to escalate case ${caseId}. Please retry.`);
                                 }
-                                showToast(`Success: Case ${caseId} escalated to senior queue.`);
                         } else if (action === 'Resolve') {
-                                data.status = 'Resolved';
-                                const row = document.querySelector("#investigations-tbody tr[data-case-id='" + caseId + "']");
-                                if (row) {
-                                        row.setAttribute('data-status', 'Resolved');
-                                        const statusCell = row.querySelector('.status-badge-cell');
-                                        if (statusCell) {
-                                                statusCell.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200";
-                                                statusCell.textContent = "Resolved";
+                                try {
+                                        if (window.MuleGuardAPI && typeof MuleGuardAPI.resolveCase === 'function') {
+                                                await MuleGuardAPI.resolveCase(caseId);
+                                                showToast(`Success: Case ${caseId} marked as resolved.`);
+                                                await loadInvestigations();
+                                        } else {
+                                                throw new Error('API client unavailable');
                                         }
+                                } catch (err) {
+                                        console.error('Failed to resolve case:', err);
+                                        showToast(`Failed to resolve case ${caseId}. Please retry.`);
                                 }
-                                showToast(`Success: Case ${caseId} marked as resolved.`);
                         }
 
-                        applyWorkspaceFilters();
                         closeDetailDrawer();
                 }
 
@@ -1230,7 +1073,7 @@
                         const statusVal = document.getElementById('filter-status').value;
                         const analystVal = document.getElementById('filter-analyst').value;
 
-                        const rows = document.querySelectorAll('#investigations-tbody tr');
+                        const rows = document.querySelectorAll('#investigations-tbody tr[data-case-id]');
 
                         rows.forEach(row => {
                                 const id = row.getAttribute('data-case-id').toLowerCase();
@@ -1263,7 +1106,7 @@
                         let highCount = 0;
                         let resolvedCount = 0;
 
-                        const rows = document.querySelectorAll('#investigations-tbody tr');
+                        const rows = document.querySelectorAll('#investigations-tbody tr[data-case-id]');
                         rows.forEach(row => {
                                 if (row.classList.contains('hidden')) {
                                         return;
@@ -1301,7 +1144,7 @@
 
                 function triggerGlobalSearch() {
                         const headerQuery = document.getElementById('global-header-search').value.toLowerCase();
-                        const rows = document.querySelectorAll('#investigations-tbody tr');
+                        const rows = document.querySelectorAll('#investigations-tbody tr[data-case-id]');
                         rows.forEach(row => {
                                 const id = row.getAttribute('data-case-id').toLowerCase();
                                 const entity = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
@@ -1376,7 +1219,7 @@
 
                 // Initial count on page load
                 window.addEventListener('DOMContentLoaded', () => {
-                        recountSummaryCards();
+                        loadInvestigations();
                 });
         </script>
 </body>

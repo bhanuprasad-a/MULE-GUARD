@@ -1,6 +1,7 @@
+from typing import Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query, Path, Body
 from psycopg.types.json import Jsonb
 
 from app.db.database import get_connection
@@ -18,26 +19,44 @@ router = APIRouter(
 # =========================
 
 @router.get("/watchlists", dependencies=[Depends(require_role(["bank_investigator", "bank_compliance", "internal_team"]))])
-def get_watchlists():
+def get_watchlists(
+    limit: int = Query(default=100, ge=1, le=500, description="Max watchlists to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+    search: Optional[str] = Query(default=None, description="Search by account ID, customer name, or reason"),
+    status: Optional[str] = Query(default=None, description="Filter by status (Active, Removed)"),
+):
+    query = """
+        SELECT
+            w.id,
+            w.account_id,
+            w.reason,
+            w.status,
+            w.created_at,
+            c.name AS customer_name,
+            a.account_type,
+            a.balance
+        FROM watchlists w
+        LEFT JOIN accounts a ON w.account_id = a.id
+        LEFT JOIN customers c ON a.customer_id = c.id
+        WHERE 1=1
+    """
+    params = []
+
+    if status and status.upper() != "ALL":
+        query += " AND w.status = %s"
+        params.append(status)
+
+    if search:
+        query += " AND (w.account_id ILIKE %s OR c.name ILIKE %s OR w.reason ILIKE %s)"
+        pattern = f"%{search}%"
+        params.extend([pattern, pattern, pattern])
+
+    query += " ORDER BY w.created_at DESC LIMIT %s OFFSET %s"
+    params.extend([limit, offset])
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT
-                    w.id,
-                    w.account_id,
-                    w.reason,
-                    w.status,
-                    w.created_at,
-                    c.name AS customer_name,
-                    a.account_type,
-                    a.balance
-                FROM watchlists w
-                LEFT JOIN accounts a ON w.account_id = a.id
-                LEFT JOIN customers c ON a.customer_id = c.id
-                ORDER BY w.created_at DESC
-                """
-            )
+            cur.execute(query, tuple(params))
             rows = cur.fetchall()
 
     return [
@@ -60,8 +79,15 @@ def get_watchlists():
     ]
 
 
-@router.post("/watchlists/{account_id}", dependencies=[Depends(require_role(["bank_investigator", "bank_compliance", "internal_team"]))])
-def add_to_watchlist(account_id: str, reason: str = "Suspicious activity"):
+@router.post("/watchlists/{account_id}")
+def add_to_watchlist(
+    account_id: str = Path(..., max_length=64, description="Target account ID"),
+    reason: str = Query(default="Suspicious activity", max_length=256, description="Watchlist reason"),
+    payload: Optional[dict] = Body(default=None),
+    current_user: dict = Depends(require_role(["bank_investigator", "bank_compliance", "internal_team"])),
+):
+    if payload and isinstance(payload, dict) and payload.get("reason"):
+        reason = str(payload["reason"])[:256]
     with get_connection() as conn:
         with conn.cursor() as cur:
 
@@ -94,6 +120,30 @@ def add_to_watchlist(account_id: str, reason: str = "Suspicious activity"):
 
             row = cur.fetchone()
 
+            cur.execute(
+                """
+                INSERT INTO audit_logs (
+                    action,
+                    entity_type,
+                    entity_id,
+                    account_id,
+                    details
+                )
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (
+                    "WATCHLIST_ADDED",
+                    "watchlist",
+                    watchlist_id,
+                    account_id,
+                    Jsonb({
+                        "reason": reason,
+                        "status": "Active",
+                        "actor": current_user.get("employee_id") or "SYSTEM",
+                    }),
+                ),
+            )
+
     return {
         "id": row[0],
         "account_id": account_id,
@@ -103,12 +153,16 @@ def add_to_watchlist(account_id: str, reason: str = "Suspicious activity"):
     }
 
 
+
 # =========================
 # DECISIONS
 # =========================
 
 @router.get("/decisions", dependencies=[Depends(require_role(["bank_compliance"]))])
-def get_decisions():
+def get_decisions(
+    limit: int = Query(default=100, ge=1, le=500, description="Max decisions to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -127,7 +181,9 @@ def get_decisions():
                 LEFT JOIN accounts a ON d.account_id = a.id
                 LEFT JOIN customers c ON a.customer_id = c.id
                 ORDER BY d.created_at DESC
-                """
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset),
             )
             rows = cur.fetchall()
 
@@ -152,10 +208,10 @@ def get_decisions():
 
 @router.post("/decisions/{account_id}", dependencies=[Depends(require_role(["bank_compliance"]))])
 def create_decision(
-    account_id: str,
-    decision: str,
-    reason: str = "",
-    alert_id: str | None = None,
+    account_id: str = Path(..., max_length=64, description="Target account ID"),
+    decision: str = Query(..., max_length=32, description="Decision type"),
+    reason: str = Query(default="", max_length=256, description="Decision rationale"),
+    alert_id: str | None = Query(default=None, max_length=64, description="Optional associated alert ID"),
 ):
     allowed = {"Monitor", "Clear", "Block", "Escalate"}
 
@@ -239,8 +295,21 @@ def create_decision(
 # RULES
 # =========================
 
-@router.get("/rules", dependencies=[Depends(require_role(["internal_team"]))])
-def get_rules():
+@router.get(
+    "/rules",
+    dependencies=[Depends(require_role(["internal_team"]))],
+    deprecated=True,
+    summary="[DEPRECATED] Query raw database rules table (Canonical: /api/v1/internal/detection-rules)",
+)
+def get_rules(
+    limit: int = Query(default=50, ge=1, le=100, description="Max rules to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+):
+    """
+    LEGACY ENDPOINT: Returns un-reconciled raw rows from the 'rules' table.
+    Maintained for test and backwards-compatibility.
+    Canonical operational endpoint is GET /api/v1/internal/detection-rules.
+    """
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -253,7 +322,9 @@ def get_rules():
                     created_at
                 FROM rules
                 ORDER BY id
-                """
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset),
             )
             rows = cur.fetchall()
 
@@ -277,9 +348,13 @@ from app.services.network_engine import compute_network_intelligence
 # =========================
 
 @router.get("/networks", dependencies=[Depends(require_role(["bank_investigator", "bank_compliance"]))])
-def get_networks():
+def get_networks(
+    limit: int = Query(default=50, ge=1, le=100, description="Max networks to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+):
     networks_dict = compute_network_intelligence()
-    return list(networks_dict.values())
+    all_networks = list(networks_dict.values())
+    return all_networks[offset : offset + limit]
 
 
 
@@ -332,10 +407,27 @@ def get_kpis():
             )
             active_cases = cur.fetchone()[0]
 
+    try:
+        from app.api.risk import compute_risk_summary
+        risk_summary = compute_risk_summary()
+        high_risk_accounts = int(risk_summary.get("high_risk_accounts", 0))
+    except Exception:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT COUNT(DISTINCT account_id)
+                    FROM alerts
+                    WHERE risk_score >= 60 OR risk_probability >= 0.60
+                    """
+                )
+                row = cur.fetchone()
+                high_risk_accounts = row[0] if row else 0
+
     return {
         "total_accounts": total_accounts,
         "suspicious_accounts": suspicious_accounts,
-        "high_risk_accounts": 18,
+        "high_risk_accounts": high_risk_accounts,
         "total_transactions": total_transactions,
         "open_alerts": open_alerts,
         "active_cases": active_cases,

@@ -244,11 +244,11 @@
                                         <!-- Filter Controls -->
                                         <div class="flex flex-wrap items-center gap-3">
                                                 <div class="relative min-w-[200px]">
-                                                        <input id="filter-search" type="text" placeholder="Search account or ID..." class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-3 py-1.5 font-body-md text-[12px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" oninput="renderWatchlist()" />
+                                                        <input id="filter-search" type="text" placeholder="Search account or ID..." class="w-full bg-surface-container-low border border-outline-variant/60 rounded-lg pl-9 pr-3 py-1.5 font-body-md text-[12px] text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" oninput="applyWatchlistFiltersAndRender()" />
                                                         <span class="material-symbols-outlined absolute left-2.5 top-2 text-[16px] text-on-surface-variant">search</span>
                                                 </div>
 
-                                                <select id="filter-priority" class="bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[12px] text-on-surface focus:outline-none focus:border-secondary cursor-pointer" onchange="renderWatchlist()">
+                                                <select id="filter-priority" class="bg-surface-container-low border border-outline-variant/60 rounded-lg px-3 py-1.5 font-body-md text-[12px] text-on-surface focus:outline-none focus:border-secondary cursor-pointer" onchange="applyWatchlistFiltersAndRender()">
                                                         <option value="All">All Priorities</option>
                                                         <option value="High">High Priority</option>
                                                         <option value="Medium">Medium Priority</option>
@@ -274,7 +274,14 @@
                                                          </tr>
                                                 </thead>
                                                 <tbody id="watchlist-tbody" class="divide-y divide-[#f1f5f9]" aria-live="polite">
-                                                         <!-- Populated dynamically -->
+                                                        <tr id="watchlist-loading-row">
+                                                                <td colspan="9" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]">
+                                                                        <div class="flex items-center justify-center gap-2">
+                                                                                <span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span>
+                                                                                <span>Loading watchlists from PostgreSQL...</span>
+                                                                        </div>
+                                                                </td>
+                                                        </tr>
                                                 </tbody>
                                         </table>
                                 </div>
@@ -359,220 +366,262 @@
                 <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
         </div>
 
-        <script>
-                let pendingRemoveId = null;
+        		<script>
+		let pendingRemoveId = null;
+		let currentWatchlists = [];
 
-                function toggleMobileSidebar() {
-                        const sidebar = document.getElementById('sidebar-container');
-                        const overlay = document.getElementById('sidebar-overlay');
-                        if (sidebar.classList.contains('-translate-x-full')) {
-                                sidebar.classList.remove('-translate-x-full');
-                                overlay.classList.remove('hidden');
-                        } else {
-                                sidebar.classList.add('-translate-x-full');
-                                overlay.classList.add('hidden');
-                        }
-                }
+		function toggleMobileSidebar() {
+			const sidebar = document.getElementById('sidebar-container');
+			const overlay = document.getElementById('sidebar-overlay');
+			if (sidebar.classList.contains('-translate-x-full')) {
+				sidebar.classList.remove('-translate-x-full');
+				overlay.classList.remove('hidden');
+			} else {
+				sidebar.classList.add('-translate-x-full');
+				overlay.classList.add('hidden');
+			}
+		}
 
-                let toastTimeout;
-                function showToast(message) {
-                        const toast = document.getElementById('toast');
-                        const toastText = document.getElementById('toast-text');
-                        toastText.textContent = message;
-                        clearTimeout(toastTimeout);
-                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-                        toast.classList.add('translate-y-0', 'opacity-100');
-                        toastTimeout = setTimeout(() => {
-                                toast.classList.remove('translate-y-0', 'opacity-100');
-                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-                        }, 2800);
-                }
+		let toastTimeout;
+		function showToast(message) {
+			const toast = document.getElementById('toast');
+			const toastText = document.getElementById('toast-text');
+			toastText.textContent = message;
+			clearTimeout(toastTimeout);
+			toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+			toast.classList.add('translate-y-0', 'opacity-100');
+			toastTimeout = setTimeout(() => {
+				toast.classList.remove('translate-y-0', 'opacity-100');
+				toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+			}, 3200);
+		}
 
-                function openAddModal() {
-                        if (!window.MuleGuardStore) return;
-                        const accounts = window.MuleGuardStore.getAccounts();
-                        const select = document.getElementById('modal-account-select');
-                        select.innerHTML = '';
+		function formatINR(val) {
+			return '₹' + Number(val || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+		}
 
-                        Object.keys(accounts).forEach(accId => {
-                                const isAdded = window.MuleGuardStore.isWatchlisted(accId);
-                                const acc = accounts[accId];
-                                select.innerHTML += `<option value="${accId}" ${isAdded ? 'disabled' : ''}>${accId} — ${acc.name} ${isAdded ? '(Already Monitored)' : ''}</option>`;
-                        });
+		async function openAddModal() {
+			let accounts = {};
+			if (window.MuleGuardAPI && MuleGuardAPI.getAccounts) {
+				try {
+					const accList = await MuleGuardAPI.getAccounts({ limit: 500 });
+					(Array.isArray(accList) ? accList : []).forEach(a => {
+						const id = a.id || a.account_id;
+						if (id) accounts[id] = a;
+					});
+				} catch (e) {
+					console.warn('Failed to fetch accounts via MuleGuardAPI:', e);
+				}
+			}
 
-                        document.getElementById('modal-reason-input').value = '';
-                        document.getElementById('modal-priority-select').value = 'Medium';
-                        document.getElementById('add-watchlist-modal').classList.remove('hidden');
-                        document.getElementById('modal-backdrop').classList.remove('hidden');
-                }
+			const select = document.getElementById('modal-account-select');
+			select.innerHTML = '';
 
-                function closeAddModal() {
-                        document.getElementById('add-watchlist-modal').classList.add('hidden');
-                        document.getElementById('modal-backdrop').classList.add('hidden');
-                }
+			const watchedIds = new Set(currentWatchlists.map(w => w.accountId || w.account_id));
+			const accKeys = Object.keys(accounts);
 
-                function handleAddWatchlistSubmit(e) {
-                        e.preventDefault();
-                        if (!window.MuleGuardStore) return;
-                        const accId = document.getElementById('modal-account-select').value;
-                        const priority = document.getElementById('modal-priority-select').value;
-                        const reason = document.getElementById('modal-reason-input').value;
+			if (accKeys.length === 0) {
+				select.innerHTML = '<option value="" disabled>No accounts available from backend</option>';
+			} else {
+				accKeys.forEach(accId => {
+					const isAdded = watchedIds.has(accId);
+					const acc = accounts[accId];
+					const name = acc.name || acc.customer_name || accId;
+					select.innerHTML += `<option value="${accId}" ${isAdded ? 'disabled' : ''}>${accId} — ${name} ${isAdded ? '(Already Monitored)' : ''}</option>`;
+				});
+			}
 
-                        const res = window.MuleGuardStore.addToWatchlist(accId, reason, priority, 'A. Kumar');
-                        if (res.success) {
-                                showToast(`Success: ${accId} added to active watchlist.`);
-                                closeAddModal();
-                                renderWatchlist();
-                        } else {
-                                showToast(`Error: ${res.error}`);
-                        }
-                }
+			document.getElementById('modal-reason-input').value = '';
+			document.getElementById('modal-priority-select').value = 'Medium';
+			document.getElementById('add-watchlist-modal').classList.remove('hidden');
+			document.getElementById('modal-backdrop').classList.remove('hidden');
+		}
 
-                function confirmRemoveWatchlist(accId, accName) {
-                        pendingRemoveId = accId;
-                        document.getElementById('remove-modal-text').textContent = `Are you sure you want to remove ${accId} (${accName}) from active monitoring?`;
-                        document.getElementById('remove-confirm-btn').onclick = () => {
-                                if (pendingRemoveId && window.MuleGuardStore) {
-                                        window.MuleGuardStore.removeFromWatchlist(pendingRemoveId, 'A. Kumar');
-                                        showToast(`Removed: ${pendingRemoveId} removed from watchlist.`);
-                                        closeRemoveModal();
-                                        renderWatchlist();
-                                }
-                        };
-                        document.getElementById('remove-modal').classList.remove('hidden');
-                        document.getElementById('modal-backdrop').classList.remove('hidden');
-                }
+		function closeAddModal() {
+			document.getElementById('add-watchlist-modal').classList.add('hidden');
+			document.getElementById('modal-backdrop').classList.add('hidden');
+		}
 
-                function closeRemoveModal() {
-                        pendingRemoveId = null;
-                        document.getElementById('remove-modal').classList.add('hidden');
-                        document.getElementById('modal-backdrop').classList.add('hidden');
-                }
+		async function handleAddWatchlistSubmit(e) {
+			e.preventDefault();
+			const accId = document.getElementById('modal-account-select').value;
+			const reason = document.getElementById('modal-reason-input').value;
 
-                function renderWatchlist() {
-                        if (!window.MuleGuardStore) return;
-                        const watchlist = window.MuleGuardStore.getWatchlist();
-                        const accounts = window.MuleGuardStore.getAccounts();
-                        const transactions = window.MuleGuardStore.getTransactions();
-                        const tbody = document.getElementById('watchlist-tbody');
-                        const searchVal = (document.getElementById('filter-search').value || '').toLowerCase().trim();
-                        const priorityVal = document.getElementById('filter-priority').value;
+			if (!accId) {
+				showToast('Please select a valid account.');
+				return;
+			}
 
-                        // KPI Calculations
-                        document.getElementById('kpi-total-watchlisted').textContent = watchlist.length;
-                        const highCount = watchlist.filter(w => w.priority === 'High').length;
-                        document.getElementById('kpi-high-priority').textContent = highCount;
+			if (window.MuleGuardAPI && MuleGuardAPI.addToWatchlist) {
+				try {
+					await MuleGuardAPI.addToWatchlist(accId, reason);
+					showToast(`Success: ${accId} added to active PostgreSQL watchlist.`);
+					closeAddModal();
+					await renderWatchlist();
+					return;
+				} catch (err) {
+					console.error('Error adding to watchlist:', err);
+					showToast(`Error adding to watchlist: ${err.message || err}`);
+					return;
+				}
+			}
 
-                        let volume24h = 0;
-                        const watchedAccIds = new Set(watchlist.map(w => w.accountId));
-                        transactions.forEach(t => {
-                                if (watchedAccIds.has(t.senderId) || watchedAccIds.has(t.receiverId)) {
-                                        volume24h += (t.amountNumeric || 0);
-                                }
-                        });
-                        document.getElementById('kpi-24h-volume').textContent = window.MuleGuardStore.formatINR 
-                                ? window.MuleGuardStore.formatINR(volume24h) 
-                                : `₹${volume24h.toLocaleString('en-IN')}`;
+			showToast('Error: MuleGuardAPI client unavailable.');
+		}
 
-                        // Filter entries
-                        let filtered = watchlist.filter(w => {
-                                const matchesSearch = !searchVal || 
-                                        w.accountId.toLowerCase().includes(searchVal) || 
-                                        (w.accountName || '').toLowerCase().includes(searchVal) ||
-                                        (w.reason || '').toLowerCase().includes(searchVal);
-                                const matchesPriority = (priorityVal === 'All') || (w.priority === priorityVal);
-                                return matchesSearch && matchesPriority;
-                        });
+		function confirmRemoveWatchlist(accId, accName) {
+			pendingRemoveId = accId;
+			document.getElementById('remove-modal-text').textContent = `Are you sure you want to remove ${accId} (${accName}) from active monitoring?`;
+			document.getElementById('remove-confirm-btn').onclick = () => {
+				if (pendingRemoveId) {
+					// Phase 3 Blocker Notice: DELETE /watchlists/{account_id} is missing in backend API.
+					// Deletion is recorded in UI memory only, NOT persisted to localStorage.
+					showToast('Watchlist deletion pending backend DELETE endpoint. Action recorded in UI only; not persisted locally.');
+					currentWatchlists = currentWatchlists.filter(w => (w.accountId || w.account_id) !== pendingRemoveId);
+					closeRemoveModal();
+					applyWatchlistFiltersAndRender();
+				}
+			};
+			document.getElementById('remove-modal').classList.remove('hidden');
+			document.getElementById('modal-backdrop').classList.remove('hidden');
+		}
 
-                        tbody.innerHTML = '';
+		function closeRemoveModal() {
+			pendingRemoveId = null;
+			document.getElementById('remove-modal').classList.add('hidden');
+			document.getElementById('modal-backdrop').classList.add('hidden');
+		}
 
-                        if (filtered.length === 0) {
-                                tbody.innerHTML = `
-                                        <tr>
-                                                <td colspan="9" class="py-12 text-center text-on-surface-variant opacity-75">
-                                                        <div class="flex flex-col items-center justify-center gap-2">
-                                                                <span class="material-symbols-outlined text-[36px] text-slate-400">rule_folder</span>
-                                                                <p class="font-headline-md text-[14px] font-bold">No Entities Currently Monitored</p>
-                                                                <p class="font-body-md text-[12px]">No accounts are currently matching the active filter criteria.</p>
-                                                                <button class="mt-2 bg-secondary text-white rounded-lg px-3 py-1.5 font-label-md text-[11px] font-bold" onclick="openAddModal()">+ Add Watchlist Entity</button>
-                                                        </div>
-                                                </td>
-                                        </tr>
-                                `;
-                                return;
-                        }
+		async function renderWatchlist() {
+			const tbody = document.getElementById('watchlist-tbody');
+			if (tbody) {
+				tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]"><div class="flex items-center justify-center gap-2"><span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span><span>Loading watchlists from PostgreSQL...</span></div></td></tr>`;
+			}
+			let watchlists = [];
+			if (window.MuleGuardAPI && MuleGuardAPI.getWatchlists) {
+				try {
+					const res = await MuleGuardAPI.getWatchlists({ limit: 100 });
+					watchlists = Array.isArray(res) ? res : (res.data || []);
+				} catch (err) {
+					console.error('Failed to fetch watchlists from PostgreSQL:', err);
+					showToast('Failed to load watchlists from PostgreSQL backend.');
+				}
+			}
+			currentWatchlists = watchlists;
+			applyWatchlistFiltersAndRender();
+		}
 
-                        filtered.forEach(w => {
-                                const riskInfo = window.MuleGuardStore.predictAccountRisk(w.accountId);
-                                let riskBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                                let riskScoreText = 'Low Risk';
+		function applyWatchlistFiltersAndRender() {
+			const tbody = document.getElementById('watchlist-tbody');
+			if (!tbody) return;
 
-                                if (riskInfo && typeof riskInfo.probability === 'number') {
-                                        const pct = Math.round(riskInfo.probability * 100);
-                                        riskScoreText = `${pct}% (${riskInfo.level})`;
-                                        if (pct >= 75) {
-                                                riskBadgeClass = 'bg-red-50 text-red-700 border-red-200';
-                                        } else if (pct >= 40) {
-                                                riskBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
-                                        }
-                                } else {
-                                        const acc = accounts[w.accountId];
-                                        if (acc && acc.riskScore) {
-                                                riskScoreText = `Score: ${acc.riskScore}`;
-                                                if (acc.riskScore >= 75) riskBadgeClass = 'bg-red-50 text-red-700 border-red-200';
-                                        }
-                                }
+			const searchVal = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
+			const priorityVal = document.getElementById('filter-priority')?.value || 'All';
 
-                                let prioBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
-                                if (w.priority === 'High') prioBadgeClass = 'bg-red-50 text-red-700 border-red-200';
-                                else if (w.priority === 'Medium') prioBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+			// KPI Calculations
+			const totalEl = document.getElementById('kpi-total-watchlisted');
+			if (totalEl) totalEl.textContent = currentWatchlists.length;
 
-                                // Find latest tx for this account
-                                const latestTx = transactions.find(t => t.senderId === w.accountId || t.receiverId === w.accountId);
-                                let latestTxText = 'No recent activity';
-                                if (latestTx) {
-                                        latestTxText = `${latestTx.id} (${latestTx.value || '₹' + latestTx.amountNumeric})`;
-                                }
+			const highCount = currentWatchlists.filter(w => (w.priority || '').toLowerCase() === 'high').length;
+			const highEl = document.getElementById('kpi-high-priority');
+			if (highEl) highEl.textContent = highCount;
 
-                                const dateStr = w.addedAt ? new Date(w.addedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently';
+			let totalVol = currentWatchlists.reduce((sum, w) => sum + (Number(w.balance) || 0), 0);
+			const volEl = document.getElementById('kpi-24h-volume');
+			if (volEl) volEl.textContent = formatINR(totalVol);
 
-                                tbody.innerHTML += `
-                                        <tr class="hover:bg-slate-50 transition-colors">
-                                                <td class="py-3.5 px-4 font-headline-md text-[12px] font-bold text-on-surface">${w.accountName || w.accountId}</td>
-                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${w.accountId}</td>
-                                                <td class="py-3.5 px-4">
-                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${riskBadgeClass}">${riskScoreText}</span>
-                                                </td>
-                                                <td class="py-3.5 px-4">
-                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${prioBadgeClass}">${w.priority}</span>
-                                                </td>
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant max-w-[240px] truncate" title="${(w.reason || '').replace(/"/g, '&quot;')}">${w.reason}</td>
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${w.addedBy || 'A. Kumar'}</td>
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${dateStr}</td>
-                                                <td class="py-3.5 px-4 font-mono-technical text-[11px] text-on-surface-variant">${latestTxText}</td>
-                                                <td class="py-3.5 px-4 text-right">
-                                                        <div class="flex items-center justify-end gap-1.5">
-                                                                <a href="investigations.html?account=${w.accountId}" class="text-secondary hover:bg-blue-50 p-1 rounded font-label-md text-[11px] font-bold" title="Investigate Entity">Investigate</a>
-                                                                <a href="fraud_networks.html" class="text-slate-600 hover:bg-slate-100 p-1 rounded font-label-md text-[11px] font-bold" title="View Graph Network">Network</a>
-                                                                <button class="text-red-600 hover:bg-red-50 p-1 rounded font-label-md text-[11px] font-bold" onclick="confirmRemoveWatchlist('${w.accountId}', '${(w.accountName || w.accountId).replace(/'/g, "\\'")}')" title="Remove from Watchlist">Remove</button>
-                                                        </div>
-                                                </td>
-                                        </tr>
-                                `;
-                        });
-                }
+			// Filter entries
+			let filtered = currentWatchlists.filter(w => {
+				const accId = (w.accountId || w.account_id || '').toLowerCase();
+				const accName = (w.accountName || w.customer_name || w.entity || '').toLowerCase();
+				const reason = (w.reason || '').toLowerCase();
+				const prio = w.priority || 'Medium';
 
-                // Keyboard modal accessibility (Escape key)
-                window.addEventListener('keydown', (e) => {
-                        if (e.key === 'Escape') {
-                                closeAddModal();
-                                closeRemoveModal();
-                        }
-                });
+				const matchesSearch = !searchVal || accId.includes(searchVal) || accName.includes(searchVal) || reason.includes(searchVal);
+				const matchesPriority = (priorityVal === 'All') || (prio === priorityVal);
+				return matchesSearch && matchesPriority;
+			});
 
-                window.addEventListener('DOMContentLoaded', renderWatchlist);
-                window.addEventListener('muleguard:transaction-ingested', renderWatchlist);
-        </script>
+			tbody.innerHTML = '';
+
+			if (filtered.length === 0) {
+				tbody.innerHTML = `
+					<tr>
+						<td colspan="9" class="py-12 text-center text-on-surface-variant opacity-75">
+							<div class="flex flex-col items-center justify-center gap-2">
+								<span class="material-symbols-outlined text-[36px] text-slate-400">rule_folder</span>
+								<p class="font-headline-md text-[14px] font-bold">No Entities Currently Monitored</p>
+								<p class="font-body-md text-[12px]">No accounts are currently matching the active filter criteria.</p>
+								<button class="mt-2 bg-secondary text-white rounded-lg px-3 py-1.5 font-label-md text-[11px] font-bold" onclick="openAddModal()">+ Add Watchlist Entity</button>
+							</div>
+						</td>
+					</tr>
+				`;
+				return;
+			}
+
+			filtered.forEach(w => {
+				const accId = w.accountId || w.account_id || 'UNKNOWN';
+				const accName = w.accountName || w.customer_name || w.entity || accId;
+				const priority = w.priority || 'Medium';
+				const reason = w.reason || 'Monitored account';
+				const addedBy = w.addedBy || 'System / Investigator';
+				const addedAt = w.addedAt || w.created_at;
+				const dateStr = addedAt ? new Date(addedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Recently';
+
+				let prioBadgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+				if (priority === 'High') prioBadgeClass = 'bg-red-50 text-red-700 border-red-200';
+				else if (priority === 'Medium') prioBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+
+				let riskBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+				let riskScoreText = 'Low Risk';
+				if (priority === 'High' || (w.balance && w.balance > 100000)) {
+					riskBadgeClass = 'bg-red-50 text-red-700 border-red-200';
+					riskScoreText = 'High Risk';
+				} else if (priority === 'Medium') {
+					riskBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+					riskScoreText = 'Medium Risk';
+				}
+
+				const balDisplay = w.balance != null ? formatINR(w.balance) : '₹0';
+
+				tbody.innerHTML += `
+					<tr class="hover:bg-slate-50 transition-colors">
+						<td class="py-3.5 px-4 font-headline-md text-[12px] font-bold text-on-surface">${accName}</td>
+						<td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${accId}</td>
+						<td class="py-3.5 px-4">
+							<span class="px-2 py-0.5 rounded text-[10px] font-bold border ${riskBadgeClass}">${riskScoreText}</span>
+						</td>
+						<td class="py-3.5 px-4">
+							<span class="px-2 py-0.5 rounded text-[10px] font-bold border ${prioBadgeClass}">${priority}</span>
+						</td>
+						<td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant max-w-[240px] truncate" title="${reason.replace(/"/g, '&quot;')}">${reason}</td>
+						<td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${addedBy}</td>
+						<td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${dateStr}</td>
+						<td class="py-3.5 px-4 font-mono-technical text-[11px] text-on-surface-variant">Bal: ${balDisplay}</td>
+						<td class="py-3.5 px-4 text-right">
+							<div class="flex items-center justify-end gap-1.5">
+								<a href="investigations.html?account=${accId}" class="text-secondary hover:bg-blue-50 p-1 rounded font-label-md text-[11px] font-bold" title="Investigate Entity">Investigate</a>
+								<a href="fraud_networks.html" class="text-slate-600 hover:bg-slate-100 p-1 rounded font-label-md text-[11px] font-bold" title="View Graph Network">Network</a>
+								<button class="text-red-600 hover:bg-red-50 p-1 rounded font-label-md text-[11px] font-bold" onclick="confirmRemoveWatchlist('${accId}', '${accName.replace(/'/g, "\'")}')" title="Remove from Watchlist">Remove</button>
+							</div>
+						</td>
+					</tr>
+				`;
+			});
+		}
+
+		// Keyboard modal accessibility (Escape key)
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				closeAddModal();
+				closeRemoveModal();
+			}
+		});
+
+		window.addEventListener('DOMContentLoaded', renderWatchlist);
+		window.addEventListener('muleguard:transaction-ingested', renderWatchlist);
+	</script>
 </body>
 
 </html>

@@ -27,8 +27,12 @@ const MuleGuardAPI = {
     },
 
     // Accounts
-    getAccounts() {
-        return this.request("/accounts");
+    getAccounts(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        const qs = query.toString();
+        return this.request(`/accounts${qs ? '?' + qs : ''}`);
     },
 
     getAccount(accountId) {
@@ -57,8 +61,12 @@ const MuleGuardAPI = {
     },
 
     // Alerts
-    getAlerts() {
-        return this.request("/alerts");
+    getAlerts(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        const qs = query.toString();
+        return this.request(`/alerts${qs ? '?' + qs : ''}`);
     },
 
     getAlert(alertId) {
@@ -84,8 +92,12 @@ const MuleGuardAPI = {
     },
 
     // Cases
-    getCases() {
-        return this.request("/cases");
+    getCases(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        const qs = query.toString();
+        return this.request(`/cases${qs ? '?' + qs : ''}`);
     },
 
     getCase(caseId) {
@@ -128,20 +140,107 @@ const MuleGuardAPI = {
         );
     },
 
-    // Audit
-    getAuditLogs() {
-        return this.request("/audit-logs");
+    // Audit Trail
+    getAuditLogs(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        if (params.category && params.category !== "ALL") query.set("category", params.category);
+        if (params.action) query.set("action", params.action);
+        if (params.entity_type) query.set("entity_type", params.entity_type);
+        if (params.entity_id) query.set("entity_id", params.entity_id);
+        if (params.account_id) query.set("account_id", params.account_id);
+        if (params.search) query.set("search", params.search);
+        if (params.date_from) query.set("date_from", params.date_from);
+        if (params.date_to) query.set("date_to", params.date_to);
+        if (params.format) query.set("format", params.format);
+        const qs = query.toString();
+        return this.request(`/audit-logs${qs ? '?' + qs : ''}`);
+    },
+
+    getAuditSummary() {
+        return this.request("/audit-logs/summary");
     },
 
     // Application
-    getWatchlists() {
-        return this.request("/watchlists");
+    getWatchlists(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        if (params.search) query.set("search", params.search);
+        if (params.status && params.status !== "ALL") query.set("status", params.status);
+        const qs = query.toString();
+        return this.request(`/watchlists${qs ? '?' + qs : ''}`);
     },
 
-    getDecisions() {
-        return this.request("/decisions");
+
+    addToWatchlist(accountId, reason = "Suspicious activity") {
+        const query = new URLSearchParams();
+        if (reason) query.set("reason", reason);
+        const qs = query.toString();
+        return this.request(`/watchlists/${encodeURIComponent(accountId)}${qs ? '?' + qs : ''}`, {
+            method: "POST"
+        });
     },
 
+    getDecisions(params = {}) {
+        const q = new URLSearchParams();
+        if (params.limit !== undefined) q.append("limit", params.limit);
+        if (params.offset !== undefined) q.append("offset", params.offset);
+        const qs = q.toString();
+        return this.request(qs ? `/decisions?${qs}` : "/decisions");
+    },
+
+    createDecision(accountId, decision, reason = "", alertId = null) {
+        const q = new URLSearchParams({ decision, reason });
+        if (alertId) q.append("alert_id", alertId);
+        return this.request(`/decisions/${encodeURIComponent(accountId)}?${q.toString()}`, {
+            method: "POST"
+        });
+    },
+
+    // Regulatory Filings
+    getFilings(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        if (params.status && params.status !== "ALL") query.set("status", params.status);
+        if (params.filing_type && params.filing_type !== "ALL") query.set("filing_type", params.filing_type);
+        if (params.search) query.set("search", params.search);
+        const qs = query.toString();
+        return this.request(`/filings${qs ? '?' + qs : ''}`);
+    },
+
+    getFilingsSummary() {
+        return this.request("/filings/summary");
+    },
+
+    getFiling(filingId) {
+        return this.request(`/filings/${encodeURIComponent(filingId)}`);
+    },
+
+    createFiling(data) {
+        return this.request("/filings", {
+            method: "POST",
+            body: JSON.stringify(data)
+        });
+    },
+
+    submitFiling(filingId) {
+        return this.request(`/filings/${encodeURIComponent(filingId)}/submit`, {
+            method: "POST"
+        });
+    },
+
+    acceptFiling(filingId) {
+        return this.request(`/filings/${encodeURIComponent(filingId)}/accept`, {
+            method: "POST"
+        });
+    },
+
+    /**
+     * @deprecated Legacy database rules endpoint. Use getInternalDetectionRules() for operational rules report.
+     */
     getRules() {
         return this.request("/rules");
     },
@@ -155,8 +254,12 @@ const MuleGuardAPI = {
     },
 
     // Transactions
-    getTransactions() {
-        return this.request("/transactions");
+    getTransactions(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        const qs = query.toString();
+        return this.request(`/transactions${qs ? '?' + qs : ''}`);
     },
 
     ingestTransaction(data) {
@@ -164,6 +267,55 @@ const MuleGuardAPI = {
             method: "POST",
             body: JSON.stringify(data)
         });
+    },
+
+    // Internal Operations
+    getSystemHealth() {
+        return this.request("/internal/system-health");
+    },
+
+    getMLHealth() {
+        return this.request("/internal/ml-health");
+    },
+
+    getDetectionRules() {
+        return this.request("/internal/detection-rules");
+    },
+
+    getGraphHealth(refresh = false) {
+        return this.request(`/internal/graph-health${refresh ? '?refresh=true' : ''}`);
+    },
+
+    runGraphAnalysis() {
+        return this.request("/internal/graph-health/analyze", {
+            method: "POST"
+        });
+    },
+
+    getSyntheticData(refresh = false) {
+        return this.request(`/internal/synthetic-data${refresh ? '?refresh=true' : ''}`);
+    },
+
+    validateDataset() {
+        return this.request("/internal/synthetic-data/validate", {
+            method: "POST"
+        });
+    },
+
+    getInternalAuditLogs(params = {}) {
+        const query = new URLSearchParams();
+        if (params.limit) query.set("limit", params.limit);
+        if (params.offset !== undefined && params.offset !== null) query.set("offset", params.offset);
+        if (params.action) query.set("action", params.action);
+        if (params.entity_type) query.set("entity_type", params.entity_type);
+        if (params.entity_id) query.set("entity_id", params.entity_id);
+        if (params.account_id) query.set("account_id", params.account_id);
+        if (params.category && params.category !== "ALL") query.set("category", params.category);
+        if (params.search) query.set("search", params.search);
+        if (params.date_from) query.set("date_from", params.date_from);
+        if (params.date_to) query.set("date_to", params.date_to);
+        const qs = query.toString();
+        return this.request(`/internal/audit-logs${qs ? '?' + qs : ''}`);
     }
 };
 

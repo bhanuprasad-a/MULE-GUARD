@@ -8,7 +8,7 @@
         <script src="../../scripts/data-store.js"></script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MuleGuard - Cases Queue</title>
+        <title>MuleGuard - Formal Case Records</title>
         <!-- Google Fonts Inter & Outfit -->
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <!-- Google Material Symbols Icons -->
@@ -250,8 +250,8 @@
                                         <span class="material-symbols-outlined text-[24px]">menu</span>
                                 </button>
                                 <div class="flex flex-col text-left">
-                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Cases</h1>
-                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Case management, investigation workflows and analyst decision tracking.</p>
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Formal Case Records</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Authoritative case dossiers, alert evidence linkages, and lifecycle escalation audits.</p>
                                 </div>
                         </div>
 
@@ -454,8 +454,14 @@
                                                          </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-[#f1f5f9]" id="cases-tbody">
-                                                         <!-- Rows rendered dynamically by renderCases() -->
-
+                                                        <tr id="cases-loading-row">
+                                                                <td colspan="9" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]">
+                                                                        <div class="flex items-center justify-center gap-2">
+                                                                                <span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span>
+                                                                                <span>Loading formal case records from PostgreSQL...</span>
+                                                                        </div>
+                                                                </td>
+                                                        </tr>
                                                 </tbody>
                                         </table>
                                 </div>
@@ -479,7 +485,7 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                         <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
-                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Cases Queue: Online</span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Case Records Engine: Online</span>
                                 </div>
                         </div>
                         <div class="hidden sm:block">
@@ -749,91 +755,12 @@
 
                 // Render Linked Alerts HTML
                 function renderLinkedAlertsHTML(caseData) {
-                        if (!window.MuleGuardStore || !caseData.linkedAlerts || caseData.linkedAlerts.length === 0) {
+                        const alertsList = caseData.linkedAlerts || (caseData.alert_id ? [caseData.alert_id] : []);
+                        if (alertsList.length === 0) {
                                 return '<span class="text-[12px] text-on-surface-variant italic">No linked alerts for this case.</span>';
                         }
-
-                        return caseData.linkedAlerts.map(aid => {
-                                const a = window.MuleGuardStore.getAlertById(aid);
-                                if (!a) return `<div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-left"><span class="font-mono-technical font-bold">${aid}</span> (alert data missing)</div>`;
-                                
-                                const srcLabel = a.detectionSource === 'Combined' ? 'Corroborated' :
-                                                 a.detectionSource === 'ML' ? 'ML Risk' : 'Rule Alert';
-                                const srcClass = a.detectionSource === 'Combined' ? 'bg-red-50 text-red-700 border-red-200' :
-                                                 a.detectionSource === 'ML' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                 'bg-amber-50 text-amber-700 border-amber-200';
-                                
-                                let mlHtml = '';
-                                if (a.mlProbability !== undefined) {
-                                        const pct = Math.round(a.mlProbability * 100);
-                                        const threshPct = Math.round((a.mlThresholdUsed || 0.30) * 100);
-                                        
-                                        let featureRows = '';
-                                        if (a.topFeatures && a.topFeatures.length > 0) {
-                                                featureRows = `<div class="mt-2 text-[11px] text-on-surface-variant border-t border-blue-100/50 pt-1.5"><span class="font-bold uppercase tracking-wider block text-[9px] mb-1">Top Contributor Features</span>` + 
-                                                    a.topFeatures.map(f => {
-                                                        const v = (typeof f.value === 'boolean') ? (f.value ? 'Yes' : 'No') : (typeof f.value === 'number' ? f.value.toFixed(2) : f.value);
-                                                        return `<div class="flex justify-between items-center py-0.5"><span class="font-sans">${f.label}</span><span class="font-mono font-bold">${v}</span></div>`;
-                                                    }).join('') + `</div>`;
-                                        }
-
-                                        mlHtml = `
-                                        <div class="mt-2 p-2.5 bg-blue-50/60 border border-blue-200/60 rounded-lg space-y-1.5 text-left">
-                                                <div class="flex justify-between items-center text-[11px]">
-                                                        <span class="text-on-surface-variant">ML Suspicious Probability:</span>
-                                                        <span class="font-mono font-bold text-blue-700">${pct}% (threshold: ${threshPct}%)</span>
-                                                </div>
-                                                <div class="w-full bg-blue-100 rounded-full h-1.5">
-                                                        <div class="h-1.5 rounded-full bg-blue-600" style="width: ${pct}%"></div>
-                                                </div>
-                                                ${featureRows}
-                                        </div>`;
-                                }
-
-                                let ruleHtml = '';
-                                const rules = a.triggeredRules || a.indicators || [];
-                                if (rules.length > 0) {
-                                        ruleHtml = `
-                                        <div class="mt-2 text-left">
-                                                <span class="text-[10px] text-on-surface-variant uppercase font-bold block mb-1">Rule Triggers:</span>
-                                                <div class="flex flex-wrap gap-1.5">
-                                                        ${rules.map(r => `<span class="px-2 py-0.5 rounded border text-[10px] bg-amber-50 text-amber-800 border-amber-200">${r}</span>`).join('')}
-                                                </div>
-                                        </div>`;
-                                }
-
-                                let netHtml = '';
-                                if (a.networkEvidence) {
-                                        const ev = a.networkEvidence;
-                                        netHtml = `
-                                        <div class="mt-2 grid grid-cols-3 gap-1.5 text-left border-t border-slate-100 pt-2">
-                                                <div class="p-1 rounded border border-slate-100 text-[10px]">
-                                                        <span class="text-on-surface-variant uppercase text-[8px] block">Cycle</span>
-                                                        <span class="font-bold">${ev.cycleParticipation > 0 ? 'Yes' : 'No'}</span>
-                                                </div>
-                                                <div class="p-1 rounded border border-slate-100 text-[10px]">
-                                                        <span class="text-on-surface-variant uppercase text-[8px] block">HHI</span>
-                                                        <span class="font-bold">${ev.networkConcentration.toFixed(2)}</span>
-                                                </div>
-                                                <div class="p-1 rounded border border-slate-100 text-[10px]">
-                                                        <span class="text-on-surface-variant uppercase text-[8px] block">Fan In/Out</span>
-                                                        <span class="font-bold">${ev.fanIn}/${ev.fanOut}</span>
-                                                </div>
-                                        </div>`;
-                                }
-
-                                return `
-                                <div class="p-3 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-2 text-left mb-3">
-                                        <div class="flex justify-between items-center">
-                                                <span class="font-mono-technical font-bold text-[12px] text-secondary hover:underline cursor-pointer" onclick="window.location.href='alerts.html?inspect=${a.id}'">${a.id}</span>
-                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${srcClass}">${srcLabel}</span>
-                                        </div>
-                                        <div class="text-[12px] text-on-surface"><span class="font-medium">Category:</span> ${a.category}</div>
-                                        <div class="text-[12px] text-on-surface"><span class="font-medium">Amount:</span> ${a.amount}</div>
-                                        ${mlHtml}
-                                        ${ruleHtml}
-                                        ${netHtml}
-                                </div>`;
+                        return alertsList.map(aid => {
+                                return `<div class="p-3 bg-surface-container-low border border-outline-variant/40 rounded-xl space-y-1 text-left mb-3"><div class="flex justify-between items-center"><span class="font-mono-technical font-bold text-[12px] text-secondary hover:underline cursor-pointer" onclick="window.location.href='alerts.html?inspect=${aid}'">${aid}</span><span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border bg-blue-50 text-blue-700 border-blue-200">PostgreSQL Alert</span></div><div class="text-[12px] text-on-surface"><span class="font-medium">Target:</span> ${caseData.entity || caseData.customer_name || '—'}</div></div>`;
                         }).join('');
                 }
 
@@ -972,24 +899,18 @@
 
                 // Save dynamic analyst case note
                 function saveCaseNote() {
-                        const caseId = document.getElementById('drawer-title-id').textContent;
-                        const input = document.getElementById('drawer-note-input');
-                        const text = input.value.trim();
-                        if (!text) return;
-                        
-                        if (window.MuleGuardStore) {
-                                window.MuleGuardStore.addCaseNote(caseId, text, 'Analyst');
-                                input.value = '';
-                                const allCases = window.MuleGuardStore.getCases();
-                                Object.keys(casesDb).forEach(k => delete casesDb[k]);
-                                allCases.forEach(c => { casesDb[c.id] = c; });
-                                
-                                const c = casesDb[caseId];
-                                renderAnalystNotes(c);
-                                renderTimelineActivity(c);
-                                showToast('Analyst note saved successfully.');
-                        }
-                }
+			const caseId = document.getElementById('drawer-title-id').textContent;
+			const input = document.getElementById('drawer-note-input');
+			const text = input.value.trim();
+			if (!text) return;
+			input.value = '';
+			const c = casesDb[caseId];
+			if (c) {
+				c.notes = (c.notes ? c.notes + '\n' : '') + `[Today]: ${text}`;
+				renderAnalystNotes(c);
+			}
+			showToast('Case notes pending backend endpoint. Note recorded in UI only; not persisted locally.');
+		}
 
                 // Confirm actions logic flow
                 let pendingAction = null;
@@ -1054,35 +975,48 @@
                         pendingCaseId = null;
                 }
 
-                function submitConfirmModal() {
-                        const caseId = pendingCaseId;
-                        const action = pendingAction || 'Acknowledge';
+                async function submitConfirmModal() {
+			const caseId = pendingCaseId;
+			const action = pendingAction || 'Acknowledge';
+			closeConfirmModal();
 
-                        closeConfirmModal();
+			if (action === 'Close' || action === 'Resolve') {
+				if (window.MuleGuardAPI) {
+					try {
+						await MuleGuardAPI.resolveCase(caseId);
+						showToast(`Success: Case ${caseId} resolved in PostgreSQL.`);
+					} catch (err) {
+						console.error('Failed to resolve case in backend:', err);
+						showToast(`Resolution error: ${err.message}`);
+					}
+				}
+			} else if (action === 'Escalate') {
+				if (window.MuleGuardAPI) {
+					try {
+						await MuleGuardAPI.escalateCase(caseId);
+						showToast(`Success: Case ${caseId} escalated in PostgreSQL.`);
+					} catch (err) {
+						console.error('Failed to escalate case in backend:', err);
+						showToast(`Escalation error: ${err.message}`);
+					}
+				}
+			} else if (action === 'Acknowledge') {
+				if (window.MuleGuardAPI) {
+					try {
+						await MuleGuardAPI.investigateCase(caseId);
+						showToast(`Success: Case ${caseId} marked as Investigating in PostgreSQL.`);
+					} catch (err) {
+						console.error('Failed to investigate case in backend:', err);
+						showToast(`Acknowledge error: ${err.message}`);
+					}
+				}
+			} else if (action === 'False Positive') {
+				showToast(`False-positive status pending backend endpoint. Action recorded in UI only; not persisted locally.`);
+			}
 
-                        if (!window.MuleGuardStore) return;
-
-                        if (action === 'Close' || action === 'Resolve') {
-                                window.MuleGuardStore.resolveCase(caseId, 'Resolved and closed by investigator.', 'Analyst');
-                                showToast(`Success: Case ${caseId} has been resolved.`);
-                        } else if (action === 'Escalate') {
-                                window.MuleGuardStore.escalateCase(caseId, 'Escalated from Investigator Cases queue.', 'Analyst');
-                                showToast(`Success: Case ${caseId} escalated to compliance.`);
-                        } else if (action === 'False Positive') {
-                                window.MuleGuardStore.markFalsePositive(caseId, 'Marked as false positive by investigator.', 'Analyst');
-                                showToast(`Success: Case ${caseId} marked as False Positive.`);
-                        } else if (action === 'Acknowledge') {
-                                window.MuleGuardStore.updateCaseStatus(caseId, 'Under Review', 'Analyst');
-                                showToast(`Success: Case ${caseId} acknowledged.`);
-                        }
-
-                        const allCases = window.MuleGuardStore.getCases();
-                        Object.keys(casesDb).forEach(k => delete casesDb[k]);
-                        allCases.forEach(c => { casesDb[c.id] = c; });
-
-                        renderCases();
-                        closeDetailDrawer();
-                }
+			await renderCases();
+			closeDetailDrawer();
+		}
 
                 // Debounce search box input keyups
                 function onSearchInput() {
@@ -1099,8 +1033,8 @@
                         const typeVal = document.getElementById('filter-type').value;
                         const statusVal = document.getElementById('filter-status').value;
 
+                        let visibleCount = 0;
                         cachedRows.forEach(row => {
-                                // Sync dynamic database properties
                                 const currentStatus = casesDb[row.id.toUpperCase()].status;
                                 const currentPriority = casesDb[row.id.toUpperCase()].priority;
 
@@ -1116,10 +1050,24 @@
 
                                 if (matchesSearch && matchesPriority && matchesType && matchesStatus) {
                                         row.element.classList.remove('hidden');
+                                        visibleCount++;
                                 } else {
                                         row.element.classList.add('hidden');
                                 }
                         });
+
+                        const tbodyEl = document.getElementById('cases-tbody');
+                        let emptyFilterRow = document.getElementById('cases-filter-empty-row');
+                        if (visibleCount === 0 && cachedRows.length > 0 && tbodyEl) {
+                                if (!emptyFilterRow) {
+                                        emptyFilterRow = document.createElement('tr');
+                                        emptyFilterRow.id = 'cases-filter-empty-row';
+                                        emptyFilterRow.innerHTML = `<td colspan="9" class="py-12 text-center text-on-surface-variant font-body-md text-[13px] italic">No formal case records match the selected filter criteria.</td>`;
+                                        tbodyEl.appendChild(emptyFilterRow);
+                                }
+                        } else if (emptyFilterRow) {
+                                emptyFilterRow.remove();
+                        }
 
                         recountSummaryCards();
                 }
@@ -1211,90 +1159,51 @@
                         return 'text-blue-800 bg-blue-50 border-blue-200';
                 }
 
-                // Dynamic renderCases — fully rebuilds table from store state
-                function renderCases() {
-                        const tbody = document.getElementById('cases-tbody');
-                        if (!tbody) return;
-
-                        // Reload casesDb from store
-                        if (window.MuleGuardStore) {
-                                const allCases = window.MuleGuardStore.getCases();
-                                Object.keys(casesDb).forEach(k => delete casesDb[k]);
-                                allCases.forEach(c => { casesDb[c.id] = c; });
-                        }
-
-                        const cases = Object.values(casesDb);
-
-                        if (cases.length === 0) {
-                                tbody.innerHTML = `
-                                <tr>
-                                        <td colspan="9" class="py-16 text-center text-on-surface-variant font-body-md text-[13px] italic">
-                                                No cases found. Cases are auto-generated when High or Critical alerts are raised.
-                                        </td>
-                                </tr>`;
-                                cachedRows = [];
-                                recountSummaryCards();
-                                return;
-                        }
-
-                        // Sort by score descending
-                        cases.sort((a, b) => (b.score || 0) - (a.score || 0));
-
-                        tbody.innerHTML = cases.map(c => {
-                                const sLabel = statusLabel(c.status);
-                                const sBadge = statusBadgeClass(c.status);
-                                const pBadge = priorityBadgeClass(c.priority);
-                                const scoreBadge = scoreBadgeClass(c.score || 0);
-                                const caseType = c.caseType || c.type || 'Investigation';
-                                const lastUpdated = c.lastUpdated || c.updatedAt || 'Just now';
-
-                                return `
-                                <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" 
-                                        data-case-id="${c.id}" 
-                                        data-priority="${c.priority || 'Low'}" 
-                                        data-status="${c.status}" 
-                                        data-type="${caseType}"
-                                        onclick="rowClickAction(event, '${c.id}')">
-                                        <td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">${c.id}</td>
-                                        <td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">${c.title || '—'}</td>
-                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">${c.entity || '—'}</td>
-                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                <span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${pBadge}">${c.priority || 'Low'}</span>
-                                        </td>
-                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                <span class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded border ${scoreBadge}">${c.score || 0} / 100</span>
-                                        </td>
-                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${c.assignee || 'Unassigned'}</td>
-                                        <td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${lastUpdated}</td>
-                                        <td class="py-[18px] px-4 align-middle whitespace-nowrap">
-                                                <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${sBadge}">${sLabel}</span>
-                                        </td>
-                                        <td class="py-[18px] px-4 align-middle text-right whitespace-nowrap">
-                                                <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${c.id}')">
-                                                        Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
-                                                </button>
-                                        </td>
-                                </tr>`;
-                        }).join('');
-
-                        // Rebuild cachedRows from fresh DOM
-                        const rows = tbody.querySelectorAll('tr[data-case-id]');
-                        cachedRows = Array.from(rows).map(row => {
-                                const caseId = row.getAttribute('data-case-id');
-                                const data = casesDb[caseId] || {};
-                                return {
-                                        element: row,
-                                        id: caseId.toLowerCase(),
-                                        title: (data.title || '').toLowerCase(),
-                                        entity: (data.entity || '').toLowerCase(),
-                                        assignee: (data.assignee || '').toLowerCase(),
-                                        type: (row.getAttribute('data-type') || '').toLowerCase(),
-                                        status: data.status || ''
-                                };
-                        });
-
-                        recountSummaryCards();
-                }
+                // Dynamic renderCases — fully rebuilds table from PostgreSQL via MuleGuardAPI
+		async function renderCases() {
+			const tbody = document.getElementById('cases-tbody');
+			if (!tbody) return;
+			tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]"><div class="flex items-center justify-center gap-2"><span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span><span>Loading formal case records from PostgreSQL...</span></div></td></tr>`;
+			let allCases = [];
+			if (window.MuleGuardAPI) {
+				try {
+					allCases = await MuleGuardAPI.getCases({ limit: 100 });
+				} catch (err) {
+					console.error('Failed to fetch cases from backend:', err);
+				}
+			}
+			if ((!allCases || allCases.length === 0) && window.MuleGuardExpandedDB) {
+				allCases = window.MuleGuardExpandedDB.cases || [];
+			}
+			Object.keys(casesDb).forEach(k => delete casesDb[k]);
+			(allCases || []).forEach(c => { casesDb[c.id] = c; });
+			const cases = Object.values(casesDb);
+			if (cases.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="9" class="py-16 text-center text-on-surface-variant font-body-md text-[13px] italic">No formal case records found. Cases are registered when High or Critical alerts are validated.</td></tr>`;
+				cachedRows = [];
+				recountSummaryCards();
+				return;
+			}
+			cases.sort((a, b) => (b.score || 0) - (a.score || 0));
+			tbody.innerHTML = cases.map(c => {
+				const sLabel = statusLabel(c.status);
+				const sBadge = statusBadgeClass(c.status);
+				const pBadge = priorityBadgeClass(c.priority);
+				const score = Number(c.score || (c.priority === 'Critical' ? 92 : (c.priority === 'High' ? 78 : (c.priority === 'Medium' ? 55 : 30))));
+				const sBadgeScore = scoreBadgeClass(score);
+				const caseType = c.caseType || c.type || 'Investigation';
+				const lastUpdated = c.createdTime || c.lastUpdated || c.updatedAt || 'Just now';
+				const displayName = c.customer_name || c.entity || c.account_id || '—';
+				return `<tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-case-id="${c.id}" data-priority="${c.priority || 'Low'}" data-status="${c.status}" data-type="${caseType}" onclick="rowClickAction(event, '${c.id}')"><td class="py-[18px] px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150 align-middle whitespace-nowrap case-id-cell">${c.id}</td><td class="py-[18px] px-4 font-headline-md text-[13px] text-on-surface font-bold align-middle">${c.title || '—'}</td><td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface align-middle">${displayName}</td><td class="py-[18px] px-4 align-middle whitespace-nowrap"><span class="severity-badge px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${pBadge}">${c.priority || 'Low'}</span></td><td class="py-[18px] px-4 align-middle text-right whitespace-nowrap"><span class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded border ${sBadgeScore}">${score} / 100</span></td><td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${c.assignee || 'Unassigned'}</td><td class="py-[18px] px-4 font-body-md text-[13px] text-on-surface-variant align-middle whitespace-nowrap">${lastUpdated}</td><td class="py-[18px] px-4 align-middle whitespace-nowrap"><span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${sBadge}">${sLabel}</span></td><td class="py-[18px] px-4 align-middle text-right whitespace-nowrap"><button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${c.id}')">Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span></button></td></tr>`;
+			}).join('');
+			const rows = tbody.querySelectorAll('tr[data-case-id]');
+			cachedRows = Array.from(rows).map(row => {
+				const caseId = row.getAttribute('data-case-id');
+				const data = casesDb[caseId] || {};
+				return { element: row, id: caseId.toLowerCase(), title: (data.title || '').toLowerCase(), entity: (data.entity || '').toLowerCase(), assignee: (data.assignee || '').toLowerCase(), type: (row.getAttribute('data-type') || '').toLowerCase(), status: data.status || '' };
+			});
+			recountSummaryCards();
+		}
 
                 // Row clicking delegates inspect drawer open (ignores button clicks)
                 function rowClickAction(event, caseId) {
@@ -1304,11 +1213,8 @@
                         openDetailDrawer(caseId);
                 }
 
-                function initCasesQueue() {
-                        if (window.MuleGuardStore && window.MuleGuardStore.generateAlertsFromAllAccounts) {
-                                window.MuleGuardStore.generateAlertsFromAllAccounts();
-                        }
-                        renderCases();
+                async function initCasesQueue() {
+                        await renderCases();
                 }
 
                 if (document.readyState === 'loading') {

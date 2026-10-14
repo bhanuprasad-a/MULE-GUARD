@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from app.db.database import get_connection
 from app.api.auth import require_role
 
@@ -11,7 +11,10 @@ router = APIRouter(
 
 
 @router.get("")
-def get_accounts():
+def get_accounts(
+    limit: int = Query(default=100, ge=1, le=500, description="Max number of accounts to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -27,8 +30,10 @@ def get_accounts():
                 FROM accounts a
                 JOIN customers c
                     ON c.id = a.customer_id
-                ORDER BY a.id;
-                """
+                ORDER BY a.id
+                LIMIT %s OFFSET %s;
+                """,
+                (limit, offset),
             )
 
             rows = cur.fetchall()
@@ -48,7 +53,7 @@ def get_accounts():
 
 
 @router.get("/{account_id}")
-def get_account(account_id: str):
+def get_account(account_id: str = Path(..., max_length=64, description="Target account ID")):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -97,7 +102,11 @@ def get_account(account_id: str):
 
 
 @router.get("/{account_id}/transactions")
-def get_account_transactions(account_id: str):
+def get_account_transactions(
+    account_id: str = Path(..., max_length=64, description="Target account ID"),
+    limit: int = Query(default=100, ge=1, le=500, description="Max number of transactions to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+):
     with get_connection() as conn:
         with conn.cursor() as cur:
 
@@ -128,9 +137,10 @@ def get_account_transactions(account_id: str):
                 WHERE
                     sender_account_id = %s
                     OR receiver_account_id = %s
-                ORDER BY transaction_timestamp DESC;
+                ORDER BY transaction_timestamp DESC
+                LIMIT %s OFFSET %s;
                 """,
-                (account_id, account_id),
+                (account_id, account_id, limit, offset),
             )
 
             rows = cur.fetchall()

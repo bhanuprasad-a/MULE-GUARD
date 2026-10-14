@@ -10,27 +10,27 @@ window.MuleGuardExpandedDB = {
       "active": true
     },
     {
+      "id": "R-AGG-1",
+      "name": "Many-to-One Fund Aggregation",
+      "threshold": 3,
+      "unit": "counterparties/24h",
+      "description": "Triggers when an account receives funds from 3 or more distinct counterparty accounts within a rolling 24-hour window.",
+      "active": true
+    },
+    {
+      "id": "R-DIST-1",
+      "name": "One-to-Many Fund Distribution",
+      "threshold": 3,
+      "unit": "recipients/24h",
+      "description": "Triggers when an account rapidly disperses incoming funds to 3 or more distinct recipient accounts within a rolling 24-hour window.",
+      "active": true
+    },
+    {
       "id": "R-HOLD-1",
       "name": "Short Holding Time Ratio",
       "threshold": 80,
       "unit": "% ratio",
       "description": "Triggers when more than the threshold of received funds are transferred out of the account within 30 minutes.",
-      "active": true
-    },
-    {
-      "id": "R-NET-1",
-      "name": "Suspicious Component Connection",
-      "threshold": 1,
-      "unit": "hops",
-      "description": "Triggers when a node has direct connection (shared device/IP/phone) to previously blocked/flagged fraud nodes.",
-      "active": true
-    },
-    {
-      "id": "R-VAL-1",
-      "name": "High-Value Shell Transfer",
-      "threshold": 100000,
-      "unit": "INR",
-      "description": "Triggers on a transfer exceeding threshold from/to newly registered corporate shell entities.",
       "active": true
     },
     {

@@ -15,6 +15,10 @@ Tests the complete end-to-end face verification pipeline:
 
 import os
 import sys
+
+# Ensure project root in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import base64
 import json
 import urllib.request

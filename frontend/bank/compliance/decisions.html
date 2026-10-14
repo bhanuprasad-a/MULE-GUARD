@@ -308,71 +308,94 @@
                         }, 2800);
                 }
 
-                function renderDecisions() {
-                        if (!window.MuleGuardStore) return;
-                        const decisions = window.MuleGuardStore.getDecisions();
-                        const tbody = document.querySelector('tbody');
-                        const kpiTotal = document.getElementById('kpi-total-decisions');
-                        const kpiBlocks = document.getElementById('kpi-blocks-count');
-                        const kpiClearances = document.getElementById('kpi-clearances-count');
-                        if (!tbody) return;
+		let currentDecisions = [];
 
-                        if (kpiTotal) kpiTotal.textContent = decisions.length;
+		async function renderDecisions() {
+			let decisions = [];
+			if (window.MuleGuardAPI && MuleGuardAPI.getDecisions) {
+				try {
+					const res = await MuleGuardAPI.getDecisions({ limit: 100 });
+					decisions = Array.isArray(res) ? res : (res.data || []);
+				} catch (err) {
+					console.error('Failed to load decisions from PostgreSQL backend:', err);
+					showToast('Failed to load decisions from PostgreSQL backend.');
+				}
+			}
+			currentDecisions = decisions;
 
-                        let blockCount = 0;
-                        let clearCount = 0;
+			const tbody = document.querySelector('tbody');
+			const kpiTotal = document.getElementById('kpi-total-decisions');
+			const kpiBlocks = document.getElementById('kpi-blocks-count');
+			const kpiClearances = document.getElementById('kpi-clearances-count');
+			if (!tbody) return;
 
-                        tbody.innerHTML = '';
-                        if (decisions.length === 0) {
-                                if (kpiBlocks) kpiBlocks.textContent = '0';
-                                if (kpiClearances) kpiClearances.textContent = '0';
-                                tbody.innerHTML = `
-                                        <tr>
-                                                <td colspan="6" class="py-12 text-center text-on-surface-variant opacity-70">
-                                                        <div class="flex flex-col items-center justify-center gap-2">
-                                                                <span class="material-symbols-outlined text-[36px] text-slate-400">gavel</span>
-                                                                <p class="font-headline-md text-[14px] font-bold">No Compliance Decisions Logged</p>
-                                                                <p class="font-body-md text-[12px]">Decisions submitted from escalated cases or alert reviews will be archived here.</p>
-                                                        </div>
-                                                </td>
-                                        </tr>
-                                `;
-                                return;
-                        }
+			if (kpiTotal) kpiTotal.textContent = decisions.length;
 
-                        decisions.forEach(d => {
-                                const decStr = d.decision || d.rationale || '';
-                                let badgeClass = "bg-green-50 text-green-700 border-green-200";
-                                let statusText = "Cleared";
-                                
-                                if (decStr.includes('Reject') || decStr.includes('Block')) {
-                                        badgeClass = "bg-red-50 text-red-700 border-red-200";
-                                        statusText = "Blocked";
-                                        blockCount++;
-                                } else if (decStr.includes('Hold') || decStr.includes('Escalate')) {
-                                        badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
-                                        statusText = "Hold";
-                                } else {
-                                        clearCount++;
-                                }
+			let blockCount = 0;
+			let clearCount = 0;
 
-                                tbody.innerHTML += `
-                                        <tr class="hover:bg-slate-50 transition-colors">
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${d.timestamp || 'Just now'}</td>
-                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${d.caseId || d.targetId || 'N/A'}</td>
-                                                <td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold">${d.rationale || d.decision || 'Compliance Action'}</td>
-                                                <td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${d.reviewer || 'Compliance Officer'}</td>
-                                                <td class="py-3.5 px-4 font-mono-technical text-[12px] text-on-surface-variant">${d.id || 'DEC-' + Math.floor(1000 + Math.random()*9000)}</td>
-                                                <td class="py-3.5 px-4 text-right">
-                                                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${statusText}</span>
-                                                </td>
-                                        </tr>
-                                `;
-                        });
+			tbody.innerHTML = '';
+			if (decisions.length === 0) {
+				if (kpiBlocks) kpiBlocks.textContent = '0';
+				if (kpiClearances) kpiClearances.textContent = '0';
+				tbody.innerHTML = `
+					<tr>
+						<td colspan="6" class="py-12 text-center text-on-surface-variant opacity-70">
+							<div class="flex flex-col items-center justify-center gap-2">
+								<span class="material-symbols-outlined text-[36px] text-slate-400">gavel</span>
+								<p class="font-headline-md text-[14px] font-bold">No Compliance Decisions Logged</p>
+								<p class="font-body-md text-[12px]">Decisions submitted from escalated cases or alert reviews will be archived here.</p>
+							</div>
+						</td>
+					</tr>
+				`;
+				return;
+			}
 
-                        if (kpiBlocks) kpiBlocks.textContent = blockCount;
-                        if (kpiClearances) kpiClearances.textContent = clearCount;
-                }
+			decisions.forEach(d => {
+				const dec = d.decision || '';
+				const reason = d.reason || d.rationale || '';
+				const decStr = (dec + ' ' + reason).trim();
+				let badgeClass = "bg-green-50 text-green-700 border-green-200";
+				let statusText = "Cleared";
+				
+				if (dec.includes('Block') || dec.includes('Reject') || decStr.includes('Block') || decStr.includes('Reject')) {
+					badgeClass = "bg-red-50 text-red-700 border-red-200";
+					statusText = "Blocked";
+					blockCount++;
+				} else if (dec.includes('Escalate') || dec.includes('Hold') || decStr.includes('Escalate') || decStr.includes('Hold')) {
+					badgeClass = "bg-amber-50 text-amber-700 border-amber-200";
+					statusText = "Escalated";
+				} else if (dec.includes('Monitor') || decStr.includes('Monitor')) {
+					badgeClass = "bg-blue-50 text-blue-700 border-blue-200";
+					statusText = "Monitoring";
+				} else {
+					clearCount++;
+				}
+
+				const targetId = d.account_id || d.accountId || d.caseId || d.targetId || 'N/A';
+				const filingRef = d.id || 'DEC-REF';
+				const reviewer = d.reviewer || 'A. Kumar (Senior Compliance)';
+				const dateVal = d.created_at || d.timestamp;
+				const dateStr = dateVal ? (dateVal === 'Just now' ? 'Just now' : new Date(dateVal).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })) : 'Recently';
+
+				tbody.innerHTML += `
+					<tr class="hover:bg-slate-50 transition-colors">
+						<td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${dateStr}</td>
+						<td class="py-3.5 px-4 font-mono-technical text-[12px] font-bold text-secondary">${targetId}</td>
+						<td class="py-3.5 px-4 font-headline-md text-[12px] text-on-surface font-semibold max-w-[280px] truncate" title="${(reason || dec).replace(/"/g, '&quot;')}">${reason || dec || 'Compliance Action'}</td>
+						<td class="py-3.5 px-4 font-body-md text-[12px] text-on-surface-variant">${reviewer}</td>
+						<td class="py-3.5 px-4 font-mono-technical text-[12px] text-on-surface-variant">${filingRef}</td>
+						<td class="py-3.5 px-4 text-right">
+							<span class="px-2.5 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${statusText}</span>
+						</td>
+					</tr>
+				`;
+			});
+
+			if (kpiBlocks) kpiBlocks.textContent = blockCount;
+			if (kpiClearances) kpiClearances.textContent = clearCount;
+		}
 
                 window.addEventListener('DOMContentLoaded', renderDecisions);
                 window.addEventListener('muleguard:transaction-ingested', renderDecisions);

@@ -10,10 +10,14 @@ Tests:
 """
 
 import os
+import sys
 import json
 import urllib.request
 import urllib.error
 from http.cookiejar import CookieJar
+
+# Ensure project root in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.db.database import get_connection
 from app.db.init_auth_db import generate_deterministic_vector

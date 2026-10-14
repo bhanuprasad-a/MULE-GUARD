@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Regulatory Filings</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <link rel="stylesheet" href="../../shared.css" />
+        
+        <!-- Authentication Guard & Core API -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
+        <script src="../../scripts/data-store.js"></script>
+
+        <style>
+                @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(6px); }
+                        to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                        animation: fadeIn 0.3s ease-out forwards;
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Left Navigation Sidebar Container (Hydrated by auth-guard.js) -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <button aria-label="Toggle Navigation Menu" class="md:hidden text-on-surface hover:text-secondary focus:outline-none focus:ring-2 focus:ring-secondary/50 rounded-lg p-1" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Regulatory Filings</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Review, draft, and track statutory FIU-IND regulatory reporting filings and audit acknowledgements.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Senior Officer Session</span>
+                                </div>
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+                                <!-- User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div id="header-avatar" class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span id="header-username" class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="if(window.openProfileDrawer)window.openProfileDrawer('profile'); else showToast('Loading profile details...');">My Profile</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors" onclick="logoutUser()">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- 4 Summary KPI Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <!-- Card 1: Total Filings -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">description</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Total Filings</span>
+                                                <p id="kpi-total-filings" class="font-headline-md text-[20px] font-extrabold text-on-surface">0</p>
+                                        </div>
+                                </div>
+                                <!-- Card 2: Draft -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">edit_document</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Draft</span>
+                                                <p id="kpi-draft-filings" class="font-headline-md text-[20px] font-extrabold text-amber-700">0</p>
+                                        </div>
+                                </div>
+                                <!-- Card 3: Submitted -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">send</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Submitted</span>
+                                                <p id="kpi-submitted-filings" class="font-headline-md text-[20px] font-extrabold text-indigo-700">0</p>
+                                        </div>
+                                </div>
+                                <!-- Card 4: Accepted -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">verified</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Accepted</span>
+                                                <p id="kpi-accepted-filings" class="font-headline-md text-[20px] font-extrabold text-emerald-700">0</p>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- Filings Table & Control Section -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4 animate-fade-in">
+                                
+                                <!-- Toolbar: Title, Search, Filters, and New Filing Action -->
+                                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-1">
+                                        <div>
+                                                <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">Regulatory Reporting Queue</h2>
+                                                <p class="font-body-md text-[13px] text-on-surface-variant">Statutory submissions filed with Financial Intelligence Unit – India (FIU-IND).</p>
+                                        </div>
+
+                                        <div class="flex flex-wrap items-center gap-3">
+                                                <!-- Search Input -->
+                                                <div class="relative min-w-[200px] sm:min-w-[240px]">
+                                                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-on-surface-variant">search</span>
+                                                        <input id="filter-search" type="text" placeholder="Search account, entity, ID..." class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg pl-9 pr-3 py-2 text-[12px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-secondary/40 transition-all" oninput="debounceFilter()" />
+                                                </div>
+
+                                                <!-- Status Filter -->
+                                                <select id="filter-status" class="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/40 font-medium" onchange="loadFilings()">
+                                                        <option value="ALL">All Statuses</option>
+                                                        <option value="Draft">Draft</option>
+                                                        <option value="Submitted">Submitted</option>
+                                                        <option value="Accepted">Accepted</option>
+                                                        <option value="Rejected">Rejected</option>
+                                                </select>
+
+                                                <!-- Filing Type Filter -->
+                                                <select id="filter-type" class="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/40 font-medium" onchange="loadFilings()">
+                                                        <option value="ALL">All Types</option>
+                                                        <option value="SAR">SAR (Suspicious Activity)</option>
+                                                        <option value="STR">STR (Suspicious Transaction)</option>
+                                                        <option value="CTR">CTR (Cash Transaction)</option>
+                                                        <option value="NTR">NTR (Non-Profit Transaction)</option>
+                                                </select>
+
+                                                <!-- New Filing Trigger Button -->
+                                                <button onclick="openNewFilingModal()" class="bg-secondary hover:bg-secondary/90 text-on-secondary px-3.5 py-2 rounded-lg font-label-md text-[12px] font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-secondary/50">
+                                                        <span class="material-symbols-outlined text-[16px]">add</span>
+                                                        <span>New Filing</span>
+                                                </button>
+
+                                                <!-- Refresh Button -->
+                                                <button onclick="loadFilings()" title="Refresh Filings Queue" class="bg-surface-container-low border border-outline-variant/50 hover:bg-surface-container text-on-surface-variant hover:text-on-surface p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-secondary/40">
+                                                        <span class="material-symbols-outlined text-[18px]">refresh</span>
+                                                </button>
+                                        </div>
+                                </div>
+                                
+                                <!-- Table View -->
+                                <div class="w-full overflow-x-auto rounded-lg border border-outline-variant/30">
+                                        <table class="w-full border-collapse text-left">
+                                                <thead>
+                                                         <tr class="bg-surface-container-low border-b border-[#e2e8f0]">
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[140px]">Filing ID</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[130px]">Case / Alert Ref</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[190px]">Account / Entity</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Filing Type</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Status</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[130px]">Created</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[130px]">Last Updated</th>
+                                                                 <th class="py-3 px-4 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[160px]">Actions</th>
+                                                         </tr>
+                                                </thead>
+                                                <tbody id="filings-table-body" class="divide-y divide-[#f1f5f9]" aria-live="polite">
+                                                         <!-- Populated dynamically via MuleGuardAPI.getFilings -->
+                                                </tbody>
+                                        </table>
+                                </div>
+
+                                <!-- Pagination / Footer Info -->
+                                <div class="flex items-center justify-between text-[12px] text-on-surface-variant pt-2">
+                                        <span id="filings-count-info" class="font-mono-technical text-[11px]">Loading filings...</span>
+                                        <div class="flex items-center gap-2">
+                                                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                <span class="font-mono-technical text-[11px] text-on-surface-variant">Authority: FIU-IND Gateway Connected</span>
+                                        </div>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Page Footer -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">Compliance Vault: Connected</span>
+                                </div>
+                        </div>
+                        <div>
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Bank Compliance</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Filing Detail Modal -->
+        <div id="filing-detail-modal" class="fixed inset-0 bg-primary/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-interface-base border border-outline-variant/40 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fade-in text-left">
+                        <div class="flex items-center justify-between p-5 border-b border-outline-variant/30">
+                                <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[20px]">description</span>
+                                        </div>
+                                        <div>
+                                                <h3 id="modal-filing-id" class="font-headline-md text-[16px] font-bold text-on-surface">Filing Details</h3>
+                                                <p id="modal-filing-ref" class="font-mono-technical text-[11px] text-on-surface-variant">Statutory Filing Summary</p>
+                                        </div>
+                                </div>
+                                <button onclick="closeFilingDetailModal()" class="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors focus:outline-none">
+                                        <span class="material-symbols-outlined text-[20px]">close</span>
+                                </button>
+                        </div>
+
+                        <div class="p-6 space-y-4">
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-container-low p-3.5 rounded-lg border border-outline-variant/30">
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Filing Type</span>
+                                                <p id="modal-type" class="font-headline-md text-[13px] font-extrabold text-on-surface mt-0.5">-</p>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Status</span>
+                                                <div id="modal-status-badge" class="mt-0.5">-</div>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Authority</span>
+                                                <p id="modal-authority" class="font-headline-md text-[13px] font-semibold text-on-surface mt-0.5">FIU-IND</p>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">ACK Ref</span>
+                                                <p id="modal-ack-ref" class="font-mono-technical text-[12px] font-bold text-indigo-700 mt-0.5 truncate">-</p>
+                                        </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Target Entity & Account</span>
+                                        <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/30 flex items-center justify-between">
+                                                <div>
+                                                        <p id="modal-entity-name" class="font-headline-md text-[13px] font-bold text-on-surface">-</p>
+                                                        <p id="modal-account-id" class="font-mono-technical text-[11px] text-on-surface-variant">-</p>
+                                                </div>
+                                                <div class="text-right">
+                                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase">Balance</span>
+                                                        <p id="modal-balance" class="font-mono-technical text-[12px] font-bold text-on-surface">-</p>
+                                                </div>
+                                        </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Suspicious Activity Summary</span>
+                                        <p id="modal-reason" class="text-[13px] text-on-surface bg-surface-container-low p-3 rounded-lg border border-outline-variant/30 leading-relaxed">-</p>
+                                </div>
+
+                                <div class="space-y-1">
+                                        <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Statutory Compliance Narrative</span>
+                                        <div id="modal-narrative" class="text-[12px] text-on-surface-variant bg-surface-container-low p-3.5 rounded-lg border border-outline-variant/30 leading-relaxed font-sans max-h-40 overflow-y-auto whitespace-pre-wrap">-</div>
+                                </div>
+
+                                <div class="flex items-center justify-between text-[11px] font-mono-technical text-on-surface-variant pt-2 border-t border-outline-variant/20">
+                                        <span>Filed By: <strong id="modal-filed-by" class="text-on-surface">-</strong></span>
+                                        <span>Created: <span id="modal-created">-</span></span>
+                                </div>
+                        </div>
+
+                        <div id="modal-action-footer" class="p-4 bg-surface-container-low border-t border-outline-variant/30 flex items-center justify-end gap-3">
+                                <button onclick="closeFilingDetailModal()" class="px-4 py-2 border border-outline-variant/50 hover:bg-surface-container text-on-surface rounded-lg text-[12px] font-semibold transition-colors">Close</button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- New Filing Creation Modal -->
+        <div id="new-filing-modal" class="fixed inset-0 bg-primary/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-interface-base border border-outline-variant/40 rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto animate-fade-in text-left">
+                        <div class="flex items-center justify-between p-5 border-b border-outline-variant/30">
+                                <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-secondary-container/20 text-secondary flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[20px]">post_add</span>
+                                        </div>
+                                        <div>
+                                                <h3 class="font-headline-md text-[16px] font-bold text-on-surface">Create New Regulatory Filing</h3>
+                                                <p class="font-body-md text-[11px] text-on-surface-variant">Draft a statutory compliance submission for FIU-IND reporting.</p>
+                                        </div>
+                                </div>
+                                <button onclick="closeNewFilingModal()" class="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors focus:outline-none">
+                                        <span class="material-symbols-outlined text-[20px]">close</span>
+                                </button>
+                        </div>
+
+                        <form id="new-filing-form" onsubmit="handleCreateFilingSubmit(event)" class="p-6 space-y-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="space-y-1">
+                                                <label class="block font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Target Account ID *</label>
+                                                <input id="create-account-id" type="text" required placeholder="e.g. ACC-982054" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface font-mono-technical focus:outline-none focus:ring-2 focus:ring-secondary/40" />
+                                        </div>
+                                        <div class="space-y-1">
+                                                <label class="block font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Filing Type *</label>
+                                                <select id="create-filing-type" required class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface font-medium focus:outline-none focus:ring-2 focus:ring-secondary/40">
+                                                        <option value="SAR">SAR — Suspicious Activity Report</option>
+                                                        <option value="STR">STR — Suspicious Transaction Report</option>
+                                                        <option value="CTR">CTR — Cash Transaction Report</option>
+                                                        <option value="NTR">NTR — Non-Profit Transaction Report</option>
+                                                </select>
+                                        </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="space-y-1">
+                                                <label class="block font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Case Reference (Optional)</label>
+                                                <input id="create-case-id" type="text" placeholder="e.g. CS-982054" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface font-mono-technical focus:outline-none focus:ring-2 focus:ring-secondary/40" />
+                                        </div>
+                                        <div class="space-y-1">
+                                                <label class="block font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Alert Reference (Optional)</label>
+                                                <input id="create-alert-id" type="text" placeholder="e.g. ALT-982054" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface font-mono-technical focus:outline-none focus:ring-2 focus:ring-secondary/40" />
+                                        </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                        <label class="block font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Suspicious Activity Summary *</label>
+                                        <input id="create-reason" type="text" required maxlength="500" placeholder="Brief summary of detection or syndicate activity" class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/40" />
+                                </div>
+
+                                <div class="space-y-1">
+                                        <label class="block font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Statutory Regulatory Narrative *</label>
+                                        <textarea id="create-narrative" required rows="4" maxlength="4000" placeholder="Provide detailed transaction pattern evidence, ML probability findings, counterparty networks, and statutory justification for FIU-IND submission..." class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg p-3 text-[12px] text-on-surface leading-relaxed focus:outline-none focus:ring-2 focus:ring-secondary/40"></textarea>
+                                </div>
+
+                                <div class="p-3 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg flex items-center gap-2.5">
+                                        <span class="material-symbols-outlined text-[18px] text-secondary">verified_user</span>
+                                        <p class="font-body-md text-[11px] text-[#0369a1] leading-tight">
+                                                New filings are created in <strong>Draft</strong> status and must be reviewed before statutory submission to FIU-IND.
+                                        </p>
+                                </div>
+
+                                <div class="pt-3 border-t border-outline-variant/30 flex items-center justify-end gap-3">
+                                        <button type="button" onclick="closeNewFilingModal()" class="px-4 py-2 border border-outline-variant/50 hover:bg-surface-container text-on-surface rounded-lg text-[12px] font-semibold transition-colors">Cancel</button>
+                                        <button id="btn-create-submit" type="submit" class="bg-secondary hover:bg-secondary/90 text-on-secondary px-5 py-2 rounded-lg font-label-md text-[12px] font-bold shadow-sm active:scale-95 transition-all">Save Draft Filing</button>
+                                </div>
+                        </form>
+                </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 bg-[#1e293b] text-white border border-[#334155] rounded-lg px-4 py-3 shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+                <span class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px]">Notification message</span>
+        </div>
+
+        <!-- Inline Page Logic -->
+        <script>
+                function toggleMobileSidebar() {
+                        const sidebar = document.getElementById('sidebar-container');
+                        const overlay = document.getElementById('sidebar-overlay');
+                        if (!sidebar) return;
+                        if (sidebar.classList.contains('-translate-x-full')) {
+                                sidebar.classList.remove('-translate-x-full');
+                                if (overlay) overlay.classList.remove('hidden');
+                        } else {
+                                sidebar.classList.add('-translate-x-full');
+                                if (overlay) overlay.classList.add('hidden');
+                        }
+                }
+
+                let toastTimeout;
+                function showToast(message) {
+                        const toast = document.getElementById('toast');
+                        const toastText = document.getElementById('toast-text');
+                        if (!toast || !toastText) return;
+                        toastText.textContent = message;
+                        
+                        clearTimeout(toastTimeout);
+                        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        toast.classList.add('translate-y-0', 'opacity-100');
+                        
+                        toastTimeout = setTimeout(() => {
+                                toast.classList.remove('translate-y-0', 'opacity-100');
+                                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                        }, 2800);
+                }
+
+                let currentFilings = [];
+                let debounceTimer = null;
+
+                function debounceFilter() {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => {
+                                loadFilings();
+                        }, 250);
+                }
+
+                function formatTimestamp(ts) {
+                        if (!ts) return '-';
+                        try {
+                                const d = new Date(ts);
+                                return isNaN(d.getTime()) ? String(ts) : d.toLocaleString('en-IN', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                });
+                        } catch (_) {
+                                return String(ts);
+                        }
+                }
+
+                function getStatusBadge(status) {
+                        const s = (status || 'Draft').toLowerCase();
+                        if (s === 'draft') {
+                                return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-technical text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Draft
+                                </span>`;
+                        }
+                        if (s === 'submitted') {
+                                return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-technical text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200/80">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Submitted
+                                </span>`;
+                        }
+                        if (s === 'accepted') {
+                                return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-technical text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Accepted
+                                </span>`;
+                        }
+                        return `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono-technical text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200/80">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> ${status}
+                        </span>`;
+                }
+
+                function getTypeBadge(type) {
+                        const t = (type || 'SAR').toUpperCase();
+                        let bg = 'bg-slate-100 text-slate-800 border-slate-200';
+                        if (t === 'SAR') bg = 'bg-purple-50 text-purple-800 border-purple-200';
+                        else if (t === 'STR') bg = 'bg-indigo-50 text-indigo-800 border-indigo-200';
+                        else if (t === 'CTR') bg = 'bg-cyan-50 text-cyan-800 border-cyan-200';
+                        return `<span class="px-2 py-0.5 rounded font-mono-technical text-[10px] font-extrabold border ${bg}">${t}</span>`;
+                }
+
+                async function updateSummaryCards() {
+                        if (!window.MuleGuardAPI || !window.MuleGuardAPI.getFilingsSummary) return;
+                        try {
+                                const summary = await window.MuleGuardAPI.getFilingsSummary();
+                                document.getElementById('kpi-total-filings').textContent = Number(summary.total_filings || 0);
+                                document.getElementById('kpi-draft-filings').textContent = Number(summary.draft || 0);
+                                document.getElementById('kpi-submitted-filings').textContent = Number(summary.submitted || 0);
+                                document.getElementById('kpi-accepted-filings').textContent = Number(summary.accepted || 0);
+                        } catch (err) {
+                                console.error('Failed to update regulatory summary KPIs:', err);
+                        }
+                }
+
+                async function loadFilings() {
+                        const tbody = document.getElementById('filings-table-body');
+                        const infoEl = document.getElementById('filings-count-info');
+                        if (!tbody) return;
+
+                        const search = (document.getElementById('filter-search')?.value || '').trim();
+                        const status = document.getElementById('filter-status')?.value || 'ALL';
+                        const filingType = document.getElementById('filter-type')?.value || 'ALL';
+
+                        tbody.innerHTML = `
+                                <tr>
+                                        <td colspan="8" class="py-12 text-center text-on-surface-variant opacity-70">
+                                                <div class="flex flex-col items-center justify-center gap-2">
+                                                        <span class="material-symbols-outlined text-[32px] text-slate-400 animate-spin">progress_activity</span>
+                                                        <p class="font-body-md text-[13px]">Querying PostgreSQL regulatory filings vault...</p>
+                                                </div>
+                                        </td>
+                                </tr>
+                        `;
+
+                        try {
+                                const res = await window.MuleGuardAPI.getFilings({
+                                        search: search || undefined,
+                                        status: status !== 'ALL' ? status : undefined,
+                                        filing_type: filingType !== 'ALL' ? filingType : undefined,
+                                        limit: 100
+                                });
+
+                                currentFilings = Array.isArray(res) ? res : (res.data || []);
+                                renderFilingsTable(currentFilings);
+                                await updateSummaryCards();
+
+                                if (infoEl) {
+                                        infoEl.textContent = `Displaying ${currentFilings.length} filing record${currentFilings.length === 1 ? '' : 's'}`;
+                                }
+                        } catch (err) {
+                                console.error('Failed to load regulatory filings from backend:', err);
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="8" class="py-12 text-center text-risk-high">
+                                                        <div class="flex flex-col items-center justify-center gap-2">
+                                                                <span class="material-symbols-outlined text-[36px]">error</span>
+                                                                <p class="font-headline-md text-[14px] font-bold">Failed to load regulatory filings</p>
+                                                                <p class="font-body-md text-[12px] text-on-surface-variant">${err.message || 'Error connecting to database API'}</p>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
+                                if (infoEl) infoEl.textContent = 'Error loading filings';
+                                showToast('Error fetching filings: ' + (err.message || 'API error'));
+                        }
+                }
+
+                function renderFilingsTable(filings) {
+                        const tbody = document.getElementById('filings-table-body');
+                        if (!tbody) return;
+
+                        if (filings.length === 0) {
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="8" class="py-12 text-center text-on-surface-variant opacity-70">
+                                                        <div class="flex flex-col items-center justify-center gap-2">
+                                                                <span class="material-symbols-outlined text-[36px] text-slate-400">description</span>
+                                                                <p class="font-headline-md text-[14px] font-bold">No Regulatory Filings Found</p>
+                                                                <p class="font-body-md text-[12px]">Adjust your search query or create a new filing above.</p>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
+                                return;
+                        }
+
+                        let html = '';
+                        filings.forEach(f => {
+                                const status = (f.status || 'Draft');
+                                const isDraft = status === 'Draft';
+                                const isSubmitted = status === 'Submitted';
+                                const isAccepted = status === 'Accepted';
+
+                                let actionButtons = `
+                                        <button onclick="viewFilingDetail('${f.id}')" class="text-secondary hover:text-secondary/80 font-label-md text-[11px] font-bold px-2 py-1 rounded hover:bg-secondary-container/10 transition-colors focus:outline-none" title="View Filing Details">View</button>
+                                `;
+
+                                if (isDraft) {
+                                        actionButtons += `
+                                                <button onclick="submitFiling('${f.id}')" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200/80 rounded px-2.5 py-1 font-label-md text-[11px] font-bold active:scale-95 transition-all focus:outline-none" title="Submit to FIU-IND">Submit</button>
+                                        `;
+                                } else if (isSubmitted) {
+                                        actionButtons += `
+                                                <button onclick="acceptFiling('${f.id}')" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/80 rounded px-2.5 py-1 font-label-md text-[11px] font-bold active:scale-95 transition-all focus:outline-none" title="Acknowledge Regulator Acceptance">Mark Accepted</button>
+                                        `;
+                                } else if (isAccepted) {
+                                        actionButtons += `
+                                                <span class="inline-flex items-center gap-0.5 text-emerald-700 font-mono-technical text-[10px] font-semibold opacity-80" title="Regulatory submission accepted and immutable">
+                                                        <span class="material-symbols-outlined text-[14px]">done_all</span> Accepted
+                                                </span>
+                                        `;
+                                }
+
+                                const refDisplay = f.case_id 
+                                        ? `<span class="font-mono-technical text-[11px] text-secondary font-semibold">${f.case_id}</span>`
+                                        : (f.alert_id 
+                                                ? `<span class="font-mono-technical text-[11px] text-amber-700 font-semibold">${f.alert_id}</span>`
+                                                : `<span class="font-body-md text-[11px] text-on-surface-variant">Direct Review</span>`);
+
+                                html += `
+                                        <tr class="hover:bg-surface-container-low/60 transition-colors">
+                                                <td class="py-3 px-4 font-mono-technical text-[12px] font-bold text-on-surface">
+                                                        <div class="flex items-center gap-1.5">
+                                                                <span class="material-symbols-outlined text-[16px] text-slate-400">article</span>
+                                                                <span>${f.id}</span>
+                                                        </div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                        ${refDisplay}
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                        <div class="flex flex-col">
+                                                                <span class="font-headline-md text-[13px] font-bold text-on-surface">${f.entity || f.customer_name || f.account_id}</span>
+                                                                <span class="font-mono-technical text-[11px] text-on-surface-variant">${f.account_id}</span>
+                                                        </div>
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                        ${getTypeBadge(f.filing_type)}
+                                                </td>
+                                                <td class="py-3 px-4">
+                                                        ${getStatusBadge(f.status)}
+                                                </td>
+                                                <td class="py-3 px-4 font-mono-technical text-[11px] text-on-surface-variant">
+                                                        ${formatTimestamp(f.created_at)}
+                                                </td>
+                                                <td class="py-3 px-4 font-mono-technical text-[11px] text-on-surface-variant">
+                                                        ${formatTimestamp(f.updated_at)}
+                                                </td>
+                                                <td class="py-3 px-4 text-right">
+                                                        <div class="flex items-center justify-end gap-1.5">
+                                                                ${actionButtons}
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
+                        });
+                        tbody.innerHTML = html;
+                }
+
+                function viewFilingDetail(filingId) {
+                        const f = currentFilings.find(item => item.id === filingId);
+                        if (!f) return;
+
+                        document.getElementById('modal-filing-id').textContent = f.id;
+                        document.getElementById('modal-filing-ref').textContent = f.case_id ? `Case: ${f.case_id}` : (f.alert_id ? `Alert: ${f.alert_id}` : 'Direct Account Submission');
+                        document.getElementById('modal-type').textContent = f.filing_type || 'SAR';
+                        document.getElementById('modal-status-badge').innerHTML = getStatusBadge(f.status);
+                        document.getElementById('modal-authority').textContent = f.reporting_authority || 'FIU-IND';
+                        document.getElementById('modal-ack-ref').textContent = f.reference_number || 'Pending Submission';
+
+                        document.getElementById('modal-entity-name').textContent = f.entity || f.customer_name || f.account_id;
+                        document.getElementById('modal-account-id').textContent = `Account: ${f.account_id} (${f.account_type || 'Savings'})`;
+                        document.getElementById('modal-balance').textContent = `₹${(f.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+                        document.getElementById('modal-reason').textContent = f.reason || 'No description provided';
+                        document.getElementById('modal-narrative').textContent = f.narrative || 'No detailed statutory narrative entered.';
+
+                        document.getElementById('modal-filed-by').textContent = f.filed_by || 'Senior Compliance Officer';
+                        document.getElementById('modal-created').textContent = formatTimestamp(f.created_at);
+
+                        // Action footer
+                        const footerEl = document.getElementById('modal-action-footer');
+                        let btns = `<button onclick="closeFilingDetailModal()" class="px-4 py-2 border border-outline-variant/50 hover:bg-surface-container text-on-surface rounded-lg text-[12px] font-semibold transition-colors">Close</button>`;
+
+                        if (f.status === 'Draft') {
+                                btns += `<button onclick="submitFiling('${f.id}'); closeFilingDetailModal();" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-[12px] font-bold shadow-sm transition-all">Submit to Regulator</button>`;
+                        } else if (f.status === 'Submitted') {
+                                btns += `<button onclick="acceptFiling('${f.id}'); closeFilingDetailModal();" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-[12px] font-bold shadow-sm transition-all">Mark as Accepted</button>`;
+                        }
+                        footerEl.innerHTML = btns;
+
+                        document.getElementById('filing-detail-modal').classList.remove('hidden');
+                }
+
+                function closeFilingDetailModal() {
+                        document.getElementById('filing-detail-modal').classList.add('hidden');
+                }
+
+                function openNewFilingModal() {
+                        document.getElementById('new-filing-form').reset();
+                        document.getElementById('new-filing-modal').classList.remove('hidden');
+                }
+
+                function closeNewFilingModal() {
+                        document.getElementById('new-filing-modal').classList.add('hidden');
+                }
+
+                async function handleCreateFilingSubmit(event) {
+                        event.preventDefault();
+                        const btn = document.getElementById('btn-create-submit');
+                        btn.disabled = true;
+                        btn.textContent = 'Saving...';
+
+                        const accountId = document.getElementById('create-account-id').value.trim();
+                        const filingType = document.getElementById('create-filing-type').value;
+                        const caseId = document.getElementById('create-case-id').value.trim() || undefined;
+                        const alertId = document.getElementById('create-alert-id').value.trim() || undefined;
+                        const reason = document.getElementById('create-reason').value.trim();
+                        const narrative = document.getElementById('create-narrative').value.trim();
+
+                        try {
+                                const created = await window.MuleGuardAPI.createFiling({
+                                        account_id: accountId,
+                                        filing_type: filingType,
+                                        case_id: caseId,
+                                        alert_id: alertId,
+                                        reason: reason,
+                                        narrative: narrative,
+                                        reporting_authority: 'FIU-IND'
+                                });
+
+                                closeNewFilingModal();
+                                showToast(`Draft filing ${created.id} created successfully.`);
+                                await loadFilings();
+                        } catch (err) {
+                                console.error('Failed to create regulatory filing:', err);
+                                showToast(`Failed: ${err.message || 'Validation error'}`);
+                        } finally {
+                                btn.disabled = false;
+                                btn.textContent = 'Save Draft Filing';
+                        }
+                }
+
+                async function submitFiling(filingId) {
+                        if (!confirm(`Are you sure you want to officially submit filing ${filingId} to FIU-IND?`)) {
+                                return;
+                        }
+                        try {
+                                const res = await window.MuleGuardAPI.submitFiling(filingId);
+                                showToast(res.message || `Filing ${filingId} submitted successfully.`);
+                                await loadFilings();
+                        } catch (err) {
+                                console.error('Failed to submit filing:', err);
+                                showToast(`Submission failed: ${err.message || 'API error'}`);
+                        }
+                }
+
+                async function acceptFiling(filingId) {
+                        if (!confirm(`Confirm that statutory authority FIU-IND has accepted and acknowledged filing ${filingId}?`)) {
+                                return;
+                        }
+                        try {
+                                const res = await window.MuleGuardAPI.acceptFiling(filingId);
+                                showToast(res.message || `Filing ${filingId} accepted.`);
+                                await loadFilings();
+                        } catch (err) {
+                                console.error('Failed to accept filing:', err);
+                                showToast(`Acceptance failed: ${err.message || 'API error'}`);
+                        }
+                }
+
+                // Initial page boot
+                document.addEventListener('DOMContentLoaded', () => {
+                        loadFilings();
+                });
+        </script>
+</body>
+</html>

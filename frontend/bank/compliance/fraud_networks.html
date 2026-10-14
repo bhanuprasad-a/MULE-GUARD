@@ -4,7 +4,8 @@
 <head>
         <!-- Authentication Guard -->
         <script src="../../scripts/auth-guard.js"></script>
-        <script src="../../scripts/api.js"></script>`n        <script src="../../scripts/data-store.js"></script>
+        <script src="../../scripts/api.js"></script>
+        <script src="../../scripts/data-store.js"></script>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <title>MuleGuard - Fraud Networks Investigation</title>
@@ -685,7 +686,7 @@
         <!-- Javascript Dynamic Page Interactions -->
         <script>
                 // Fraud Networks mock database
-                const networksDb = window.MuleGuardStore.getNetworks();
+                let networksDb = {};
 
                 // Global variables for cached workspace operations
                 let cachedRows = [];
@@ -841,10 +842,10 @@
                         const infoBox = document.getElementById('graph-node-info');
                         if (!infoBox) return;
 
-                        const db = window.MuleGuardStore ? window.MuleGuardStore.getAccounts() : null;
-                        const acc = db ? db[nodeId] : null;
-                        const statusText = acc ? acc.status : 'Normal';
-                        const score = acc ? acc.riskScore : (risk === 'Critical' ? 95 : (risk === 'High' ? 82 : (risk === 'Medium' ? 62 : 20)));
+                        const currNet = networksDb[currentlyRenderedNetworkId];
+                        const nodeObj = (currNet && currNet.graphNodes) ? currNet.graphNodes.find(n => n.id === nodeId) : null;
+                        const statusText = nodeObj ? (nodeObj.status || 'Normal') : 'Normal';
+                        const score = nodeObj ? (nodeObj.score !== undefined ? nodeObj.score : (risk === 'Critical' ? 95 : (risk === 'High' ? 82 : (risk === 'Medium' ? 62 : 20)))) : (risk === 'Critical' ? 95 : (risk === 'High' ? 82 : (risk === 'Medium' ? 62 : 20)));
 
                         let badgeColor = "bg-blue-50 text-blue-800 border-blue-200";
                         if (statusText === 'Blocked') badgeColor = "bg-slate-900 text-slate-300 border-slate-700";
@@ -852,11 +853,12 @@
                         else if (statusText === 'Under Review') badgeColor = "bg-orange-50 text-orange-700 border-orange-200";
 
                         let triggersHtml = '';
-                        if (acc && acc.triggers && acc.triggers.length > 0) {
+                        const triggersList = (nodeObj && Array.isArray(nodeObj.triggers)) ? nodeObj.triggers : [];
+                        if (triggersList.length > 0) {
                                 triggersHtml = `
                                         <div class="mt-2 pt-2 border-t border-slate-800 text-[10px] space-y-1">
                                                 <div class="font-bold text-slate-300 uppercase tracking-wider">Triggers:</div>
-                                                ${acc.triggers.map(t => `<div class="text-red-400">• ${t}</div>`).join('')}
+                                                ${triggersList.map(t => `<div class="text-red-400">• ${t}</div>`).join('')}
                                         </div>
                                 `;
                         }
@@ -1179,8 +1181,6 @@
                                 });
                         } else if (rawNetworks && typeof rawNetworks === 'object' && Object.keys(rawNetworks).length > 0) {
                                 networksDb = rawNetworks;
-                        } else if (window.MuleGuardStore && window.MuleGuardStore.getNetworks) {
-                                networksDb = window.MuleGuardStore.getNetworks() || {};
                         }
 
                         renderNetworksTable();

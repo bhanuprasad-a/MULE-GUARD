@@ -175,9 +175,9 @@
         {
             group: "OVERSIGHT",
             items: [
-                { id: "regulatory-filings", label: "Regulatory Filings", href: "#", icon: "description", onClick: "showToast('Regulatory filings queue opened')" },
-                { id: "audit-trail", label: "Audit Trail", href: "#", icon: "history", onClick: "showToast('Compliance audit trails opened')" },
-                { id: "compliance-watchlist", label: "Compliance Watchlist", href: "#", icon: "rule_folder", onClick: "showToast('Compliance watchlists opened')" }
+                { id: "regulatory-filings", label: "Regulatory Filings", href: "regulatory-filings.html", icon: "description" },
+                { id: "audit-trail", label: "Audit Trail", href: "audit-trail.html", icon: "history" },
+                { id: "compliance-watchlist", label: "Compliance Watchlist", href: "watchlists.html", icon: "rule_folder" }
             ]
         }
     ];
@@ -479,6 +479,8 @@
         if (effectiveRole === 'internal_team') {
             const hash = (window.location.hash ? window.location.hash.substring(1) : '') || 'health';
             activeLinkId = 'nav-link-' + hash;
+        } else if (effectiveRole === 'bank_compliance' && pageName === 'watchlists.html') {
+            activeLinkId = 'nav-link-compliance-watchlist';
         }
 
         // Synchronize active and inactive link classes

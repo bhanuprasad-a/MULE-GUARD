@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>MuleGuard - Compliance Audit Trail</title>
+        <link href="https://fonts.googleapis.com" rel="preconnect" />
+        <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="../../style.css" />
+        <link rel="stylesheet" href="../../shared.css" />
+        
+        <!-- Authentication Guard & Canonical API -->
+        <script src="../../scripts/auth-guard.js"></script>
+        <script src="../../scripts/api.js"></script>
+
+        <style>
+                @keyframes fadeIn {
+                        from { opacity: 0; transform: translateY(6px); }
+                        to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fade-in {
+                        animation: fadeIn 0.3s ease-out forwards;
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                        width: 6px;
+                        height: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                        background: rgba(0,0,0,0.03);
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                        background: rgba(0,0,0,0.15);
+                        border-radius: 4px;
+                }
+        </style>
+</head>
+
+<body class="bg-surface-container-low text-on-surface h-screen w-full flex overflow-hidden font-sans select-none">
+        
+        <!-- Mobile Sidebar Toggle Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-30 hidden transition-opacity duration-200" onclick="toggleMobileSidebar()"></div>
+
+        <!-- Left Navigation Sidebar Container (Hydrated by auth-guard.js) -->
+        <aside id="sidebar-container" class="fixed inset-y-0 left-0 z-40 w-[280px] bg-primary-container border-r border-[#1e293b] flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out select-none">
+        </aside>
+
+        <!-- Main Content Workspace Container -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden md:pl-[280px]">
+                
+                <!-- Top Main Header -->
+                <header class="h-[70px] bg-interface-base border-b border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-3">
+                                <button aria-label="Toggle Navigation Menu" class="md:hidden text-on-surface hover:text-secondary focus:outline-none focus:ring-2 focus:ring-secondary/50 rounded-lg p-1" onclick="toggleMobileSidebar()">
+                                        <span class="material-symbols-outlined text-[24px]">menu</span>
+                                </button>
+                                <div class="flex flex-col text-left">
+                                        <h1 class="font-headline-md text-[18px] text-on-surface font-bold tracking-tight">Audit Trail</h1>
+                                        <p class="font-body-md text-[12px] text-on-surface-variant leading-none">Review security, authentication, transaction, alert, case, decision, rule, ML, graph, and system activity.</p>
+                                </div>
+                        </div>
+
+                        <!-- Right Header Actions -->
+                        <div class="flex items-center gap-5">
+                                <div class="hidden lg:flex items-center gap-2 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg px-3 py-1.5 select-none">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary-container animate-pulse"></span>
+                                        <span class="font-mono-technical text-[10px] text-[#0369a1] font-bold tracking-wider uppercase">Senior Officer Session</span>
+                                </div>
+                                <div class="h-6 w-px bg-outline-variant/50"></div>
+                                <!-- User Profile Access -->
+                                <div class="relative cursor-pointer group">
+                                        <div class="flex items-center gap-2">
+                                                <div id="header-avatar" class="w-8 h-8 rounded-full bg-secondary-container/20 border border-secondary flex items-center justify-center font-headline-md text-[12px] text-secondary font-bold">
+                                                        AK
+                                                </div>
+                                                <span id="header-username" class="hidden sm:inline font-headline-md text-[13px] text-on-surface font-semibold">A. Kumar</span>
+                                                <span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+                                        </div>
+                                        <div class="absolute right-0 mt-2 w-48 bg-interface-base border border-outline-variant/60 rounded-lg shadow-lg py-1.5 hidden group-hover:block transition-all z-50">
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-on-surface hover:bg-surface-container-low transition-colors" onclick="if(window.openProfileDrawer)window.openProfileDrawer('profile'); else showToast('Loading profile details...');">My Profile</a>
+                                                <div class="h-px bg-outline-variant/30 my-1"></div>
+                                                <a href="#" class="block px-4 py-2 font-body-md text-[13px] text-risk-high hover:bg-risk-high/5 font-semibold transition-colors" onclick="logoutUser()">Secure Sign Out</a>
+                                        </div>
+                                </div>
+                        </div>
+                </header>
+
+                <!-- Scrollable Main View Workspace -->
+                <main class="flex-1 overflow-y-auto p-6 space-y-6">
+                        
+                        <!-- 4 Summary KPI Cards (Derived from PostgreSQL get_audit_summary) -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <!-- Card 1: Total Events -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">history</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Total Events</span>
+                                                <p id="kpi-total-events" class="font-headline-md text-[20px] font-extrabold text-on-surface">--</p>
+                                        </div>
+                                </div>
+                                <!-- Card 2: Authentication -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-indigo-500/10 text-indigo-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">badge</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Authentication</span>
+                                                <p id="kpi-auth-events" class="font-headline-md text-[20px] font-extrabold text-indigo-700">--</p>
+                                        </div>
+                                </div>
+                                <!-- Card 3: Security -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">shield</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Security</span>
+                                                <p id="kpi-sec-events" class="font-headline-md text-[20px] font-extrabold text-red-700">--</p>
+                                        </div>
+                                </div>
+                                <!-- Card 4: Transaction -->
+                                <div class="bg-interface-base border border-outline-variant/30 rounded-xl p-4 shadow-sm flex items-center gap-4 text-left">
+                                        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                                <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Transaction</span>
+                                                <p id="kpi-tx-events" class="font-headline-md text-[20px] font-extrabold text-emerald-700">--</p>
+                                        </div>
+                                </div>
+                        </div>
+
+                        <!-- Audit Ledger Section -->
+                        <section class="bg-interface-base border border-outline-variant/30 p-6 rounded-xl shadow-sm text-left space-y-4 animate-fade-in">
+                                
+                                <!-- Toolbar: Title, Search, Category, Rows Limit, and Refresh Action -->
+                                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-1">
+                                        <div>
+                                                <div class="flex items-center gap-2">
+                                                        <h2 class="font-headline-md text-[18px] text-on-surface font-extrabold">Institutional Audit Log Ledger</h2>
+                                                        <span id="audit-badge-total" class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-mono-technical text-[11px] font-semibold">-- Events</span>
+                                                </div>
+                                                <p class="font-body-md text-[13px] text-on-surface-variant">Immutable chronological event trail backed by PostgreSQL security and operational stores.</p>
+                                        </div>
+
+                                        <div class="flex flex-wrap items-center gap-3">
+                                                <!-- Search Input -->
+                                                <div class="relative min-w-[200px] sm:min-w-[260px]">
+                                                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-on-surface-variant">search</span>
+                                                        <input id="filter-search" type="text" placeholder="Search event ID, action, actor, resource..." class="w-full bg-surface-container-low border border-outline-variant/50 rounded-lg pl-9 pr-3 py-2 text-[12px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:ring-2 focus:ring-secondary/40 transition-all" oninput="debounceSearch()" />
+                                                </div>
+
+                                                <!-- Category Filter -->
+                                                <select id="filter-category" class="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/40 font-medium" onchange="applyFilters()">
+                                                        <option value="ALL">All Categories</option>
+                                                        <option value="AUTHENTICATION">Authentication</option>
+                                                        <option value="SECURITY">Security</option>
+                                                        <option value="TRANSACTION">Transaction</option>
+                                                        <option value="ALERT">Alert</option>
+                                                        <option value="CASE">Case</option>
+                                                        <option value="WATCHLIST">Watchlist</option>
+                                                        <option value="DECISION">Decision</option>
+                                                        <option value="RULE">Rule</option>
+                                                        <option value="ML">ML Engine</option>
+                                                        <option value="GRAPH">Graph Engine</option>
+                                                        <option value="SYSTEM">System</option>
+                                                </select>
+
+                                                <!-- Rows Limit Filter -->
+                                                <select id="filter-limit" class="bg-surface-container-low border border-outline-variant/50 rounded-lg px-3 py-2 text-[12px] text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/40 font-medium" onchange="applyLimitChange()">
+                                                        <option value="25">25 per page</option>
+                                                        <option value="50" selected>50 per page</option>
+                                                        <option value="100">100 per page</option>
+                                                        <option value="200">200 per page</option>
+                                                </select>
+
+                                                <!-- Refresh Button -->
+                                                <button id="btn-refresh" onclick="loadAuditTrail(true)" title="Refresh Audit Trail" class="bg-surface-container-low border border-outline-variant/50 hover:bg-surface-container text-on-surface-variant hover:text-on-surface p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-secondary/40">
+                                                        <span class="material-symbols-outlined text-[18px]">refresh</span>
+                                                </button>
+                                        </div>
+                                </div>
+                                
+                                <!-- Table View -->
+                                <div class="w-full overflow-x-auto rounded-lg border border-outline-variant/30">
+                                        <table class="w-full border-collapse text-left">
+                                                <thead>
+                                                         <tr class="bg-surface-container-low border-b border-[#e2e8f0]">
+                                                                 <th class="py-3 px-3.5 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[140px]">Timestamp (UTC)</th>
+                                                                 <th class="py-3 px-3 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Event ID</th>
+                                                                 <th class="py-3 px-3 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[120px]">Category</th>
+                                                                 <th class="py-3 px-3.5 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[190px]">Action / Event</th>
+                                                                 <th class="py-3 px-3 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Actor</th>
+                                                                 <th class="py-3 px-3 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[150px]">Resource / Target</th>
+                                                                 <th class="py-3 px-3 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[100px]">Result</th>
+                                                                 <th class="py-3 px-3 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider min-w-[110px]">Source IP</th>
+                                                                 <th class="py-3 px-3 font-mono-technical text-[10px] text-on-surface-variant uppercase tracking-wider text-right min-w-[90px]">Details</th>
+                                                         </tr>
+                                                </thead>
+                                                <tbody id="audit-table-body" class="divide-y divide-[#f1f5f9]" aria-live="polite">
+                                                         <!-- Populated dynamically via MuleGuardAPI.getAuditLogs -->
+                                                         <tr>
+                                                                 <td colspan="9" class="py-8 text-center text-on-surface-variant font-mono-technical text-[12px]">
+                                                                         <div class="flex items-center justify-center gap-2">
+                                                                                 <span class="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                                                                                 <span>Loading audit log entries from PostgreSQL...</span>
+                                                                         </div>
+                                                                 </td>
+                                                         </tr>
+                                                </tbody>
+                                        </table>
+                                </div>
+
+                                <!-- Pagination / Navigation Bar -->
+                                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-on-surface-variant pt-2">
+                                        <div class="flex items-center gap-3">
+                                                <span id="audit-pagination-info" class="font-mono-technical text-[11px]">Loading pagination...</span>
+                                                <span class="text-outline-variant/40 hidden sm:inline">•</span>
+                                                <span id="audit-page-number" class="font-mono-technical text-[11px] font-semibold text-on-surface">Page 1</span>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                                <button id="btn-prev" onclick="goToPrevPage()" disabled class="px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-low hover:bg-surface-container text-on-surface disabled:opacity-40 disabled:cursor-not-allowed font-label-md text-[11px] font-medium transition-colors flex items-center gap-1">
+                                                        <span class="material-symbols-outlined text-[14px]">chevron_left</span>
+                                                        <span>Previous</span>
+                                                </button>
+                                                <button id="btn-next" onclick="goToNextPage()" disabled class="px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-low hover:bg-surface-container text-on-surface disabled:opacity-40 disabled:cursor-not-allowed font-label-md text-[11px] font-medium transition-colors flex items-center gap-1">
+                                                        <span>Next</span>
+                                                        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                                                </button>
+                                        </div>
+                                </div>
+                        </section>
+                </main>
+
+                <!-- Page Footer -->
+                <footer class="h-10 bg-interface-base border-t border-outline-variant/30 flex items-center justify-between px-6 z-10 select-none">
+                        <div class="flex items-center gap-6 overflow-x-auto py-1">
+                                <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-risk-low animate-pulse"></span>
+                                        <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-medium">PostgreSQL Audit Ledger: Synchronized</span>
+                                </div>
+                        </div>
+                        <div>
+                                <span class="font-mono-technical text-[9px] text-outline-variant font-medium">© 2024 MuleGuard Bank Compliance Oversight</span>
+                        </div>
+                </footer>
+        </div>
+
+        <!-- Audit Event Details Modal -->
+        <div id="audit-detail-modal" class="fixed inset-0 bg-primary/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-interface-base border border-outline-variant/40 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-fade-in text-left">
+                        <div class="flex items-center justify-between p-5 border-b border-outline-variant/30">
+                                <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-[20px]">manage_search</span>
+                                        </div>
+                                        <div>
+                                                <h3 id="modal-event-id" class="font-headline-md text-[16px] font-bold text-on-surface">Event Details</h3>
+                                                <p id="modal-event-subtitle" class="font-mono-technical text-[11px] text-on-surface-variant">PostgreSQL Audit Log Record</p>
+                                        </div>
+                                </div>
+                                <button onclick="closeAuditDetailModal()" class="text-on-surface-variant hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors focus:outline-none">
+                                        <span class="material-symbols-outlined text-[20px]">close</span>
+                                </button>
+                        </div>
+
+                        <div class="p-6 space-y-4">
+                                <!-- Structured Metadata Grid -->
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-surface-container-low p-3.5 rounded-lg border border-outline-variant/30">
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Category</span>
+                                                <div id="modal-category-badge" class="mt-0.5">-</div>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Action</span>
+                                                <p id="modal-action-text" class="font-mono-technical text-[12px] font-bold text-on-surface mt-0.5 truncate">-</p>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Actor</span>
+                                                <p id="modal-actor-text" class="font-mono-technical text-[12px] font-semibold text-on-surface mt-0.5">-</p>
+                                        </div>
+                                        <div>
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Result</span>
+                                                <div id="modal-result-badge" class="mt-0.5">-</div>
+                                        </div>
+                                </div>
+
+                                <!-- Resource & Origin Context -->
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/30">
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Timestamp (UTC)</span>
+                                                <p id="modal-timestamp-text" class="font-mono-technical text-[11px] text-on-surface mt-0.5 font-medium">-</p>
+                                        </div>
+                                        <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/30">
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Resource / Entity</span>
+                                                <p id="modal-resource-text" class="font-mono-technical text-[11px] text-secondary font-semibold mt-0.5">-</p>
+                                        </div>
+                                        <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/30">
+                                                <span class="font-mono-technical text-[9px] text-on-surface-variant uppercase font-bold">Source IP Address</span>
+                                                <p id="modal-ip-text" class="font-mono-technical text-[11px] text-on-surface mt-0.5">-</p>
+                                        </div>
+                                </div>
+
+                                <!-- Sanitized JSON Details Payload -->
+                                <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                                <span class="font-mono-technical text-[10px] text-on-surface-variant uppercase font-bold">Event Payload & Sanitized Details</span>
+                                                <span class="font-mono-technical text-[9px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Sensitive Keys Redacted</span>
+                                        </div>
+                                        <div class="relative">
+                                                <pre id="modal-details-payload" class="font-mono-technical text-[11px] text-on-surface bg-[#0f172a] text-[#e2e8f0] p-4 rounded-lg overflow-x-auto max-h-60 custom-scrollbar leading-relaxed">{}</pre>
+                                        </div>
+                                </div>
+
+                                <div class="p-3 bg-[#f8fafc] rounded-lg border border-outline-variant/20 flex items-center gap-2.5">
+                                        <span class="material-symbols-outlined text-[18px] text-secondary">verified_user</span>
+                                        <span class="font-body-md text-[11px] text-on-surface-variant">This audit record is cryptographically bound to the MuleGuard database ledger and cannot be retroactively modified.</span>
+                                </div>
+                        </div>
+
+                        <div class="p-4 bg-surface-container-low border-t border-outline-variant/30 flex items-center justify-end gap-3">
+                                <button onclick="closeAuditDetailModal()" class="px-4 py-2 border border-outline-variant/50 hover:bg-surface-container text-on-surface rounded-lg text-[12px] font-semibold transition-colors">Close</button>
+                        </div>
+                </div>
+        </div>
+
+        <!-- Global Toast Notification Component -->
+        <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out bg-[#0f172a] text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3">
+                <span id="toast-icon" class="material-symbols-outlined text-[20px] text-secondary-container">info</span>
+                <span id="toast-text" class="font-body-md text-[13px] font-medium">Notification</span>
+        </div>
+
+        <script>
+                // State Management
+                let currentAuditLimit = 50;
+                let currentAuditOffset = 0;
+                let currentFilterCategory = 'ALL';
+                let currentFilterSearch = '';
+                let currentEventsList = [];
+                let totalMatchingEvents = 0;
+                let isLoading = false;
+                let searchDebounceTimer = null;
+
+                // UI Initialization
+                document.addEventListener('DOMContentLoaded', () => {
+                        loadAuditSummary();
+                        loadAuditTrail(true);
+                });
+
+                // Debounce Search
+                function debounceSearch() {
+                        clearTimeout(searchDebounceTimer);
+                        searchDebounceTimer = setTimeout(() => {
+                                const input = document.getElementById('filter-search');
+                                currentFilterSearch = input ? input.value.trim() : '';
+                                currentAuditOffset = 0;
+                                loadAuditTrail(true);
+                        }, 300);
+                }
+
+                // Filter Change Handlers
+                function applyFilters() {
+                        const catSelect = document.getElementById('filter-category');
+                        currentFilterCategory = catSelect ? catSelect.value : 'ALL';
+                        currentAuditOffset = 0;
+                        loadAuditTrail(true);
+                }
+
+                function applyLimitChange() {
+                        const limSelect = document.getElementById('filter-limit');
+                        currentAuditLimit = parseInt(limSelect ? limSelect.value : '50', 10) || 50;
+                        currentAuditOffset = 0;
+                        loadAuditTrail(true);
+                }
+
+                // Pagination Handlers
+                function goToPrevPage() {
+                        if (currentAuditOffset <= 0 || isLoading) return;
+                        currentAuditOffset = Math.max(0, currentAuditOffset - currentAuditLimit);
+                        loadAuditTrail();
+                }
+
+                function goToNextPage() {
+                        if (isLoading) return;
+                        if (currentAuditOffset + currentAuditLimit < totalMatchingEvents) {
+                                currentAuditOffset += currentAuditLimit;
+                                loadAuditTrail();
+                        }
+                }
+
+                // 1. Load Live Summary KPI Counters
+                async function loadAuditSummary() {
+                        try {
+                                if (!window.MuleGuardAPI || !window.MuleGuardAPI.getAuditSummary) return;
+                                const summary = await window.MuleGuardAPI.getAuditSummary();
+                                if (!summary) return;
+
+                                const totalEl = document.getElementById('kpi-total-events');
+                                const authEl = document.getElementById('kpi-auth-events');
+                                const secEl = document.getElementById('kpi-sec-events');
+                                const txEl = document.getElementById('kpi-tx-events');
+
+                                if (totalEl) totalEl.textContent = (summary.total_events || 0).toLocaleString();
+                                if (authEl) authEl.textContent = (summary.authentication_events || 0).toLocaleString();
+                                if (secEl) secEl.textContent = (summary.security_events || 0).toLocaleString();
+                                if (txEl) txEl.textContent = (summary.transaction_events || 0).toLocaleString();
+                        } catch (err) {
+                                console.warn('[MuleGuard Audit] Failed to load summary KPIs:', err);
+                        }
+                }
+
+                // 2. Load Paginated Audit Logs from PostgreSQL API
+                async function loadAuditTrail(refreshSummary = false) {
+                        if (isLoading) return;
+                        isLoading = true;
+
+                        const tbody = document.getElementById('audit-table-body');
+                        const refreshBtn = document.getElementById('btn-refresh');
+                        if (refreshBtn) refreshBtn.classList.add('animate-spin');
+
+                        try {
+                                if (!window.MuleGuardAPI || !window.MuleGuardAPI.getAuditLogs) {
+                                        throw new Error("MuleGuardAPI.getAuditLogs method not available");
+                                }
+
+                                const params = {
+                                        limit: currentAuditLimit,
+                                        offset: currentAuditOffset,
+                                        format: 'envelope'
+                                };
+                                if (currentFilterCategory && currentFilterCategory !== 'ALL') {
+                                        params.category = currentFilterCategory;
+                                }
+                                if (currentFilterSearch) {
+                                        params.search = currentFilterSearch;
+                                }
+
+                                const response = await window.MuleGuardAPI.getAuditLogs(params);
+                                
+                                // Parse Envelope or List response
+                                let items = [];
+                                let total = 0;
+                                let hasMore = false;
+
+                                if (response && response.items) {
+                                        items = response.items;
+                                        total = response.pagination ? response.pagination.total : items.length;
+                                        hasMore = response.pagination ? response.pagination.has_more : false;
+                                        if (response.summary && refreshSummary) {
+                                                updateSummaryCards(response.summary);
+                                        }
+                                } else if (Array.isArray(response)) {
+                                        items = response;
+                                        total = items.length;
+                                        hasMore = items.length === currentAuditLimit;
+                                }
+
+                                currentEventsList = items;
+                                totalMatchingEvents = total;
+
+                                // Update Header Count Badge & Pagination UI
+                                updatePaginationUI(items.length, total, hasMore);
+
+                                // Render Rows
+                                renderTableRows(items);
+
+                        } catch (err) {
+                                console.error('[MuleGuard Audit] Error loading audit logs:', err);
+                                if (tbody) {
+                                        tbody.innerHTML = `
+                                                <tr>
+                                                        <td colspan="9" class="py-8 text-center text-red-600 font-mono-technical text-[12px]">
+                                                                <div class="flex flex-col items-center gap-1.5">
+                                                                        <span class="material-symbols-outlined text-[24px]">error</span>
+                                                                        <span class="font-bold">Failed to load audit logs from PostgreSQL</span>
+                                                                        <span class="text-[11px] text-on-surface-variant">${escapeHtml(err.message || 'Server error')}</span>
+                                                                </div>
+                                                        </td>
+                                                </tr>
+                                        `;
+                                }
+                        } finally {
+                                isLoading = false;
+                                if (refreshBtn) refreshBtn.classList.remove('animate-spin');
+                        }
+                }
+
+                function updateSummaryCards(summary) {
+                        const totalEl = document.getElementById('kpi-total-events');
+                        const authEl = document.getElementById('kpi-auth-events');
+                        const secEl = document.getElementById('kpi-sec-events');
+                        const txEl = document.getElementById('kpi-tx-events');
+
+                        if (totalEl) totalEl.textContent = (summary.total_events || 0).toLocaleString();
+                        if (authEl) authEl.textContent = (summary.authentication_events || 0).toLocaleString();
+                        if (secEl) secEl.textContent = (summary.security_events || 0).toLocaleString();
+                        if (txEl) txEl.textContent = (summary.transaction_events || 0).toLocaleString();
+                }
+
+                function updatePaginationUI(pageItemsCount, total, hasMore) {
+                        const badgeTotal = document.getElementById('audit-badge-total');
+                        const pageInfo = document.getElementById('audit-pagination-info');
+                        const pageNumber = document.getElementById('audit-page-number');
+                        const btnPrev = document.getElementById('btn-prev');
+                        const btnNext = document.getElementById('btn-next');
+
+                        const fromRecord = total > 0 ? currentAuditOffset + 1 : 0;
+                        const toRecord = Math.min(currentAuditOffset + pageItemsCount, total);
+                        const currentPage = Math.floor(currentAuditOffset / currentAuditLimit) + 1;
+                        const totalPages = Math.max(1, Math.ceil(total / currentAuditLimit));
+
+                        if (badgeTotal) badgeTotal.textContent = `${total.toLocaleString()} Events`;
+                        if (pageInfo) pageInfo.textContent = total > 0 
+                                ? `Showing ${fromRecord.toLocaleString()} - ${toRecord.toLocaleString()} of ${total.toLocaleString()} records`
+                                : `No matching records`;
+                        if (pageNumber) pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+
+                        if (btnPrev) btnPrev.disabled = currentAuditOffset <= 0;
+                        if (btnNext) btnNext.disabled = !hasMore && (currentAuditOffset + pageItemsCount >= total);
+                }
+
+                function renderTableRows(items) {
+                        const tbody = document.getElementById('audit-table-body');
+                        if (!tbody) return;
+
+                        if (!items || items.length === 0) {
+                                tbody.innerHTML = `
+                                        <tr>
+                                                <td colspan="9" class="py-12 text-center text-on-surface-variant font-mono-technical text-[12px]">
+                                                        <div class="flex flex-col items-center gap-1">
+                                                                <span class="material-symbols-outlined text-[24px] text-on-surface-variant/40">search_off</span>
+                                                                <span class="font-semibold text-on-surface">No audit events match the active filters</span>
+                                                                <span class="text-[11px]">Adjust your search query or category filter to view records</span>
+                                                        </div>
+                                                </td>
+                                        </tr>
+                                `;
+                                return;
+                        }
+
+                        let html = '';
+                        items.forEach((item, idx) => {
+                                const formattedTime = formatTimestamp(item.timestamp);
+                                const categoryBadge = getCategoryBadgeHTML(item.category);
+                                const statusBadge = getStatusBadgeHTML(item);
+                                const resourceDisplay = getResourceDisplayHTML(item);
+                                const ipDisplay = getIpDisplay(item);
+                                const actorDisplay = escapeHtml(item.actor || 'SYSTEM');
+
+                                html += `
+                                        <tr class="hover:bg-surface-container-high/40 transition-colors">
+                                                <td class="py-3 px-3.5 font-mono-technical text-[11px] text-on-surface-variant whitespace-nowrap">${formattedTime}</td>
+                                                <td class="py-3 px-3 font-mono-technical font-semibold text-secondary text-[11px] whitespace-nowrap">${escapeHtml(item.id)}</td>
+                                                <td class="py-3 px-3 whitespace-nowrap">${categoryBadge}</td>
+                                                <td class="py-3 px-3.5 font-mono-technical font-semibold text-on-surface text-[12px] truncate max-w-[220px]" title="${escapeHtml(item.action)}">${escapeHtml(item.action)}</td>
+                                                <td class="py-3 px-3 font-mono-technical text-[11px] text-on-surface whitespace-nowrap">${actorDisplay}</td>
+                                                <td class="py-3 px-3 text-[11px]">${resourceDisplay}</td>
+                                                <td class="py-3 px-3 whitespace-nowrap">${statusBadge}</td>
+                                                <td class="py-3 px-3 font-mono-technical text-[11px] text-on-surface-variant whitespace-nowrap">${ipDisplay}</td>
+                                                <td class="py-3 px-3 text-right whitespace-nowrap">
+                                                        <button onclick="openAuditDetailModal(${idx})" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-container-low hover:bg-surface-container text-secondary border border-outline-variant/40 text-[11px] font-mono-technical font-semibold transition-all shadow-xs active:scale-95">
+                                                                <span class="material-symbols-outlined text-[14px]">visibility</span>
+                                                                <span>Inspect</span>
+                                                        </button>
+                                                </td>
+                                        </tr>
+                                `;
+                        });
+
+                        tbody.innerHTML = html;
+                }
+
+                // Modal Detail Handler
+                function openAuditDetailModal(idx) {
+                        const item = currentEventsList[idx];
+                        if (!item) return;
+
+                        document.getElementById('modal-event-id').textContent = `Event ${item.id}`;
+                        document.getElementById('modal-event-subtitle').textContent = `Action: ${item.action}`;
+                        document.getElementById('modal-category-badge').innerHTML = getCategoryBadgeHTML(item.category);
+                        document.getElementById('modal-action-text').textContent = item.action || '--';
+                        document.getElementById('modal-actor-text').textContent = item.actor || 'SYSTEM';
+                        document.getElementById('modal-result-badge').innerHTML = getStatusBadgeHTML(item);
+                        document.getElementById('modal-timestamp-text').textContent = formatTimestamp(item.timestamp, true);
+                        
+                        // Resource Text
+                        let resStr = 'None';
+                        if (item.entity_type) {
+                                resStr = `${item.entity_type}${item.entity_id ? ' (' + item.entity_id + ')' : ''}`;
+                        }
+                        if (item.account_id) {
+                                resStr += resStr !== 'None' ? ` • ACC: ${item.account_id}` : `ACC: ${item.account_id}`;
+                        }
+                        document.getElementById('modal-resource-text').textContent = resStr;
+
+                        // IP Text
+                        document.getElementById('modal-ip-text').textContent = getIpDisplay(item, false);
+
+                        // JSON Payload
+                        const payloadEl = document.getElementById('modal-details-payload');
+                        if (payloadEl) {
+                                const detailsObj = item.details || {};
+                                payloadEl.textContent = JSON.stringify(detailsObj, null, 2);
+                        }
+
+                        const modal = document.getElementById('audit-detail-modal');
+                        if (modal) modal.classList.remove('hidden');
+                }
+
+                function closeAuditDetailModal() {
+                        const modal = document.getElementById('audit-detail-modal');
+                        if (modal) modal.classList.add('hidden');
+                }
+
+                // Keyboard escape listener for modal
+                document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                                closeAuditDetailModal();
+                        }
+                });
+
+                // Helper Formatters
+                function formatTimestamp(isoStr, full = false) {
+                        if (!isoStr) return '--';
+                        try {
+                                const d = new Date(isoStr);
+                                if (isNaN(d.getTime())) return escapeHtml(isoStr);
+                                if (full) {
+                                        return d.toUTCString();
+                                }
+                                return d.toISOString().replace('T', ' ').substring(0, 19);
+                        } catch (_) {
+                                return escapeHtml(isoStr);
+                        }
+                }
+
+                function getCategoryBadgeHTML(category) {
+                        const c = (category || 'SYSTEM').toUpperCase();
+                        switch (c) {
+                                case 'AUTHENTICATION':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-blue-100 text-blue-800 border border-blue-200">Auth</span>`;
+                                case 'SECURITY':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-red-100 text-red-800 border border-red-200">Security</span>`;
+                                case 'TRANSACTION':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">Tx</span>`;
+                                case 'ALERT':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-amber-100 text-amber-800 border border-amber-200">Alert</span>`;
+                                case 'CASE':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-indigo-100 text-indigo-800 border border-indigo-200">Case</span>`;
+                                case 'WATCHLIST':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-orange-100 text-orange-800 border border-orange-200">Watchlist</span>`;
+                                case 'DECISION':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-cyan-100 text-cyan-800 border border-cyan-200">Decision</span>`;
+                                case 'RULE':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-teal-100 text-teal-800 border border-teal-200">Rule</span>`;
+                                case 'ML':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-purple-100 text-purple-800 border border-purple-200">ML Engine</span>`;
+                                case 'GRAPH':
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-fuchsia-100 text-fuchsia-800 border border-fuchsia-200">Graph</span>`;
+                                default:
+                                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-slate-100 text-slate-800 border border-slate-200">System</span>`;
+                        }
+                }
+
+                function getStatusBadgeHTML(item) {
+                        const action = (item.action || '').toUpperCase();
+                        let outcome = '';
+                        if (item.details && typeof item.details.outcome === 'string') {
+                                outcome = item.details.outcome.toUpperCase();
+                        }
+
+                        if (outcome === 'SUCCESS' || action.endsWith('_SUCCESS') || action === 'LOGIN_SUCCESS') {
+                                return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">Success</span>`;
+                        }
+                        if (outcome === 'FAILURE' || outcome === 'FAILED' || action.endsWith('_FAILED') || action.includes('ATTACK') || action.includes('LOCKED')) {
+                                return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-red-50 text-red-700 border border-red-200">Failed</span>`;
+                        }
+                        if (action.includes('WARNING') || action.includes('EXCEEDED')) {
+                                return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200">Warning</span>`;
+                        }
+                        return `<span class="px-2 py-0.5 rounded text-[10px] font-mono-technical font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">Recorded</span>`;
+                }
+
+                function getResourceDisplayHTML(item) {
+                        if (item.entity_type) {
+                                const typeSpan = `<span class="font-mono-technical text-[10px] text-on-surface-variant font-semibold uppercase">${escapeHtml(item.entity_type)}</span>`;
+                                const idSpan = item.entity_id 
+                                        ? `<span class="font-mono-technical text-[11px] text-secondary font-semibold block">${escapeHtml(item.entity_id)}</span>`
+                                        : '';
+                                return `${typeSpan}${idSpan}`;
+                        }
+                        if (item.account_id) {
+                                return `<span class="font-mono-technical text-[11px] text-secondary font-semibold">${escapeHtml(item.account_id)}</span>`;
+                        }
+                        return `<span class="text-on-surface-variant/50 font-mono-technical text-[11px]">--</span>`;
+                }
+
+                function getIpDisplay(item, fallbackDash = true) {
+                        if (item.details && item.details.ip_address) {
+                                return escapeHtml(item.details.ip_address);
+                        }
+                        return fallbackDash ? `<span class="text-on-surface-variant/40">--</span>` : 'N/A';
+                }
+
+                function escapeHtml(str) {
+                        if (str === null || str === undefined) return '';
+                        return String(str)
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#039;');
+                }
+        </script>
+</body>
+</html>

@@ -43,16 +43,24 @@ if not started:
     proc.terminate()
     sys.exit(1)
 
-def check_endpoint(path, expected_status=200, check_fn=None):
-    url = f"{BASE_URL}{path}"
-    # Custom opener to handle redirects without automatic follow if checking redirect
-    class NoRedirect(urllib.request.HTTPRedirectHandler):
-        def redirect_request(self, req, fp, code, msg, headers, newurl):
-            return None
+from http.cookiejar import CookieJar
 
-    opener = urllib.request.build_opener(NoRedirect)
+cookie_jar = CookieJar()
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar), NoRedirect)
+
+def check_endpoint(path, expected_status=200, check_fn=None, method="GET", json_data=None):
+    url = f"{BASE_URL}{path}"
+    data_bytes = json.dumps(json_data).encode("utf-8") if json_data is not None else None
+    headers = {"Content-Type": "application/json"} if json_data is not None else {}
+    req = urllib.request.Request(url, data=data_bytes, headers=headers, method=method)
+
     try:
-        res = opener.open(url, timeout=3.0)
+        res = opener.open(req, timeout=5.0)
         status = res.status
         body = res.read()
     except urllib.error.HTTPError as e:
@@ -100,7 +108,46 @@ results.append(check_endpoint("/frontend/bank/investigator/dashboard.html", 200,
 results.append(check_endpoint("/frontend/bank/investigator/network-intelligence.html", 200, lambda b: (b"Network Intelligence" in b, "[Heading verified]")))
 results.append(check_endpoint("/frontend/bank/investigator/fraud_networks.html", 200, lambda b: (b"Fraud Networks" in b, "[Heading verified]")))
 
-# 6. Backend PostgreSQL APIs
+# 6. Authenticate as Investigator to obtain session cookie
+stage1_data = None
+def capture_stage1(b):
+    global stage1_data
+    stage1_data = json.loads(b)
+    return "challenge_token" in stage1_data.get("challenge", {}), "[Stage 1 challenge issued]"
+
+results.append(check_endpoint(
+    "/api/v1/auth/stage1-login", 200, capture_stage1, method="POST",
+    json_data={"employee_id": "MG-INV-001", "password": "Password@123"}
+))
+
+probe_vector = None
+def capture_probe(b):
+    global probe_vector
+    probe_vector = json.loads(b).get("probe_vector")
+    return bool(probe_vector), "[Biometric probe vector retrieved]"
+
+results.append(check_endpoint(
+    "/api/v1/auth/demo-probe-vector", 200, capture_probe, method="POST",
+    json_data={"employee_id": "MG-INV-001", "noise_level": 0.0}
+))
+
+now = time.time()
+results.append(check_endpoint(
+    "/api/v1/auth/stage2-verify-face", 200,
+    lambda b: (json.loads(b).get("success") is True, "[Stage 2 verified & session created]"),
+    method="POST",
+    json_data={
+        "challenge_token": stage1_data["challenge"]["challenge_token"],
+        "probe_vector": probe_vector,
+        "liveness_proof": {
+            "action_performed": stage1_data["challenge"]["challenge_action"],
+            "confidence": 0.99,
+            "timestamps": [now - 1.0, now - 0.5, now]
+        }
+    }
+))
+
+# 7. Backend PostgreSQL APIs (Authenticated)
 def check_networks_json(b):
     try:
         data = json.loads(b)

@@ -382,77 +382,104 @@
 
                 // Render the escalated cases table.
                 // Business logic (filter, resolve, log) preserved exactly from the original skeleton.
-                function renderEscalations() {
-                        if (!window.MuleGuardStore) return;
-                        const cases = window.MuleGuardStore.getCases().filter(c => c.status === 'Escalated');
-                        const tbody = document.getElementById('escalations-tbody');
-                        if (!tbody) return;
+                async function renderEscalations() {
+			let allCases = [];
+			if (window.MuleGuardAPI) {
+				try {
+					allCases = await MuleGuardAPI.getCases({ limit: 100 });
+				} catch (err) {
+					console.error('Failed to fetch cases from backend:', err);
+				}
+			}
+			if ((!allCases || allCases.length === 0) && window.MuleGuardExpandedDB) {
+				allCases = window.MuleGuardExpandedDB.cases || [];
+			}
+			const cases = (allCases || []).filter(c => c.status === 'Escalated');
+			currentEscalatedCases = cases;
+			const tbody = document.getElementById('escalations-tbody');
+			if (!tbody) return;
 
-                        renderKPIs(cases);
+			renderKPIs(cases);
 
-                        if (cases.length === 0) {
-                                tbody.innerHTML = `
-                                        <tr>
-                                                <td colspan="6" class="py-14 text-center">
-                                                        <div class="flex flex-col items-center gap-3">
-                                                                <span class="material-symbols-outlined text-[44px] text-on-surface-variant/25">shield_with_heart</span>
-                                                                <p class="font-body-md text-[13px] text-on-surface-variant/60 font-medium">No pending escalated cases in the review queue.</p>
-                                                                <p class="font-mono-technical text-[10px] text-on-surface-variant/40 uppercase tracking-wider">Start the transaction simulator to generate activity</p>
-                                                        </div>
-                                                </td>
-                                        </tr>
-                                `;
-                                return;
-                        }
+			if (cases.length === 0) {
+				tbody.innerHTML = `
+					<tr>
+						<td colspan="6" class="py-14 text-center">
+							<div class="flex flex-col items-center gap-3">
+								<span class="material-symbols-outlined text-[44px] text-on-surface-variant/25">shield_with_heart</span>
+								<p class="font-body-md text-[13px] text-on-surface-variant/60 font-medium">No pending escalated cases in the review queue.</p>
+								<p class="font-mono-technical text-[10px] text-on-surface-variant/40 uppercase tracking-wider">Start the transaction simulator to generate activity</p>
+							</div>
+						</td>
+					</tr>
+				`;
+				return;
+			}
 
-                        // Build rows with array + join (no innerHTML +=)
-                        const rows = cases.map(c => {
-                                const score = Number(c.score) || 0;
-                                let scoreBadge;
-                                if (score >= 75)      scoreBadge = 'bg-red-50 text-red-700 border-red-200';
-                                else if (score >= 50) scoreBadge = 'bg-orange-50 text-orange-700 border-orange-200';
-                                else                  scoreBadge = 'bg-green-50 text-green-700 border-green-200';
+			const rows = cases.map(c => {
+				const score = Number(c.score || (c.priority === 'Critical' ? 92 : (c.priority === 'High' ? 78 : (c.priority === 'Medium' ? 55 : 30))));
+				let scoreBadge;
+				if (score >= 75)      scoreBadge = 'bg-red-50 text-red-700 border-red-200';
+				else if (score >= 50) scoreBadge = 'bg-orange-50 text-orange-700 border-orange-200';
+				else                  scoreBadge = 'bg-green-50 text-green-700 border-green-200';
 
-                                return `
-                                        <tr class="hover:bg-slate-50 transition-colors">
-                                                <td class="py-3.5 px-3 font-mono-technical text-[12px] font-bold text-secondary whitespace-nowrap">${c.id}</td>
-                                                <td class="py-3.5 px-3 font-headline-md text-[12px] text-on-surface font-semibold max-w-[220px] truncate">${c.title}</td>
-                                                <td class="py-3.5 px-3 font-body-md text-[12px] text-on-surface-variant whitespace-nowrap">${c.entity || c.primaryEntityId || '—'}</td>
-                                                <td class="py-3.5 px-3 text-right">
-                                                        <span class="font-mono-technical text-[11px] font-bold px-2 py-0.5 rounded border ${scoreBadge}">${score}</span>
-                                                </td>
-                                                <td class="py-3.5 px-3 font-body-md text-[12px] text-on-surface-variant whitespace-nowrap">${c.escalatedBy || 'Investigator'}</td>
-                                                <td class="py-3.5 px-3 text-right">
-                                                        <div class="flex justify-end gap-2">
-                                                                <button
-                                                                        class="bg-secondary hover:bg-secondary/90 text-white rounded px-3 py-1 font-mono-technical text-[10px] font-bold active:scale-95 transition-all"
-                                                                        onclick="resolveComplianceCase('${c.id}', 'File SAR')">
-                                                                        File SAR
-                                                                </button>
-                                                                <button
-                                                                        class="bg-transparent border border-outline-variant hover:border-secondary text-on-surface rounded px-3 py-1 font-mono-technical text-[10px] active:scale-95 transition-all"
-                                                                        onclick="resolveComplianceCase('${c.id}', 'Approve / Clear')">
-                                                                        Clear Case
-                                                                </button>
-                                                        </div>
-                                                </td>
-                                        </tr>
-                                `;
-                        });
-                        tbody.innerHTML = rows.join('');
-                }
+				const displayName = c.customer_name || c.entity || c.account_id || '—';
+				return `
+					<tr class="hover:bg-slate-50 transition-colors">
+						<td class="py-3.5 px-3 font-mono-technical text-[12px] font-bold text-secondary whitespace-nowrap">${c.id}</td>
+						<td class="py-3.5 px-3 font-headline-md text-[12px] text-on-surface font-semibold max-w-[220px] truncate">${c.title}</td>
+						<td class="py-3.5 px-3 font-body-md text-[12px] text-on-surface-variant whitespace-nowrap">${displayName}</td>
+						<td class="py-3.5 px-3 text-right">
+							<span class="font-mono-technical text-[11px] font-bold px-2 py-0.5 rounded border ${scoreBadge}">${score}</span>
+						</td>
+						<td class="py-3.5 px-3 font-body-md text-[12px] text-on-surface-variant whitespace-nowrap">${c.assignee || 'Investigator'}</td>
+						<td class="py-3.5 px-3 text-right">
+							<div class="flex justify-end gap-2">
+								<button
+									class="bg-secondary hover:bg-secondary/90 text-white rounded px-3 py-1 font-mono-technical text-[10px] font-bold active:scale-95 transition-all"
+									onclick="resolveComplianceCase('${c.id}', 'File SAR')">
+									File SAR
+								</button>
+								<button
+									class="bg-transparent border border-outline-variant hover:border-secondary text-on-surface rounded px-3 py-1 font-mono-technical text-[10px] active:scale-95 transition-all"
+									onclick="resolveComplianceCase('${c.id}', 'Approve / Clear')">
+									Clear Case
+								</button>
+							</div>
+						</td>
+					</tr>
+				`;
+			});
+			tbody.innerHTML = rows.join('');
+		}
 
-                // Log a compliance decision and re-render.
-                // Preserved exactly from the original skeleton — calls MuleGuardStore.logComplianceDecision().
-                function resolveComplianceCase(caseId, action) {
-                        if (!window.MuleGuardStore) return;
-                        const rationale = action === 'File SAR'
-                                ? 'Suspicious activity report filed after comprehensive network audit.'
-                                : 'No structural anomaly verified. Account activity cleared.';
-                        window.MuleGuardStore.logComplianceDecision(caseId, action, rationale, 'A. Kumar');
-                        showToast(`Success: Decision logged on Case ${caseId} (${action}).`);
-                        renderEscalations();
-                }
+		let currentEscalatedCases = [];
+
+		async function resolveComplianceCase(caseId, action) {
+			if (window.MuleGuardAPI) {
+				try {
+					await MuleGuardAPI.resolveCase(caseId);
+					if (action === 'Approve / Clear' && MuleGuardAPI.createDecision) {
+						const caseObj = (currentEscalatedCases || []).find(c => c.id === caseId);
+						const accountId = caseObj ? (caseObj.primaryEntityId || caseObj.account_id || caseObj.accountId) : null;
+						if (accountId) {
+							try {
+								await MuleGuardAPI.createDecision(accountId, 'Clear', `Case ${caseId} cleared by Compliance Officer`, caseId);
+							} catch (decErr) {
+								console.warn('Non-blocking decision log notice:', decErr);
+							}
+						}
+						showToast(`Success: Case ${caseId} cleared and resolved in PostgreSQL.`);
+					} else {
+						showToast(`Success: Case ${caseId} resolved in PostgreSQL. Formal SAR filing pending backend endpoint.`);
+					}
+				} catch (err) {
+					console.error('Failed to resolve compliance case:', err);
+					showToast(`Resolution error: ${err.message}`);
+				}
+			}
+			await renderEscalations();
+		}
 
                 window.addEventListener('DOMContentLoaded', renderEscalations);
                 window.addEventListener('muleguard:transaction-ingested', renderEscalations);

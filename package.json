@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "python run.py",
-    "build:css": "tailwindcss -i ./frontend/input.css -o ./frontend/style.css --minify"
+    "build:css": "tailwindcss -i ./frontend/input.css -o ./frontend/style.css --minify",
+    "verify": "node scratch/verify_realtime_ingestion.js > verification_results.txt"
   },
   "devDependencies": {
     "@tailwindcss/container-queries": "^0.1.1",

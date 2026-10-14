@@ -12,7 +12,7 @@ conn = psycopg.connect(
     password=os.getenv("DATABASE_PASSWORD", ""),
 )
 
-print("✅ Connected to MuleGuard PostgreSQL!")
+print("[OK] Connected to MuleGuard PostgreSQL!")
 
 with conn.cursor() as cur:
     cur.execute("SELECT 1;")

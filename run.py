@@ -13,6 +13,8 @@ import subprocess
 # Ensure running inside project directory
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(PROJECT_DIR)
+if PROJECT_DIR not in sys.path:
+    sys.path.insert(0, PROJECT_DIR)
 
 # Auto-switch to .venv python if needed
 VENV_PYTHON = os.path.join(PROJECT_DIR, ".venv", "Scripts", "python.exe")
@@ -20,13 +22,8 @@ if os.path.exists(VENV_PYTHON):
     current_python = os.path.normpath(sys.executable).lower()
     venv_python_norm = os.path.normpath(VENV_PYTHON).lower()
     if current_python != venv_python_norm:
-        # Check if current python has uvicorn/fastapi, else re-exec
-        try:
-            import fastapi  # noqa
-            import uvicorn  # noqa
-        except ImportError:
-            print(f"[MuleGuard] Switching to virtualenv python: {VENV_PYTHON}")
-            sys.exit(subprocess.call([VENV_PYTHON] + sys.argv))
+        print(f"[MuleGuard] Switching to virtualenv python: {VENV_PYTHON}")
+        sys.exit(subprocess.call([VENV_PYTHON] + sys.argv))
 
 
 def is_port_in_use(port: int = 8000, host: str = "127.0.0.1") -> bool:
@@ -66,6 +63,8 @@ def free_port(port: int = 8000):
             if not is_port_in_use(port):
                 print(f"[MuleGuard] Port {port} successfully cleared.")
                 return
+    except subprocess.CalledProcessError:
+        pass
     except Exception as e:
         print(f"[MuleGuard] Notice during port clearance: {e}")
 

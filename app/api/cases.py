@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from psycopg.types.json import Jsonb
 
 from app.db.database import get_connection
@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.post("/from-alert/{alert_id}")
-def create_case_from_alert(alert_id: str):
+def create_case_from_alert(alert_id: str = Path(..., max_length=64, description="Target alert ID")):
     case_id = f"CASE-{uuid4().hex[:12].upper()}"
 
     with get_connection() as conn:
@@ -130,7 +130,10 @@ def create_case_from_alert(alert_id: str):
 
 
 @router.get("")
-def get_cases():
+def get_cases(
+    limit: int = Query(default=100, ge=1, le=500, description="Max cases to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -151,7 +154,9 @@ def get_cases():
                 LEFT JOIN accounts acc ON c.account_id = acc.id
                 LEFT JOIN customers cust ON acc.customer_id = cust.id
                 ORDER BY c.created_at DESC
-                """
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset),
             )
 
             rows = cur.fetchall()
@@ -180,7 +185,7 @@ def get_cases():
 
 
 @router.get("/{case_id}")
-def get_case(case_id: str):
+def get_case(case_id: str = Path(..., max_length=64, description="Target case ID")):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -288,15 +293,15 @@ def change_status(case_id: str, new_status: str):
 
 
 @router.patch("/{case_id}/investigate")
-def investigate_case(case_id: str):
+def investigate_case(case_id: str = Path(..., max_length=64, description="Target case ID")):
     return change_status(case_id, "Investigating")
 
 
 @router.patch("/{case_id}/escalate")
-def escalate_case(case_id: str):
+def escalate_case(case_id: str = Path(..., max_length=64, description="Target case ID")):
     return change_status(case_id, "Escalated")
 
 
 @router.patch("/{case_id}/resolve")
-def resolve_case(case_id: str):
+def resolve_case(case_id: str = Path(..., max_length=64, description="Target case ID")):
     return change_status(case_id, "Resolved")

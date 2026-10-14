@@ -9,10 +9,14 @@ Validates end-to-end institutional authentication directly via HTTP and database
 - Audit logging verification
 """
 
+import os
+import sys
 import json
 import urllib.request
 import urllib.error
 from http.cookiejar import CookieJar
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.db.database import get_connection
 from app.db.init_auth_db import generate_deterministic_vector
@@ -116,8 +120,9 @@ def test_auth_system():
     res_stg1 = client.request("POST", "/api/v1/auth/stage1-login", {"employee_id": "MG-INV-001", "password": "Password@123"})
     challenge2 = res_stg1["data"]["challenge"]
     
-    # Send a mismatched face vector
-    mismatched_vector = generate_deterministic_vector("MG-ADM-001")
+    # Send a mismatched face vector (inverted vector guarantees cosine similarity < threshold)
+    inv_base = generate_deterministic_vector("MG-INV-001")
+    mismatched_vector = [-x for x in inv_base]
     valid_liveness = {
         "action_performed": challenge2["challenge_action"],
         "confidence": 0.98,

@@ -642,14 +642,13 @@
 		// 2. Fetch authoritative data from PostgreSQL -> FastAPI
 		async function loadNetworksData() {
 			try {
+				const tbody = document.getElementById('networks-table-body');
+				if (tbody && (!networksDb || Object.keys(networksDb).length === 0)) {
+					tbody.innerHTML = '<tr><td colspan="10" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]"><div class="flex items-center justify-center gap-2"><span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span><span>Loading networks from PostgreSQL...</span></div></td></tr>';
+				}
 				let networksList = [];
 				if (window.MuleGuardAPI && typeof window.MuleGuardAPI.getNetworks === 'function') {
 					networksList = await window.MuleGuardAPI.getNetworks();
-				} else {
-					const res = await fetch('/api/v1/networks');
-					if (res.ok) {
-						networksList = await res.json();
-					}
 				}
 
 				if (Array.isArray(networksList) && networksList.length > 0) {

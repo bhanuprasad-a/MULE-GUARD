@@ -638,7 +638,7 @@
                                                         </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-[#f1f5f9]" id="transactions-tbody" aria-live="polite">
-													<!-- Populated dynamically from PostgreSQL via MuleGuardStore -->
+													<!-- Populated dynamically from PostgreSQL via MuleGuardAPI -->
 												</tbody>
                                         </table>
                                 </div>
@@ -873,167 +873,115 @@
 
         <!-- JS Filter / Details Workspace Core Logic -->
         <script>
-                // Transactions mock database records
-                const transactionsDb = {
-                        'TX-982741': {
-                                id: 'TX-982741',
-                                entity: 'Prakash Chatterjee',
-                                type: 'Cross-border Transfer',
-                                value: '₹1,27,500',
-                                amountNumeric: 127500,
-                                score: 91,
-                                time: '12 min ago',
-                                origin: 'Singapore',
-                                destination: 'India',
-                                status: 'Flagged',
-                                summary: 'Prakash Chatterjee initiated a cross-border wire transfer of ₹1,27,500 to beneficiary accounts in India. Anomaly alerts triggered based on high baseline velocity ratios.'
-                        },
-                        'TX-982736': {
-                                id: 'TX-982736',
-                                entity: 'Kalyan Chowdary',
-                                type: 'Wire Transfer',
-                                value: '₹86,200',
-                                amountNumeric: 86200,
-                                score: 78,
-                                time: '28 min ago',
-                                origin: 'London',
-                                destination: 'India',
-                                status: 'Under Review',
-                                summary: 'Frequent intermediate wiring setup initiated between Kalyan Chowdary branch accounts. Suspicious beneficiary account match triggered review.'
-                        },
-                        'TX-982728': {
-                                id: 'TX-982728',
-                                entity: 'Suresh Babu',
-                                type: 'Payment',
-                                value: '₹42,800',
-                                amountNumeric: 42800,
-                                score: 62,
-                                time: '41 min ago',
-                                origin: 'Dubai',
-                                destination: 'India',
-                                status: 'Normal',
-                                summary: 'Normal high-value import payment ledger setup for Suresh Babu. Account historically conducts transaction bounds of this magnitude.'
-                        },
-                        'TX-982714': {
-                                id: 'TX-982714',
-                                entity: 'Venkatesh Naidu',
-                                type: 'Cross-border Transfer',
-                                value: '₹3,12,400',
-                                amountNumeric: 312400,
-                                score: 96,
-                                time: '1 hr ago',
-                                origin: 'Hong Kong',
-                                destination: 'India',
-                                status: 'Critical',
-                                summary: 'Critical value threshold exceeded during offshore clearance wire routing. Beneficiary matching indicator linked to active blacklists.'
-                        },
-                        'TX-982705': {
-                                id: 'TX-982705',
-                                entity: 'Meridian Capital',
-                                type: 'Deposit',
-                                value: '₹94,600',
-                                amountNumeric: 94600,
-                                score: 45,
-                                time: '2 hrs ago',
-                                origin: 'New York',
-                                destination: 'India',
-                                status: 'Normal',
-                                summary: 'Standard clearing treasury deposit logged from Meridian Capital accounts. Value complies with standard corporate baselines.'
-                        },
-                        'TX-982698': {
-                                id: 'TX-982698',
-                                entity: 'Atlas Global Trading',
-                                type: 'Wire Transfer',
-                                value: '₹28,450',
-                                amountNumeric: 28450,
-                                score: 32,
-                                time: '3 hrs ago',
-                                origin: 'Singapore',
-                                destination: 'India',
-                                status: 'Normal',
-                                summary: 'Standard supplier payment wire matching normal business trade baselines for Atlas Global.'
-                        },
-                        'TX-982685': {
-                                id: 'TX-982685',
-                                entity: 'Vanguard Logistics',
-                                type: 'Payment',
-                                value: '₹15,600',
-                                amountNumeric: 15600,
-                                score: 18,
-                                time: '5 hrs ago',
-                                origin: 'Tokyo',
-                                destination: 'India',
-                                status: 'Normal',
-                                summary: 'Vanguard Logistics shipping clearing charge payment. Validated profile history matches perfectly.'
-                        },
-                        'TX-982672': {
-                                id: 'TX-982672',
-                                entity: 'Sri Venkateswara',
-                                type: 'Cross-border Transfer',
-                                value: '₹6,20,000',
-                                amountNumeric: 620000,
-                                score: 98,
-                                time: '8 hrs ago',
-                                origin: 'Zurich',
-                                destination: 'India',
-                                status: 'Blocked',
-                                summary: 'High risk wealth transfer block active. Destination beneficiary matched verified mule network accounts.'
-                        },
-                        'TX-982659': {
-                                id: 'TX-982659',
-                                entity: 'Phoenix Ventures',
-                                type: 'Payment',
-                                value: '₹1,05,300',
-                                amountNumeric: 105300,
-                                score: 75,
-                                time: '12 hrs ago',
-                                origin: 'Frankfurt',
-                                destination: 'India',
-                                status: 'Under Review',
-                                summary: 'Clearance bounds matched secondary flags. Assigned to analyst for manual invoice audit.'
-                        },
-                        'TX-982641': {
-                                id: 'TX-982641',
-                                entity: 'Swift Logistics Corp',
-                                type: 'Withdrawal',
-                                value: '₹38,200',
-                                amountNumeric: 38200,
-                                score: 52,
-                                time: '18 hrs ago',
-                                origin: 'Sydney',
-                                destination: 'India',
-                                status: 'Normal',
-                                summary: 'Corporate ATM vault withdrawal setup logged from Swift Logistics. Authenticated tokens match device baselines.'
-                        }
-                };
+                // Dynamic transactions database populated from PostgreSQL via MuleGuardAPI
+                let transactionsDb = {};
 
-                // Sync stateful transaction statuses from MuleGuardStore on load
-                if (window.MuleGuardStore) {
-                        const storeTxs = window.MuleGuardStore.getTransactions();
-                        storeTxs.forEach(t => {
-                                if (transactionsDb[t.id]) {
-                                        transactionsDb[t.id].status = t.status;
-                                        
-                                        // Update matching row elements status attributes dynamically
-                                        const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + t.id + "']");
-                                        if (row) {
-                                                row.setAttribute('data-status', t.status);
-                                                const statusBadge = row.querySelector('.status-badge-cell');
-                                                if (statusBadge) {
-                                                        statusBadge.textContent = t.status;
-                                                        if (t.status === 'Blocked') {
-                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
-                                                        } else if (t.status === 'Flagged') {
-                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200";
-                                                        } else if (t.status === 'Under Review') {
-                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200";
-                                                        } else {
-                                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200";
-                                                        }
-                                                }
-                                        }
+                function cacheDOMRows() {
+                        cachedRows = [];
+                        const rows = document.querySelectorAll('#transactions-tbody tr[data-txn-id]');
+                        rows.forEach(tr => {
+                                const id = tr.getAttribute('data-txn-id');
+                                const dbItem = transactionsDb[id];
+                                if (dbItem) {
+                                        cachedRows.push({
+                                                id: id.toLowerCase(),
+                                                entity: (dbItem.entity || '').toLowerCase(),
+                                                type: (dbItem.type || '').toLowerCase(),
+                                                valueString: (dbItem.value || '').toLowerCase(),
+                                                cleanValueString: String(dbItem.amountNumeric || '').toLowerCase(),
+                                                risk: dbItem.riskTier,
+                                                status: dbItem.status,
+                                                amountNumeric: dbItem.amountNumeric || 0,
+                                                element: tr
+                                        });
                                 }
                         });
+                }
+
+                async function renderTransactionsTable() {
+                        const tbody = document.getElementById('transactions-tbody');
+                        if (!tbody) return;
+
+                        try {
+                                const txList = await MuleGuardAPI.getTransactions({ limit: 100 });
+                                transactionsDb = {};
+
+                                if (!txList || txList.length === 0) {
+                                        tbody.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-on-surface-variant font-body-md text-[13px]">No transactions found in PostgreSQL ledger.</td></tr>`;
+                                        cachedRows = [];
+                                        recountSummaryCards();
+                                        return;
+                                }
+
+                                tbody.innerHTML = txList.map(t => {
+                                        const txId = t.id;
+                                        const amountNum = Number(t.amountNumeric || t.amount || 0);
+                                        const formattedVal = t.value || ('₹' + amountNum.toLocaleString('en-IN'));
+                                        const entityName = t.entity || t.sender_name || t.senderId || t.sender_account_id || 'Unknown';
+                                        const txType = t.type || t.transaction_type || 'Transfer';
+                                        const txStatus = t.status || 'Normal';
+                                        const txTime = t.time || (t.timestamp ? new Date(t.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent');
+                                        const originLoc = t.origin || 'Mumbai';
+                                        const destLoc = t.destination || 'Delhi';
+                                        const txScore = t.score !== undefined ? t.score : (t.riskScore !== undefined ? t.riskScore : (txStatus === 'Blocked' ? 95 : (txStatus === 'Flagged' ? 82 : (txStatus === 'Under Review' ? 68 : 24))));
+
+                                        let riskTier = 'Low';
+                                        if (txScore >= 90) riskTier = 'Critical';
+                                        else if (txScore >= 70) riskTier = 'High';
+                                        else if (txScore >= 50) riskTier = 'Medium';
+
+                                        const riskColor = riskTier === 'Critical' ? 'text-red-600 bg-red-50 border-red-200' :
+                                                (riskTier === 'High' ? 'text-orange-600 bg-orange-50 border-orange-200' :
+                                                (riskTier === 'Medium' ? 'text-yellow-600 bg-yellow-50 border-yellow-200' : 'text-blue-600 bg-blue-50 border-blue-200'));
+
+                                        const statusBadgeClass = txStatus === 'Blocked' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                (txStatus === 'Flagged' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                                                (txStatus === 'Under Review' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'));
+
+                                        transactionsDb[txId] = {
+                                                id: txId,
+                                                entity: entityName,
+                                                type: txType,
+                                                value: formattedVal,
+                                                amountNumeric: amountNum,
+                                                score: txScore,
+                                                time: txTime,
+                                                origin: originLoc,
+                                                destination: destLoc,
+                                                status: txStatus,
+                                                summary: t.summary || `${entityName} initiated ${txType} of ${formattedVal} (${originLoc} → ${destLoc}).`,
+                                                riskTier: riskTier
+                                        };
+
+                                        return `
+                                                <tr class="hover:bg-[#f0f7ff]/70 transition-colors duration-150 group cursor-pointer" data-txn-id="${txId}" data-risk="${riskTier}" data-status="${txStatus}" data-type="${txType.toLowerCase()}" onclick="rowClickAction(event, '${txId}')">
+                                                        <td class="py-3.5 px-4 font-mono-technical text-[13px] text-secondary font-bold hover:underline transition-all duration-150">${txId}</td>
+                                                        <td class="py-3.5 px-4 font-headline-md text-[13px] text-on-surface font-bold">${entityName}</td>
+                                                        <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">${txType}</td>
+                                                        <td class="py-3.5 px-4 font-mono-technical text-[13px] text-on-surface font-semibold text-right">${formattedVal}</td>
+                                                        <td class="py-3.5 px-4">
+                                                                <span class="font-mono-technical text-[12px] font-bold px-2 py-0.5 rounded border ${riskColor}">${txScore} / 100</span>
+                                                        </td>
+                                                        <td class="py-3.5 px-4 font-mono-technical text-[12px] text-on-surface-variant">${txTime}</td>
+                                                        <td class="py-3.5 px-4 font-body-md text-[13px] text-on-surface">${originLoc}</td>
+                                                        <td class="py-3.5 px-4">
+                                                                <span class="status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${statusBadgeClass}">${txStatus}</span>
+                                                        </td>
+                                                        <td class="py-3.5 px-4 text-right">
+                                                                <button class="inspect-btn text-[12px] font-bold text-secondary hover:text-secondary-container focus:outline-none inline-flex items-center gap-1 group/btn" onclick="openDetailDrawer('${txId}')">
+                                                                        Inspect <span class="inspect-arrow inline-block transition-transform duration-150">→</span>
+                                                                </button>
+                                                        </td>
+                                                </tr>
+                                        `;
+                                }).join('');
+
+                                cacheDOMRows();
+                                recountSummaryCards();
+                        } catch (err) {
+                                console.error('Failed to load transactions from PostgreSQL:', err);
+                                tbody.innerHTML = `<tr><td colspan="9" class="py-8 text-center text-risk-high font-body-md text-[13px]">Failed to load transactions from PostgreSQL: ${err.message}</td></tr>`;
+                        }
                 }
 
                 // Timeframe datasets for redrawing SVG chart paths
@@ -1288,58 +1236,10 @@
                 function submitConfirmModal() {
                         const txnId = pendingTxnId;
                         const action = pendingAction;
-                        const data = transactionsDb[txnId];
-
                         closeConfirmModal();
 
-                        if (action === 'Block') {
-                                data.status = 'Blocked';
-                                if (window.MuleGuardStore) {
-                                        window.MuleGuardStore.updateTransactionStatus(txnId, 'Blocked');
-                                }
-                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + txnId + "']");
-                                if (row) {
-                                        row.setAttribute('data-status', 'Blocked');
-                                        const statusBadge = row.querySelector('.status-badge-cell');
-                                        if (statusBadge) {
-                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200";
-                                                statusBadge.textContent = "Blocked";
-                                        }
-                                }
-                                showToast(`Success: Transaction ${txnId} blocked successfully.`);
-                        } else if (action === 'Flag') {
-                                data.status = 'Flagged';
-                                if (window.MuleGuardStore) {
-                                        window.MuleGuardStore.updateTransactionStatus(txnId, 'Flagged');
-                                }
-                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + txnId + "']");
-                                if (row) {
-                                        row.setAttribute('data-status', 'Flagged');
-                                        const statusBadge = row.querySelector('.status-badge-cell');
-                                        if (statusBadge) {
-                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200";
-                                                statusBadge.textContent = "Flagged";
-                                        }
-                                }
-                                showToast(`Success: Transaction ${txnId} flagged for review.`);
-                        } else if (action === 'Review') {
-                                data.status = 'Normal';
-                                if (window.MuleGuardStore) {
-                                        window.MuleGuardStore.updateTransactionStatus(txnId, 'Normal');
-                                }
-                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + txnId + "']");
-                                if (row) {
-                                        row.setAttribute('data-status', 'Normal');
-                                        const statusBadge = row.querySelector('.status-badge-cell');
-                                        if (statusBadge) {
-                                                statusBadge.className = "status-badge-cell px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-green-50 text-green-700 border border-green-200";
-                                                statusBadge.textContent = "Normal";
-                                        }
-                                }
-                                showToast(`Success: Transaction ${txnId} marked as normal.`);
-                        }
-
-                        applyWorkspaceFilters();
+                        // Blocker: No PATCH/PUT endpoint exists in the PostgreSQL backend API for transaction status modification
+                        showToast(`Status update to '${action}' for ${txnId} requires backend endpoint (Pending backend API implementation).`);
                 }
 
                 // Row click action
@@ -1533,31 +1433,10 @@
                         }
                 }
 
-                // Listen to live transaction ingestion events
+                // Real-time live ingestion sync from PostgreSQL
                 window.addEventListener('muleguard:transaction-ingested', () => {
-                        if (window.MuleGuardStore) {
-                                const storeTxs = window.MuleGuardStore.getTransactions();
-                                storeTxs.forEach(t => {
-                                        if (transactionsDb[t.id]) {
-                                                transactionsDb[t.id].status = t.status;
-                                                const row = document.querySelector("#transactions-tbody tr[data-txn-id='" + t.id + "']");
-                                                if (row) {
-                                                        row.setAttribute('data-status', t.status);
-                                                        const statusBadge = row.querySelector('.status-badge-cell');
-                                                        if (statusBadge) {
-                                                                statusBadge.textContent = t.status;
-                                                        }
-                                                }
-                                        }
-                                });
-                        }
-                        recountSummaryCards();
+                        renderTransactionsTable();
                 });
-        
-		// Real-time live ingestion sync
-		window.addEventListener('muleguard:transaction-ingested', () => {
-			renderTransactionsTable();
-		});
 </script>
 </body>
 

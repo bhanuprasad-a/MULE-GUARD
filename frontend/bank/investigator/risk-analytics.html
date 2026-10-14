@@ -320,7 +320,14 @@
                                                          </tr>
                                                 </thead>
                                                 <tbody id="risk-leaderboard-tbody" class="divide-y divide-[#f1f5f9]" aria-live="polite">
-                                                         <!-- Dynamically populated -->
+                                                        <tr id="risk-loading-row">
+                                                                <td colspan="9" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]">
+                                                                        <div class="flex items-center justify-center gap-2">
+                                                                                <span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span>
+                                                                                <span>Loading risk analytics from PostgreSQL...</span>
+                                                                        </div>
+                                                                </td>
+                                                        </tr>
                                                 </tbody>
                                         </table>
                                 </div>
@@ -375,6 +382,15 @@
                 }
 
                 async function renderRiskAnalytics() {
+                        const leaderboardTbody = document.getElementById("risk-leaderboard-tbody");
+                        if (leaderboardTbody) {
+                                leaderboardTbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-on-surface-variant font-body-md text-[13px]"><div class="flex items-center justify-center gap-2"><span class="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span><span>Loading risk analytics from PostgreSQL...</span></div></td></tr>`;
+                        }
+                        const ruleTbody = document.getElementById('rule-freq-tbody');
+                        if (ruleTbody) {
+                                ruleTbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-on-surface-variant font-body-md text-[11px]"><div class="flex items-center justify-center gap-1.5"><span class="w-3 h-3 border-2 border-secondary border-t-transparent rounded-full animate-spin"></span><span>Loading...</span></div></td></tr>`;
+                        }
+
                         let summary = null;
                         if (window.MuleGuardAPI && window.MuleGuardAPI.getRiskSummary) {
                                 try {
@@ -385,73 +401,13 @@
                         }
 
                         if (!summary) {
-                                let accounts = (window.MuleGuardStore && window.MuleGuardStore.getAccounts) ? window.MuleGuardStore.getAccounts() : null;
-                                if (!accounts || Object.keys(accounts).length === 0) {
-                                        if (typeof window !== 'undefined' && window.MuleGuardExpandedDB && window.MuleGuardExpandedDB.accounts) {
-                                                accounts = window.MuleGuardExpandedDB.accounts;
-                                        }
+                                console.error("Failed to load risk summary from PostgreSQL backend.");
+                                const tbody = document.getElementById("risk-leaderboard-tbody");
+                                if (tbody) {
+                                        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-on-surface-variant font-body-md">Unable to load risk summary from server. Please refresh or verify API connection.</td></tr>`;
                                 }
-                                const alerts = (window.MuleGuardStore && window.MuleGuardStore.getAlerts) ? window.MuleGuardStore.getAlerts() : (window.MuleGuardExpandedDB && window.MuleGuardExpandedDB.alerts ? window.MuleGuardExpandedDB.alerts : []);
-                                if (accounts && Object.keys(accounts).length > 0) {
-                                        const accountIds = Object.keys(accounts);
-                                        let criticalCnt = 0, highCnt = 0, modCnt = 0, lowCnt = 0;
-                                        let totalProb = 0;
-                                        const leaderboard = accountIds.map(id => {
-                                                const acc = accounts[id];
-                                                const risk = (window.MuleGuardStore && window.MuleGuardStore.predictAccountRisk) ? window.MuleGuardStore.predictAccountRisk(id) : null;
-                                        const prob = risk && typeof risk.probability === 'number' ? risk.probability : ((acc.riskScore || 0) / 100);
-                                        const score = Math.round(prob * 100);
-                                        totalProb += prob;
-                                        let tier = 'Low';
-                                        if (score >= 80) { tier = 'Critical'; criticalCnt++; }
-                                        else if (score >= 60) { tier = 'High'; highCnt++; }
-                                        else if (score >= 40) { tier = 'Moderate'; modCnt++; }
-                                        else { lowCnt++; }
-                                        return {
-                                                id: id,
-                                                name: acc.name,
-                                                account_type: acc.type || 'Savings',
-                                                balance: acc.balance || 0,
-                                                status: acc.status || 'Normal',
-                                                risk_score: score,
-                                                risk_probability: prob,
-                                                tier: tier,
-                                                triggers: acc.triggers || []
-                                        };
-                                }).sort((a, b) => b.risk_score - a.risk_score);
-
-                                const totalAccs = accountIds.length || 1;
-                                summary = {
-                                        total_accounts: totalAccs,
-                                        high_risk_accounts: criticalCnt + highCnt,
-                                        critical_accounts: criticalCnt,
-                                        high_accounts: highCnt,
-                                        moderate_accounts: modCnt,
-                                        low_risk_accounts: lowCnt,
-                                        active_alerts: alerts.length,
-                                        active_cases: 8,
-                                        avg_risk_probability: Math.round((totalProb / totalAccs) * 100),
-                                        tier_distribution: [
-                                                { tier: 'Critical', range: '80-100%', count: criticalCnt, percentage: Math.round((criticalCnt / totalAccs) * 100) },
-                                                { tier: 'High', range: '60-79%', count: highCnt, percentage: Math.round((highCnt / totalAccs) * 100) },
-                                                { tier: 'Moderate', range: '40-59%', count: modCnt, percentage: Math.round((modCnt / totalAccs) * 100) },
-                                                { tier: 'Low', range: '0-39%', count: lowCnt, percentage: Math.round((lowCnt / totalAccs) * 100) }
-                                        ],
-                                        detection_sources: { combined: 14, ml_only: 6, rule_only: 3 },
-                                        rule_triggers: [
-                                                { id: 'R-VEL-1', name: 'Velocity Spike (Inbound Degree)', count: 14 },
-                                                { id: 'R-HOLD-1', name: 'Short Holding Time Ratio', count: 12 },
-                                                { id: 'R-NET-1', name: 'Suspicious Component Connection', count: 9 },
-                                                { id: 'R-VAL-1', name: 'High-Value Shell Transfer', count: 8 },
-                                                { id: 'R-CIRC-1', name: 'Circular Money Flow', count: 6 },
-                                                { id: 'R-DORM-1', name: 'Dormant Account Activation', count: 5 }
-                                        ],
-                                        leaderboard: leaderboard
-                                };
-                                }
+                                return;
                         }
-
-                        if (!summary) return;
 
                         // 1. KPI Calculation — Derived consistently from PostgreSQL
                         document.getElementById('kpi-total-accounts').textContent = summary.total_accounts;
@@ -531,8 +487,7 @@
                         `;
 
                         // Rule Trigger Frequencies
-                        const ruleTbody = document.getElementById('rule-freq-tbody');
-                        ruleTbody.innerHTML = '';
+                        if (ruleTbody) ruleTbody.innerHTML = '';
                         (summary.rule_triggers || []).forEach(r => {
                                 ruleTbody.innerHTML += `
                                         <tr class="hover:bg-slate-50 transition-colors">
@@ -544,8 +499,11 @@
                         });
 
                         // 4. High-Risk Leaderboard Table — Derived from same dataset
-                        const leaderboardTbody = document.getElementById('risk-leaderboard-tbody');
-                        leaderboardTbody.innerHTML = '';
+                        if (leaderboardTbody) leaderboardTbody.innerHTML = '';
+
+                        if (!summary.leaderboard || summary.leaderboard.length === 0) {
+                                leaderboardTbody.innerHTML = `<tr><td colspan="9" class="py-16 text-center text-on-surface-variant font-body-md text-[13px] italic">No high-risk accounts currently flagged for analytics review.</td></tr>`;
+                        }
 
                         (summary.leaderboard || []).forEach(item => {
                                 const pct = Math.round(item.risk_score);
@@ -559,9 +517,7 @@
                                         ? (Array.isArray(item.triggers) ? item.triggers.join('; ') : item.triggers)
                                         : (item.risk_score >= 80 ? 'Velocity Spike; Component Connection' : (item.risk_score >= 50 ? 'Velocity Spike' : 'Baseline Profile'));
 
-                                const formattedBal = window.MuleGuardStore && window.MuleGuardStore.formatINR 
-                                        ? window.MuleGuardStore.formatINR(item.balance) 
-                                        : `₹${(item.balance || 0).toLocaleString('en-IN')}`;
+                                const formattedBal = `₹${Number(item.balance || 0).toLocaleString('en-IN')}`;
 
                                 let statusBadge = 'bg-slate-100 text-slate-700';
                                 if (item.status === 'Flagged' || item.status === 'Critical') statusBadge = 'bg-red-50 text-red-700 border-red-200';

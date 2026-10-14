@@ -17,6 +17,13 @@ from app.services.auth_service import (
 )
 from app.db.init_auth_db import generate_deterministic_vector
 from app.services.rate_limiter import check_auth_rate_limit
+from app.core.config import (
+    IS_PRODUCTION,
+    COOKIE_SECURE,
+    COOKIE_HTTPONLY,
+    COOKIE_SAMESITE,
+    SESSION_COOKIE_NAME,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
@@ -24,18 +31,18 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 # --- Schemas ---
 
 class Stage1LoginRequest(BaseModel):
-    employee_id: str = Field(..., description="Institutional Employee ID, e.g. MG-INV-001")
-    password: str = Field(..., description="Argon2id verified employee password")
+    employee_id: str = Field(..., max_length=64, description="Institutional Employee ID, e.g. MG-INV-001")
+    password: str = Field(..., max_length=128, description="Argon2id verified employee password")
 
 
 class LivenessProof(BaseModel):
-    action_performed: str = Field(..., description="Action completed, e.g. BLINK, TURN_HEAD, NOD")
+    action_performed: str = Field(..., max_length=64, description="Action completed, e.g. BLINK, TURN_HEAD, NOD")
     confidence: float = Field(default=0.95, ge=0.0, le=1.0)
     timestamps: list[float] = Field(default_factory=list)
 
 
 class Stage2BiometricRequest(BaseModel):
-    challenge_token: str = Field(..., description="Ephemeral token issued in Stage 1")
+    challenge_token: str = Field(..., max_length=128, description="Ephemeral token issued in Stage 1")
     image_base64: str | None = Field(default=None, description="Base64 encoded live camera JPEG/PNG frame")
     baseline_image_base64: str | None = Field(default=None, description="Base64 encoded baseline neutral camera frame")
     frames: list[str] | None = Field(default=None, description="Sequence of camera frames [baseline, action]")
@@ -44,14 +51,14 @@ class Stage2BiometricRequest(BaseModel):
 
 
 class EnrollFaceRequest(BaseModel):
-    employee_id: str = Field(..., description="Institutional Employee ID, e.g. MG-INV-001")
-    password: str = Field(..., description="Argon2id verified employee password")
+    employee_id: str = Field(..., max_length=64, description="Institutional Employee ID, e.g. MG-INV-001")
+    password: str = Field(..., max_length=128, description="Argon2id verified employee password")
     image_base64: str = Field(..., description="Base64 encoded JPEG/PNG frame captured from camera")
     target_all_roles: bool | None = Field(default=False, description="If true, enroll face for all three institutional personas")
 
 
 class DemoVectorRequest(BaseModel):
-    employee_id: str
+    employee_id: str = Field(..., max_length=64, description="Institutional Employee ID")
     noise_level: float = Field(default=0.0, ge=0.0, le=1.0, description="0.0 for exact match, >0.5 for mismatch")
 
 
@@ -128,6 +135,18 @@ def verify_face_stage2(req: Stage2BiometricRequest, request: Request, response: 
     Accepts live camera image sequence, baseline/action pair, single image, or probe vector.
     Issues secure HttpOnly session cookie on success.
     """
+    if IS_PRODUCTION:
+        if req.probe_vector is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Synthetic probe vectors are prohibited in production. Live camera capture is required."
+            )
+        if not req.image_base64 and not req.frames and not req.baseline_image_base64:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Live camera image or frame sequence is required for biometric authentication in production."
+            )
+
     ip = request.client.host if request.client else "127.0.0.1"
     ua = request.headers.get("user-agent", "")
     liveness_dict = req.liveness_proof.model_dump() if req.liveness_proof else None
@@ -157,12 +176,12 @@ def verify_face_stage2(req: Stage2BiometricRequest, request: Request, response: 
     # Set secure HttpOnly session cookie
     session_token = result.pop("session_token")
     response.set_cookie(
-        key="muleguard_sid",
+        key=SESSION_COOKIE_NAME,
         value=session_token,
         max_age=8 * 3600, # 8 hours
-        httponly=True,
-        samesite="lax",
-        secure=False # Set to True in production with HTTPS
+        httponly=COOKIE_HTTPONLY,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE
     )
 
     return result
@@ -251,7 +270,12 @@ def logout(
         ua = request.headers.get("user-agent", "")
         revoke_session(token, ip, ua)
 
-    response.delete_cookie(key="muleguard_sid")
+    response.delete_cookie(
+        key=SESSION_COOKIE_NAME,
+        httponly=COOKIE_HTTPONLY,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE
+    )
     return {"success": True, "message": "Successfully logged out."}
 
 
@@ -261,7 +285,13 @@ def get_demo_probe_vector(req: DemoVectorRequest):
     Helper for browser demo and automated testing to produce a normalized
     biometric vector matching the enrolled template for an employee.
     If noise_level > 0, introduces variance to simulate mismatch or low quality.
+    Disabled in production.
     """
+    if IS_PRODUCTION:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Demo biometric probe endpoint is disabled in production."
+        )
     clean_id = req.employee_id.strip()
     base_vec = None
 
@@ -317,7 +347,13 @@ def get_demo_probe_vector(req: DemoVectorRequest):
 def get_demo_sample_face():
     """
     Returns a base64 encoded face photo for one-click testing and demonstration.
+    Disabled in production.
     """
+    if IS_PRODUCTION:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Demo sample face endpoint is disabled in production."
+        )
     import os
     import base64
     candidate_paths = [

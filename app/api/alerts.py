@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from psycopg.types.json import Jsonb
 
 from app.db.database import get_connection
@@ -26,7 +26,7 @@ def get_severity(risk_score: float) -> str:
 
 
 @router.post("/analyze/{account_id}")
-def analyze_and_create_alert(account_id: str):
+def analyze_and_create_alert(account_id: str = Path(..., max_length=64, description="Target account ID")):
     try:
         result = analyze_account(account_id)
 
@@ -86,6 +86,11 @@ def analyze_and_create_alert(account_id: str):
 
             alert = cur.fetchone()
 
+            # Evaluate deterministic detection rules
+            from app.services.rule_engine import evaluate_rules_for_account
+            rule_eval = evaluate_rules_for_account(account_id, conn=conn)
+            triggered_rules = rule_eval.get("triggers", [])
+
             # Create audit log
             cur.execute(
                 """
@@ -114,6 +119,7 @@ def analyze_and_create_alert(account_id: str):
                             "risk_score": risk_score,
                             "prediction": result["prediction"],
                             "severity": severity,
+                            "triggered_rules": triggered_rules,
                         }
                     ),
                 ),
@@ -132,7 +138,10 @@ def analyze_and_create_alert(account_id: str):
 
 
 @router.get("")
-def get_alerts():
+def get_alerts(
+    limit: int = Query(default=100, ge=1, le=500, description="Max alerts to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -153,7 +162,9 @@ def get_alerts():
                 LEFT JOIN accounts acc ON a.account_id = acc.id
                 LEFT JOIN customers c ON acc.customer_id = c.id
                 ORDER BY a.created_at DESC
-                """
+                LIMIT %s OFFSET %s
+                """,
+                (limit, offset),
             )
 
             rows = cur.fetchall()
@@ -181,7 +192,7 @@ def get_alerts():
 
 
 @router.get("/{alert_id}")
-def get_alert(alert_id: str):
+def get_alert(alert_id: str = Path(..., max_length=64, description="Target alert ID")):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -234,7 +245,7 @@ def get_alert(alert_id: str):
 
 
 @router.patch("/{alert_id}/acknowledge")
-def acknowledge_alert(alert_id: str):
+def acknowledge_alert(alert_id: str = Path(..., max_length=64, description="Target alert ID")):
     with get_connection() as conn:
         with conn.cursor() as cur:
 

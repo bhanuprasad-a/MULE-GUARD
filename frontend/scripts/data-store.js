@@ -77,12 +77,12 @@
     // Default Seed Data - PostgreSQL Authoritative Indian Retail Universe
     const defaultDb = (typeof window !== 'undefined' && window.MuleGuardExpandedDB) ? window.MuleGuardExpandedDB : {
         rules: [
-            { id: 'R-VEL-1', name: 'Velocity Spike (Inbound Degree)', threshold: 5, unit: 'transfers/24h', description: 'Triggers when an account receives more than the threshold of inbound UPI transfers in a 24-hour period.', active: true },
-            { id: 'R-HOLD-1', name: 'Short Holding Time Ratio', threshold: 80, unit: '% ratio', description: 'Triggers when more than the threshold of received funds are transferred out of the account within 30 minutes.', active: true },
-            { id: 'R-NET-1', name: 'Suspicious Component Connection', threshold: 1, unit: 'hops', description: 'Triggers when a node has direct connection (shared device/IP/phone) to previously blocked/flagged fraud nodes.', active: true },
-            { id: 'R-VAL-1', name: 'High-Value Shell Transfer', threshold: 100000, unit: 'INR', description: 'Triggers on a transfer exceeding threshold from/to newly registered corporate shell entities.', active: true },
-            { id: 'R-CIRC-1', name: 'Circular Money Flow', threshold: 1, unit: 'cycles', description: 'Triggers when an account participates in a closed money flow loop of connected accounts.', active: true },
-            { id: 'R-DORM-1', name: 'Dormant Account Activation', threshold: 50000, unit: 'INR/24h', description: 'Triggers when a previously inactive/dormant account receives significant transaction volume within 24 hours.', active: true }
+            { id: 'R-VEL-1', name: 'Velocity Spike (Inbound Degree)', threshold: 5, unit: 'transfers/24h', description: 'Triggers when an account receives more than the threshold of inbound UPI transfers in a 24-hour period.', category: 'Velocity', active: true },
+            { id: 'R-AGG-1', name: 'Many-to-One Fund Aggregation', threshold: 3, unit: 'counterparties/24h', description: 'Triggers when an account receives funds from 3 or more distinct counterparty accounts within a rolling 24-hour window.', category: 'Aggregation', active: true },
+            { id: 'R-DIST-1', name: 'One-to-Many Fund Distribution', threshold: 3, unit: 'recipients/24h', description: 'Triggers when an account rapidly disperses incoming funds to 3 or more distinct recipient accounts within a rolling 24-hour window.', category: 'Distribution', active: true },
+            { id: 'R-HOLD-1', name: 'Short Holding Time Ratio', threshold: 80, unit: '% ratio', description: 'Triggers when more than the threshold of received funds are transferred out of the account within 30 minutes.', category: 'Rapid Movement', active: true },
+            { id: 'R-CIRC-1', name: 'Circular Money Flow', threshold: 1, unit: 'cycles', description: 'Triggers when an account participates in a closed money flow loop of connected accounts.', category: 'Network Topology', active: true },
+            { id: 'R-DORM-1', name: 'Dormant Account Activation', threshold: 50000, unit: 'INR/24h', description: 'Triggers when a previously inactive/dormant account receives significant transaction volume within 24 hours.', category: 'Behavioral Anomaly', active: true }
         ],
         accounts: {
             'ACC-982001': { id: 'ACC-982001', name: 'Sri Venkateswara Kirana & General Stores', type: 'Current', balance: 147939.55, riskScore: 20, status: 'Normal', created: '2024-07-19', phone: '+91 83321 81960', device: 'SAMSUNG_M34_5G', ip: '49.37.56.60', address: 'Shop No 33, Main Bazaar Road, Bengaluru, Karnataka - 560013' },
@@ -191,12 +191,12 @@
     };
 
     const REQUIRED_RULES = [
-        { id: 'R-VEL-1', name: 'Velocity Spike (Inbound Degree)', threshold: 5, unit: 'transfers/24h', description: 'Triggers when an account receives more than the threshold of inbound UPI transfers in a 24-hour period.', active: true },
-        { id: 'R-HOLD-1', name: 'Short Holding Time Ratio', threshold: 80, unit: '% ratio', description: 'Triggers when more than the threshold of received funds are transferred out of the account within 30 minutes.', active: true },
-        { id: 'R-NET-1', name: 'Suspicious Component Connection', threshold: 1, unit: 'hops', description: 'Triggers when a node has direct connection (shared device/IP/phone) to previously blocked/flagged fraud nodes.', active: true },
-        { id: 'R-VAL-1', name: 'High-Value Shell Transfer', threshold: 100000, unit: 'INR', description: 'Triggers on a transfer exceeding threshold from/to newly registered corporate shell entities.', active: true },
-        { id: 'R-CIRC-1', name: 'Circular Money Flow', threshold: 1, unit: 'cycles', description: 'Triggers when an account participates in a closed money flow loop of connected accounts.', active: true },
-        { id: 'R-DORM-1', name: 'Dormant Account Activation', threshold: 50000, unit: 'INR/24h', description: 'Triggers when a previously inactive/dormant account receives significant transaction volume within 24 hours.', active: true }
+        { id: 'R-VEL-1', name: 'Velocity Spike (Inbound Degree)', threshold: 5, unit: 'transfers/24h', description: 'Triggers when an account receives more than the threshold of inbound UPI transfers in a 24-hour period.', category: 'Velocity', active: true },
+        { id: 'R-AGG-1', name: 'Many-to-One Fund Aggregation', threshold: 3, unit: 'counterparties/24h', description: 'Triggers when an account receives funds from 3 or more distinct counterparty accounts within a rolling 24-hour window.', category: 'Aggregation', active: true },
+        { id: 'R-DIST-1', name: 'One-to-Many Fund Distribution', threshold: 3, unit: 'recipients/24h', description: 'Triggers when an account rapidly disperses incoming funds to 3 or more distinct recipient accounts within a rolling 24-hour window.', category: 'Distribution', active: true },
+        { id: 'R-HOLD-1', name: 'Short Holding Time Ratio', threshold: 80, unit: '% ratio', description: 'Triggers when more than the threshold of received funds are transferred out of the account within 30 minutes.', category: 'Rapid Movement', active: true },
+        { id: 'R-CIRC-1', name: 'Circular Money Flow', threshold: 1, unit: 'cycles', description: 'Triggers when an account participates in a closed money flow loop of connected accounts.', category: 'Network Topology', active: true },
+        { id: 'R-DORM-1', name: 'Dormant Account Activation', threshold: 50000, unit: 'INR/24h', description: 'Triggers when a previously inactive/dormant account receives significant transaction volume within 24 hours.', category: 'Behavioral Anomaly', active: true }
     ];
 
     function ensureDefaultRules(db) {
@@ -349,7 +349,35 @@
                     }
                 }
 
-                // Rule 3: Suspicious connection (R-NET-1)
+                // Rule 3: Many-to-One Fund Aggregation (R-AGG-1)
+                const ruleAgg = db.rules.find(r => r.id === 'R-AGG-1');
+                if (ruleAgg && ruleAgg.active) {
+                    const inbound24h = inboundTxs.filter(t => {
+                        const txMs = getTxEpochMs(t, nowMs);
+                        return (nowMs - txMs) <= rolling24hMs && (nowMs - txMs) >= 0;
+                    });
+                    const distinctSenders = new Set(inbound24h.map(t => t.senderId).filter(s => s && s !== accId));
+                    if (distinctSenders.size >= ruleAgg.threshold) {
+                        score += 20;
+                        triggers.push(`Many-to-One Aggregation: ${distinctSenders.size} distinct counterparties in 24h (threshold: ${ruleAgg.threshold})`);
+                    }
+                }
+
+                // Rule 4: One-to-Many Fund Distribution (R-DIST-1)
+                const ruleDist = db.rules.find(r => r.id === 'R-DIST-1');
+                if (ruleDist && ruleDist.active) {
+                    const outbound24h = outboundTxs.filter(t => {
+                        const txMs = getTxEpochMs(t, nowMs);
+                        return (nowMs - txMs) <= rolling24hMs && (nowMs - txMs) >= 0;
+                    });
+                    const distinctReceivers = new Set(outbound24h.map(t => t.receiverId).filter(r => r && r !== accId));
+                    if (distinctReceivers.size >= ruleDist.threshold) {
+                        score += 20;
+                        triggers.push(`One-to-Many Distribution: Dispersed to ${distinctReceivers.size} distinct recipients (threshold: ${ruleDist.threshold})`);
+                    }
+                }
+
+                // Legacy Demo Rule 3 fallback: Suspicious connection (R-NET-1)
                 const ruleNet = db.rules.find(r => r.id === 'R-NET-1');
                 if (ruleNet && ruleNet.active) {
                     let sharedBlock = false;
@@ -375,7 +403,7 @@
                     }
                 }
 
-                // Rule 4: High Value Shell (R-VAL-1)
+                // Legacy Demo Rule 4 fallback: High Value Shell (R-VAL-1)
                 const ruleVal = db.rules.find(r => r.id === 'R-VAL-1');
                 if (ruleVal && ruleVal.active) {
                     const highValTx = accountTxs.find(t => t.amountNumeric > ruleVal.threshold);

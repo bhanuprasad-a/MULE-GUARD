@@ -1,0 +1,31 @@
+# MuleGuard Production Backend Dependencies
+# Python >= 3.11, Verified on Python 3.13.7
+
+# 1. Web Framework, ASGI Server & Config
+fastapi==0.141.1
+uvicorn==0.52.4
+pydantic==2.13.5
+pydantic-settings==2.15.0
+python-dotenv==1.2.3
+
+# 2. Database Connection & Pooling (PostgreSQL 16+)
+psycopg==3.3.5
+psycopg-binary==3.3.5
+psycopg-pool==3.3.3
+
+# 3. Security, Authentication & Cryptography (Argon2id, AES-256-GCM)
+argon2-cffi==25.1.0
+cryptography==50.0.1
+
+# 4. Machine Learning & Statistical Inference (XGBoost 80-tree model, 26 features)
+numpy==2.5.2
+scipy==1.18.1
+scikit-learn==1.9.0
+xgboost==3.4.1
+pandas==3.0.5
+
+# 5. Computer Vision & Biometric FRS / Presentation Attack Detection (PAD)
+opencv-python==5.0.0.93
+
+# 6. Graph Analytics & Network Topology Engine
+networkx==3.7

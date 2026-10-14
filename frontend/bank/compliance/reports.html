@@ -347,9 +347,16 @@
                         }, 2800);
                 }
 
-                function renderAuditStream() {
-                        if (!window.MuleGuardStore) return;
-                        const logs = window.MuleGuardStore.getAuditLogs ? window.MuleGuardStore.getAuditLogs() : [];
+                async function renderAuditStream() {
+                        let logs = [];
+                        if (window.MuleGuardAPI && window.MuleGuardAPI.getAuditLogs) {
+                                try {
+                                        logs = await window.MuleGuardAPI.getAuditLogs();
+                                } catch (e) {
+                                        console.warn("Failed to fetch audit logs from MuleGuardAPI:", e);
+                                }
+                        }
+
                         const container = document.getElementById('audit-log-stream');
                         const kpiAuditCount = document.getElementById('kpi-audit-logs-count');
                         
@@ -359,15 +366,17 @@
                         container.innerHTML = '';
 
                         if (logs.length === 0) {
-                                container.innerHTML = `<p class="text-slate-500 italic">No audit log entries recorded in state layer.</p>`;
+                                container.innerHTML = `<p class="text-slate-500 italic">No audit log entries recorded in authoritative audit ledger.</p>`;
                                 return;
                         }
 
                         // Show recent 10 logs
                         const recent = logs.slice(0, 10);
                         recent.forEach(log => {
-                                const timeStr = typeof log === 'object' ? (log.timestamp || 'SYSTEM') : 'EVENT';
-                                const msgStr = typeof log === 'object' ? (log.action || log.message || JSON.stringify(log)) : String(log);
+                                const timeStr = typeof log === 'object' ? (log.created_at || log.timestamp || 'SYSTEM') : 'EVENT';
+                                const action = typeof log === 'object' ? (log.action || log.message || 'AUDIT') : String(log);
+                                const details = (typeof log === 'object' && log.details) ? (typeof log.details === 'object' ? JSON.stringify(log.details) : log.details) : '';
+                                const msgStr = details ? `${action} - ${details}` : action;
                                 container.innerHTML += `<div class="flex gap-2"><span class="text-cyan-400 font-bold">[${timeStr}]</span> <span class="text-slate-300">${msgStr}</span></div>`;
                         });
                 }

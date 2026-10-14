@@ -12,3 +12,7 @@ data/private/
 models/*.pkl
 models/*.joblib
 node_modules/
+scratch/*.png
+scratch/screenshots/
+scratch/*.txt
+verification_results.txt

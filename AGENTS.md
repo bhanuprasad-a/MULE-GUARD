@@ -19,6 +19,24 @@ data/                 # Model JSON, synthetic DB, experiment results
 scratch/              # Verification runner + Python migration scripts
 ```
 
+## Architectural Boundary & Source of Truth
+
+### Production Banking Data
+- **Source of Truth**: PostgreSQL → FastAPI (`app/api/*`) → `frontend/scripts/api.js` (`window.MuleGuardAPI`) → Production UI.
+- All production UI pages (Dashboards, Alerts, Cases, Decisions, Entities, Watchlists, Reports, Transactions, Risk Analytics, Network Intelligence) read exclusively from PostgreSQL via `window.MuleGuardAPI`.
+
+### Simulator & Verification Data
+- **In-Memory/Local State**: `frontend/scripts/data-store.js` + `frontend/scripts/synthetic_db_expanded.js`.
+- Used exclusively by the transaction simulator engine and integration test runners (`scratch/verify_realtime_ingestion.js`).
+- Never acts as the authoritative source of truth for production banking workflows.
+
+### Realtime Simulator Ingestion Flow
+```
+transaction-simulator.js → data-store.js → /transactions/ingest (POST /api/v1/transactions/ingest) → PostgreSQL
+```
+Live simulator streaming ingests transactions into the authoritative PostgreSQL backend, triggering database-level risk recalculation, alert generation, and audit logging.
+
+
 ## Key Files
 - `frontend/scripts/data-store.js` — Central state, ingestion, alerts, rules, audit logs
 - `frontend/scripts/xgboost-infer.js` — XGBoost model inference wrapper

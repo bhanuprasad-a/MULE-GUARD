@@ -227,6 +227,9 @@ function runTests() {
         { path: '/frontend/bank/compliance/alerts.html', role: 'bank_compliance', name: 'Compliance Alerts', user: 'A. Kumar', title: 'Senior Compliance Officer' },
         { path: '/frontend/bank/compliance/cases.html', role: 'bank_compliance', name: 'Compliance Cases', user: 'A. Kumar', title: 'Senior Compliance Officer' },
         { path: '/frontend/bank/compliance/network-intelligence.html', role: 'bank_compliance', name: 'Compliance Network Intelligence', user: 'A. Kumar', title: 'Senior Compliance Officer' },
+        { path: '/frontend/bank/compliance/regulatory-filings.html', role: 'bank_compliance', name: 'Compliance Regulatory Filings', user: 'A. Kumar', title: 'Senior Compliance Officer' },
+        { path: '/frontend/bank/compliance/audit-trail.html', role: 'bank_compliance', name: 'Compliance Audit Trail', user: 'A. Kumar', title: 'Senior Compliance Officer' },
+        { path: '/frontend/bank/compliance/watchlists.html', role: 'bank_compliance', name: 'Compliance Watchlists', user: 'A. Kumar', title: 'Senior Compliance Officer' },
         { path: '/frontend/internal/dashboard.html', role: 'internal_team', name: 'Internal Team Dashboard', user: 'T. Miller', title: 'Platform Operations Lead' }
     ];
 
@@ -258,13 +261,15 @@ function runTests() {
                 rendered.includes('id="nav-link-network-intelligence"')
             );
             assert(`${p.name} does NOT contain Compliance-only or Internal items`,
-                !rendered.includes('Regulatory Filings') && !rendered.includes('System Health')
+                !rendered.includes('Regulatory Filings') && !rendered.includes('Audit Trail') && !rendered.includes('System Health')
             );
         } else if (p.role === 'bank_compliance') {
-            assert(`${p.name} contains Compliance navigation (Dashboard, Decisions, Alerts, Cases, Filings)`,
+            assert(`${p.name} contains Compliance navigation (Dashboard, Decisions, Alerts, Cases, Filings, Audit Trail, Watchlist)`,
                 rendered.includes('id="nav-link-dashboard"') &&
                 rendered.includes('id="nav-link-decisions"') &&
-                rendered.includes('Regulatory Filings')
+                rendered.includes('id="nav-link-regulatory-filings"') &&
+                rendered.includes('id="nav-link-audit-trail"') &&
+                rendered.includes('id="nav-link-compliance-watchlist"')
             );
             assert(`${p.name} does NOT contain Internal-only items`,
                 !rendered.includes('AI / ML Models') && !rendered.includes('Synthetic Data')

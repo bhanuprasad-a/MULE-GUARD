@@ -7,6 +7,9 @@ and deterministic network risk scores directly from PostgreSQL accounts and tran
 
 from collections import defaultdict, deque
 import math
+import time
+import threading
+from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 from psycopg.rows import dict_row
 
@@ -659,3 +662,378 @@ def compute_network_intelligence(conn=None) -> Dict[str, Any]:
         }
 
     return networks
+
+
+# ==============================================================================
+# IN-PROCESS THREAD-SAFE GRAPH ENGINE TELEMETRY & CACHING
+# ==============================================================================
+
+_graph_telemetry_lock = threading.Lock()
+_graph_telemetry: Dict[str, Any] = {
+    "total_analyses": 0,
+    "successful_analyses": 0,
+    "failed_analyses": 0,
+    "latest_analysis_ts": None,
+    "latest_analysis_latency_ms": None,
+    "latencies": deque(maxlen=50),
+    "avg_analysis_latency_ms": 0.0,
+}
+
+_graph_cache_lock = threading.Lock()
+_cached_graph_data: Optional[Dict[str, Any]] = None
+_cached_graph_ts: float = 0.0
+GRAPH_CACHE_TTL_SECONDS: float = 60.0
+
+
+def reset_graph_telemetry_for_test():
+    """Deterministic reset of graph telemetry and cache for testing."""
+    global _cached_graph_data, _cached_graph_ts
+    with _graph_telemetry_lock:
+        _graph_telemetry["total_analyses"] = 0
+        _graph_telemetry["successful_analyses"] = 0
+        _graph_telemetry["failed_analyses"] = 0
+        _graph_telemetry["latest_analysis_ts"] = None
+        _graph_telemetry["latest_analysis_latency_ms"] = None
+        _graph_telemetry["latencies"].clear()
+        _graph_telemetry["avg_analysis_latency_ms"] = 0.0
+
+    with _graph_cache_lock:
+        _cached_graph_data = None
+        _cached_graph_ts = 0.0
+
+
+def get_graph_telemetry() -> Dict[str, Any]:
+    """Returns a snapshot copy of live in-process graph analysis telemetry."""
+    with _graph_telemetry_lock:
+        return {
+            "total_analyses": _graph_telemetry["total_analyses"],
+            "successful_analyses": _graph_telemetry["successful_analyses"],
+            "failed_analyses": _graph_telemetry["failed_analyses"],
+            "latest_analysis_ts": _graph_telemetry["latest_analysis_ts"],
+            "latest_analysis_latency_ms": _graph_telemetry["latest_analysis_latency_ms"],
+            "avg_analysis_latency_ms": _graph_telemetry["avg_analysis_latency_ms"],
+        }
+
+
+def analyze_graph_topology(conn=None, force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Executes real graph analysis over PostgreSQL accounts and transactions.
+    Calculates connected components, isolated accounts, fan-in/fan-out nodes,
+    cycle participation, multi-hop connectivity, concentration, and suspicious connections.
+    Thread-safely records analysis telemetry and caches results.
+    """
+    global _cached_graph_data, _cached_graph_ts
+
+    t0 = time.perf_counter()
+    should_close = False
+    if conn is None:
+        conn = get_connection()
+        should_close = True
+
+    try:
+        with conn.cursor(row_factory=dict_row) as cur:
+            # 1. Load accounts
+            cur.execute("""
+                SELECT id, account_type, status, balance
+                FROM accounts
+            """)
+            accounts_list = cur.fetchall()
+
+            # 2. Load transactions
+            cur.execute("""
+                SELECT 
+                    id,
+                    sender_account_id,
+                    receiver_account_id,
+                    amount,
+                    transaction_type,
+                    status,
+                    transaction_timestamp
+                FROM transactions
+                ORDER BY transaction_timestamp DESC
+            """)
+            tx_rows = cur.fetchall()
+
+        acc_map = {a["id"]: a for a in accounts_list}
+        undirected_adj = defaultdict(set)
+        directed_adj = defaultdict(set)
+        in_deg = defaultdict(int)
+        out_deg = defaultdict(int)
+        tx_amounts = defaultdict(float)
+        valid_txs = 0
+        suspicious_txs = 0
+        susp_statuses = {"Blocked", "Flagged", "Critical", "Under Review"}
+
+        for t in tx_rows:
+            s = t["sender_account_id"]
+            r = t["receiver_account_id"]
+            amt = float(t["amount"] or 0)
+            if s in acc_map and r in acc_map and s != r:
+                valid_txs += 1
+                undirected_adj[s].add(r)
+                undirected_adj[r].add(s)
+                directed_adj[s].add(r)
+                out_deg[s] += 1
+                in_deg[r] += 1
+                tx_amounts[s] += amt
+                if acc_map[s]["status"] in susp_statuses or acc_map[r]["status"] in susp_statuses:
+                    suspicious_txs += 1
+
+        # 3. Connected components (BFS)
+        visited = set()
+        components = 0
+        component_sizes = []
+        for a_id in acc_map:
+            if a_id not in visited:
+                components += 1
+                q = deque([a_id])
+                visited.add(a_id)
+                c_size = 1
+                while q:
+                    curr = q.popleft()
+                    for nxt in undirected_adj[curr]:
+                        if nxt not in visited:
+                            visited.add(nxt)
+                            c_size += 1
+                            q.append(nxt)
+                component_sizes.append(c_size)
+
+        isolated = sum(1 for a_id in acc_map if len(undirected_adj[a_id]) == 0)
+        fan_in = sum(1 for a_id in acc_map if in_deg[a_id] >= 3 and in_deg[a_id] >= 2 * max(1, out_deg[a_id]))
+        fan_out = sum(1 for a_id in acc_map if out_deg[a_id] >= 3 and out_deg[a_id] >= 2 * max(1, in_deg[a_id]))
+
+        # 4. Cycle participation (DFS depth 2 to 4)
+        cycle_nodes = set()
+        for start in acc_map:
+            if in_deg[start] > 0 and out_deg[start] > 0:
+                def dfs(curr, depth, visited_set):
+                    if depth > 4:
+                        return
+                    for nxt in directed_adj[curr]:
+                        if nxt == start and depth >= 2:
+                            cycle_nodes.add(start)
+                        elif nxt not in visited_set:
+                            visited_set.add(nxt)
+                            dfs(nxt, depth + 1, visited_set)
+                            visited_set.remove(nxt)
+                dfs(start, 1, {start})
+
+        # 5. Multi-hop reachability (>= 2 hops)
+        multi_hop_nodes = 0
+        for a_id in acc_map:
+            hop2 = set()
+            for n1 in directed_adj[a_id]:
+                for n2 in directed_adj[n1]:
+                    if n2 != a_id:
+                        hop2.add(n2)
+            if len(hop2) > 0:
+                multi_hop_nodes += 1
+
+        # 6. Network concentration (Top 5 senders volume share)
+        tot_vol = sum(tx_amounts.values())
+        top5_vol = sum(sorted(tx_amounts.values(), reverse=True)[:5])
+        conc_pct = round((top5_vol / tot_vol * 100), 2) if tot_vol > 0 else 0.0
+
+        # 7. Extract sanitized primary cluster sample for live topology visualization (Zero PII)
+        # Find highest-risk accounts participating in cycles or flagged
+        high_risk_seeds = [
+            a_id for a_id, a_data in acc_map.items()
+            if a_data["status"] in susp_statuses or a_id in cycle_nodes
+        ]
+        sample_nodes = []
+        sample_edges = []
+        sample_network_info = {
+            "network_id": "NET-TOPOLOGY-PRIMARY",
+            "network_name": "Active Layering Mesh",
+            "network_type": "Layering Loop" if cycle_nodes else "Multi-Hop Mesh",
+            "score": 92 if cycle_nodes else 75,
+            "status": "Critical" if any(acc_map[s]["status"] == "Critical" for s in high_risk_seeds) else "Flagged",
+        }
+
+        if high_risk_seeds:
+            primary_seed = high_risk_seeds[0]
+            # Collect up to 10 nodes around primary seed
+            subgraph_nodes = {primary_seed}
+            for neighbor in list(directed_adj[primary_seed])[:4]:
+                subgraph_nodes.add(neighbor)
+            for neighbor in [s for s, targets in directed_adj.items() if primary_seed in targets][:4]:
+                subgraph_nodes.add(neighbor)
+
+            # Build strictly sanitized nodes (NO passwords, NO phone, NO IP, NO customer names)
+            for n_id in subgraph_nodes:
+                n_data = acc_map[n_id]
+                role = (
+                    "Loop Participant" if n_id in cycle_nodes
+                    else "Fan-In Aggregator" if in_deg[n_id] >= 3 and in_deg[n_id] >= 2 * max(1, out_deg[n_id])
+                    else "Fan-Out Distributor" if out_deg[n_id] >= 3 and out_deg[n_id] >= 2 * max(1, in_deg[n_id])
+                    else "Intermediary Conduit" if in_deg[n_id] > 0 and out_deg[n_id] > 0
+                    else "Funds Sender" if out_deg[n_id] > 0
+                    else "Funds Receiver"
+                )
+                sample_nodes.append({
+                    "id": n_id,
+                    "label": n_id,
+                    "account_type": n_data["account_type"] or "Savings",
+                    "status": n_data["status"] or "Normal",
+                    "risk_score": 94 if n_data["status"] == "Critical" else 88 if n_data["status"] == "Flagged" else 72 if n_data["status"] == "Under Review" else 30,
+                    "role": role,
+                    "in_degree": in_deg[n_id],
+                    "out_degree": out_deg[n_id],
+                })
+
+            # Collect directed edges between subgraph nodes
+            edge_agg = defaultdict(lambda: {"amount": 0.0, "count": 0, "type": "Transfer"})
+            for t in tx_rows:
+                s = t["sender_account_id"]
+                r = t["receiver_account_id"]
+                if s in subgraph_nodes and r in subgraph_nodes and s != r:
+                    edge_agg[(s, r)]["amount"] += float(t["amount"] or 0)
+                    edge_agg[(s, r)]["count"] += 1
+                    edge_agg[(s, r)]["type"] = t["transaction_type"] or "Transfer"
+
+            for (s, r), e_info in edge_agg.items():
+                sample_edges.append({
+                    "source": s,
+                    "target": r,
+                    "amount": e_info["amount"],
+                    "amount_formatted": format_inr(e_info["amount"]),
+                    "count": e_info["count"],
+                    "type": e_info["type"],
+                })
+
+        latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        # Update telemetry
+        with _graph_telemetry_lock:
+            _graph_telemetry["total_analyses"] += 1
+            _graph_telemetry["successful_analyses"] += 1
+            _graph_telemetry["latest_analysis_ts"] = now_iso
+            _graph_telemetry["latest_analysis_latency_ms"] = latency_ms
+            _graph_telemetry["latencies"].append(latency_ms)
+            _graph_telemetry["avg_analysis_latency_ms"] = round(
+                sum(_graph_telemetry["latencies"]) / len(_graph_telemetry["latencies"]), 2
+            )
+
+        analysis_result = {
+            "total_account_nodes": len(acc_map),
+            "total_transaction_edges": valid_txs,
+            "connected_components": components,
+            "isolated_accounts": isolated,
+            "fan_in_nodes": fan_in,
+            "fan_out_nodes": fan_out,
+            "cycle_participation": len(cycle_nodes),
+            "multi_hop_connectivity": multi_hop_nodes,
+            "network_concentration": conc_pct,
+            "suspicious_connections": suspicious_txs,
+            "active_clusters": len([s for s in component_sizes if s >= 2]),
+            "analysis_latency_ms": latency_ms,
+            "sample_topology": {
+                **sample_network_info,
+                "nodes": sample_nodes,
+                "edges": sample_edges,
+            },
+        }
+
+        # Cache result
+        with _graph_cache_lock:
+            _cached_graph_data = analysis_result
+            _cached_graph_ts = time.time()
+
+        return analysis_result
+
+    except Exception as e:
+        with _graph_telemetry_lock:
+            _graph_telemetry["total_analyses"] += 1
+            _graph_telemetry["failed_analyses"] += 1
+        raise e
+    finally:
+        if should_close:
+            conn.close()
+
+
+def get_graph_health_report(force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Returns real runtime graph health telemetry and metrics from PostgreSQL.
+    Uses sensible caching to avoid expensive graph rebuilds during 10s dashboard polling.
+    """
+    global _cached_graph_data, _cached_graph_ts
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    # Fast lightweight connectivity verification to confirm PostgreSQL is healthy
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM accounts;")
+                live_nodes = cur.fetchone()[0]
+                cur.execute("SELECT COUNT(*) FROM transactions;")
+                live_edges = cur.fetchone()[0]
+    except Exception as e:
+        return {
+            "status": "Unavailable",
+            "source": "PostgreSQL",
+            "architecture": "PostgreSQL Directed Transaction Graph",
+            "timestamp": now_iso,
+            "last_graph_check": now_iso,
+            "analysis_status": "Failure",
+            "error": str(e),
+            "nodes_count": 0,
+            "edges_count": 0,
+            "metrics": {
+                "total_account_nodes": 0,
+                "total_transaction_edges": 0,
+                "connected_components": 0,
+                "isolated_accounts": 0,
+                "fan_in_nodes": 0,
+                "fan_out_nodes": 0,
+                "cycle_participation": 0,
+                "multi_hop_connectivity": 0,
+                "network_concentration": 0.0,
+                "suspicious_connections": 0,
+                "active_clusters": 0,
+            },
+            "telemetry": get_graph_telemetry(),
+            "sample_topology": {"nodes": [], "edges": []},
+        }
+
+    # Check cache validity
+    cache_valid = False
+    with _graph_cache_lock:
+        if _cached_graph_data is not None and not force_refresh:
+            if (time.time() - _cached_graph_ts) < GRAPH_CACHE_TTL_SECONDS:
+                cache_valid = True
+                metrics = dict(_cached_graph_data)
+
+    if not cache_valid:
+        metrics = analyze_graph_topology(force_refresh=force_refresh)
+
+    telemetry = get_graph_telemetry()
+
+    return {
+        "status": "Healthy",
+        "source": "PostgreSQL",
+        "architecture": "PostgreSQL Directed Transaction Graph",
+        "timestamp": now_iso,
+        "last_graph_check": now_iso,
+        "analysis_status": "Success",
+        "nodes_count": metrics["total_account_nodes"],
+        "edges_count": metrics["total_transaction_edges"],
+        "analysis_latency_ms": metrics["analysis_latency_ms"],
+        "avg_analysis_latency_ms": telemetry["avg_analysis_latency_ms"],
+        "metrics": {
+            "total_account_nodes": metrics["total_account_nodes"],
+            "total_transaction_edges": metrics["total_transaction_edges"],
+            "connected_components": metrics["connected_components"],
+            "isolated_accounts": metrics["isolated_accounts"],
+            "fan_in_nodes": metrics["fan_in_nodes"],
+            "fan_out_nodes": metrics["fan_out_nodes"],
+            "cycle_participation": metrics["cycle_participation"],
+            "multi_hop_connectivity": metrics["multi_hop_connectivity"],
+            "network_concentration": metrics["network_concentration"],
+            "suspicious_connections": metrics["suspicious_connections"],
+            "active_clusters": metrics["active_clusters"],
+        },
+        "telemetry": telemetry,
+        "sample_topology": metrics["sample_topology"],
+    }

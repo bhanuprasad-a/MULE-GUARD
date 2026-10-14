@@ -623,4 +623,12 @@
       requestAnimationFrame(tryInit);
     });
   }
+
+  // Also listen for window resize in case window starts narrow and is enlarged
+  window.addEventListener('resize', () => {
+    if (!initialized) {
+      retries = 0;
+      tryInit();
+    }
+  });
 })();
